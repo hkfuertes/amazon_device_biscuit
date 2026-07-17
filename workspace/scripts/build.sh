@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Build CM12 for Biscuit inside a stable named Docker container.
+# ponytail: no --rm so logs survive; remove old container first for idempotency.
+set -euo pipefail
+
+IMAGE="cm12-ubuntu14:latest"
+CONTAINER="cm12-biscuit-build"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+CM12_DIR="$REPO_ROOT/workspace/cm12"
+OUT_DIR="$CM12_DIR/out-docker"   # absolute, required by amonet remap
+
+# --- preflight: image must exist ---
+if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  echo "ERROR: Docker image '$IMAGE' not found."
+  echo "Build it first:"
+  echo "  docker build -t $IMAGE -f $REPO_ROOT/workspace/docker/cm12-ubuntu14.Dockerfile $REPO_ROOT/workspace/docker/"
+  exit 1
+fi
+
+# --- remove stale container (idempotent) ---
+if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
+  echo "Removing previous container '$CONTAINER'..."
+  docker rm -f "$CONTAINER" >/dev/null
+fi
+
+# --- run build (no --rm: keep logs) ---
+echo "Starting build in container '$CONTAINER'..."
+docker run \
+  --name "$CONTAINER" \
+  -v "$REPO_ROOT:$REPO_ROOT" \
+  -w "$CM12_DIR" \
+  "$IMAGE" \
+  bash -lc "
+    source build/envsetup.sh >/dev/null
+    lunch cm_biscuit-userdebug >/tmp/lunch.log
+    export OUT_DIR='$OUT_DIR'
+    export PATH=\"\$OUT_DIR/host/linux-x86/bin:\$PATH\"
+    make -j\$(nproc) otapackage
+  "
+
+echo "Build finished. Output: $OUT_DIR"
+echo "Logs: docker logs $CONTAINER"
