@@ -42,8 +42,8 @@ BOARD_MKBOOTIMG_ARGS    := \
     --ramdisk_offset $(BOARD_RAMDISK_OFFSET) \
     --tags_offset    $(BOARD_TAGS_OFFSET)
 
-# Kernel will be pre-built or built from Amazon source; path TBD in kernel issue.
-# TARGET_PREBUILT_KERNEL := $(LOCAL_PATH)/prebuilt/kernel
+# Kernel is built from Amazon Echo Dot 5.5.5.4 source by workspace/scripts/build-kernel.sh.
+TARGET_PREBUILT_KERNEL := $(LOCAL_PATH)/prebuilt/kernel
 
 # ── Partitions ───────────────────────────────────────────────────────────────
 # Sizes extracted from gpt-biscuit.bin (amonet v1.1.0, workspace/tools/).

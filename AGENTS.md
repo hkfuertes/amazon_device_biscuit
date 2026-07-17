@@ -5,6 +5,7 @@ Reglas para agentes en este repo.
 ## Referencias
 
 - Ayuda Amazon: https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480
+- Source Amazon Echo Dot 5.5.5.4: https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
 - Notas amonet Biscuit: `docs/amonet-biscuit-unlock.md`
 - amonet local ignorado por git: `workspace/tools/amonet-biscuit-v1.1.0/amonet`
 - amonet root-owned con sudo NOPASSWD solo para boot: `/opt/amonet-biscuit-v1.1.0/amonet`

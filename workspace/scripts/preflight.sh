@@ -3,12 +3,12 @@
 # No compilation. No flashing. Safe to re-run.
 #
 # Configuration (env vars or workspace/downloads/amazon-source.url):
-#   AMAZON_SOURCE_URL     — full HTTPS URL to the .tar.gz  (required)
-#   AMAZON_SOURCE_SHA256  — expected SHA-256 hex digest     (optional; computed & stored on first run)
+#   AMAZON_SOURCE_URL     — full HTTPS URL to the .tar.bz2  (required)
+#   AMAZON_SOURCE_SHA256  — expected SHA-256 hex digest      (optional; computed & stored on first run)
 #
 # Where to find the URL:
 #   https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480
-#   → "Echo Dot" → select "Echo Dot 5.5.5.4" → copy the .tar.gz link.
+#   Echo Dot 5.5.5.4 source: recorded in AGENTS.md
 #   Then: export AMAZON_SOURCE_URL="<paste>" or write it to workspace/downloads/amazon-source.url
 #
 # Flags:
@@ -34,8 +34,7 @@ fi
 if [[ -z "${AMAZON_SOURCE_URL:-}" ]]; then
   echo "ERROR: AMAZON_SOURCE_URL not set and $URL_FILE not found."
   echo ""
-  echo "Find the tarball at:"
-  echo "  https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480"
+  echo "Find the tarball URL in AGENTS.md (Amazon Echo Dot 5.5.5.4 source)."
   echo "Then either:"
   echo "  export AMAZON_SOURCE_URL=<url> && $0"
   echo "  echo '<url>' > $URL_FILE && $0"
@@ -97,7 +96,8 @@ else
     find "$UPSTREAM" -mindepth 1 -not -name '.gitkeep' -delete
   fi
   echo "Extracting $TARBALL → $UPSTREAM ..."
-  tar -xzf "$TARBALL" -C "$UPSTREAM"
+  # ponytail: -xjf for .tar.bz2; was -xzf (.tar.gz) — fixed to match Amazon tarball format
+  tar -xjf "$TARBALL" -C "$UPSTREAM"
   echo "$TARBALL_NAME" > "$SENTINEL"
   echo "Extraction complete. upstream is read-only source-of-truth — do not modify."
 fi

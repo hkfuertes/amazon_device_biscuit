@@ -3,5 +3,10 @@ workspace/downloads/
 workspace/tools/
 workspace/upstream/
 workspace/vendor/
+workspace/kernel-out/
+workspace/out/
 workspace/cm12/out*/
+workspace/device/amazon/biscuit/prebuilt/kernel
+workspace/device/amazon/biscuit/prebuilt/kernel.sha256
+workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt
 
