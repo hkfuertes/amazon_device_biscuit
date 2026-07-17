@@ -102,8 +102,29 @@ else
   echo "Extraction complete. upstream is read-only source-of-truth — do not modify."
 fi
 
+# ── 5. Symlink device tree into CM12 source tree ────────────────────────────
+CM12_DEVICE_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit"
+DEVICE_TREE="$REPO_ROOT/workspace/device/amazon/biscuit"
+if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
+  # CM12 source is present — create the symlink
+  mkdir -p "$(dirname "$CM12_DEVICE_DIR")"
+  if [[ -L "$CM12_DEVICE_DIR" ]]; then
+    echo "Device tree symlink already exists: $CM12_DEVICE_DIR"
+  elif [[ -d "$CM12_DEVICE_DIR" ]]; then
+    echo "WARNING: $CM12_DEVICE_DIR exists as a real directory; not overwriting."
+    echo "         Remove it manually and re-run preflight if you want the symlink."
+  else
+    ln -s "$DEVICE_TREE" "$CM12_DEVICE_DIR"
+    echo "Symlinked: $CM12_DEVICE_DIR -> $DEVICE_TREE"
+  fi
+else
+  echo "CM12 source not synced yet — skipping device tree symlink."
+  echo "After 'repo sync', re-run preflight.sh to create the symlink."
+fi
+
 echo ""
 echo "Preflight done."
 echo "  downloads: $DOWNLOADS"
 echo "  upstream:  $UPSTREAM"
+echo "  device tree: $DEVICE_TREE"
 echo "Next: workspace/scripts/build.sh"
