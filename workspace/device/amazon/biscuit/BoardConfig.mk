@@ -25,21 +25,23 @@ TARGET_NO_RADIOIMAGE            := true
 
 # ── Kernel ───────────────────────────────────────────────────────────────────
 # Kernel source is from Amazon Echo Dot 5.5.5.4 release tarball.
-# Offsets derived from MT8163 platform convention (amonet boot.hdr is the
-# exploit loader, not a stock CM12 boot image — verify offsets on first build).
+# Offsets match stock/sibling boot.img. Wrong offsets reset to preloader before ADB.
 TARGET_KERNEL_ARCH      := arm64
 BOARD_KERNEL_PAGESIZE   := 2048
 BOARD_KERNEL_BASE       := 0x40000000
-BOARD_KERNEL_OFFSET     := 0x00008000
-BOARD_RAMDISK_OFFSET    := 0x04f88000
-BOARD_TAGS_OFFSET       := 0x0df88000
+BOARD_KERNEL_OFFSET     := 0x00080000
+BOARD_RAMDISK_OFFSET    := 0x04000000
+BOARD_SECOND_OFFSET     := 0x00f00000
+BOARD_TAGS_OFFSET       := 0x08000000
 # ponytail: cmdline matches Amazon FireOS stock (64N2 = 64-bit normal world).
 # androidboot.selinux=permissive for bring-up; remove post-MVP.
 BOARD_KERNEL_CMDLINE    := bootopt=64S3,32N2,64N2 androidboot.selinux=permissive
 
 BOARD_MKBOOTIMG_ARGS    := \
+    --base           $(BOARD_KERNEL_BASE)    \
     --kernel_offset  $(BOARD_KERNEL_OFFSET)  \
     --ramdisk_offset $(BOARD_RAMDISK_OFFSET) \
+    --second_offset  $(BOARD_SECOND_OFFSET)  \
     --tags_offset    $(BOARD_TAGS_OFFSET)
 
 # Kernel is built from Amazon Echo Dot 5.5.5.4 source by workspace/scripts/build-kernel.sh.
@@ -60,6 +62,10 @@ BOARD_FLASH_BLOCK_SIZE              := 131072       # 128 KB (eMMC erase block)
 # ── Filesystems ──────────────────────────────────────────────────────────────
 TARGET_USERIMAGES_USE_EXT4          := true
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE   := ext4
+
+# ── Graphics ────────────────────────────────────────────────────────────────
+# libandroid_runtime references HWUI symbols even on this headless target.
+USE_OPENGL_RENDERER := true
 
 # ── SELinux ──────────────────────────────────────────────────────────────────
 # ponytail: permissive for bring-up; policy stubs added here when needed.

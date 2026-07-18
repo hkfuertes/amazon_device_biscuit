@@ -1,0 +1,24 @@
+on fs
+    symlink /dev/block/platform/soc /dev/block/platform/mtk-msdc.0
+    mount_all /fstab.mt8163
+
+on post-fs
+    swapon_all /fstab.mt8163
+    write /proc/sys/vm/page-cluster 0
+
+# ponytail: only stock A/B symlinks needed for bring-up; pull the full vendor init later if logs demand it.
+on property:ro.boot.slot_suffix=_a
+    symlink /dev/block/platform/soc/by-name/lk_b       /dev/block/other-lk
+    symlink /dev/block/platform/soc/by-name/boot_b_x   /dev/block/other-boot
+    symlink /dev/block/platform/soc/by-name/system_b   /dev/block/other-system
+    symlink /dev/block/platform/soc/by-name/lk_a       /dev/block/platform/soc/by-name/lk
+    symlink /dev/block/platform/soc/by-name/boot_a_x   /dev/block/platform/soc/by-name/boot
+    symlink /dev/block/platform/soc/by-name/system_a   /dev/block/platform/soc/by-name/system
+
+on property:ro.boot.slot_suffix=_b
+    symlink /dev/block/platform/soc/by-name/lk_a       /dev/block/other-lk
+    symlink /dev/block/platform/soc/by-name/boot_a_x   /dev/block/other-boot
+    symlink /dev/block/platform/soc/by-name/system_a   /dev/block/other-system
+    symlink /dev/block/platform/soc/by-name/lk_b       /dev/block/platform/soc/by-name/lk
+    symlink /dev/block/platform/soc/by-name/boot_b_x   /dev/block/platform/soc/by-name/boot
+    symlink /dev/block/platform/soc/by-name/system_b   /dev/block/platform/soc/by-name/system
