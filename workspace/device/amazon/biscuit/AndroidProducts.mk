@@ -1,2 +1,2 @@
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/cm_biscuit.mk
+    $(LOCAL_DIR)/cm.mk

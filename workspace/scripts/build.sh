@@ -8,6 +8,7 @@ CONTAINER="cm12-biscuit-build"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 CM12_DIR="$REPO_ROOT/workspace/cm12"
 OUT_DIR="$CM12_DIR/out-docker"   # absolute, required by amonet remap
+BUILD_TARGET="${BUILD_TARGET:-otapackage}"
 
 # --- preflight: image must exist ---
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
@@ -16,6 +17,10 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "  docker build -t $IMAGE -f $REPO_ROOT/workspace/docker/cm12-ubuntu14.Dockerfile $REPO_ROOT/workspace/docker/"
   exit 1
 fi
+
+# CM vendor packaging has a hardcoded out/ lookup even when OUT_DIR is set.
+# ponytail: symlink beats patching legacy CM makefiles.
+ln -sfn out-docker "$CM12_DIR/out"
 
 # --- remove stale container (idempotent) ---
 if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
@@ -35,8 +40,8 @@ docker run \
     lunch cm_biscuit-userdebug >/tmp/lunch.log
     export OUT_DIR='$OUT_DIR'
     export PATH=\"\$OUT_DIR/host/linux-x86/bin:\$PATH\"
-    make -j\$(nproc) otapackage
+    make -j\$(nproc) '$BUILD_TARGET'
   "
 
-echo "Build finished. Output: $OUT_DIR"
+echo "Build finished ($BUILD_TARGET). Output: $OUT_DIR"
 echo "Logs: docker logs $CONTAINER"

@@ -102,24 +102,26 @@ else
   echo "Extraction complete. upstream is read-only source-of-truth — do not modify."
 fi
 
-# ── 5. Symlink device tree into CM12 source tree ────────────────────────────
+# ── 5. Link device tree into CM12 source tree ───────────────────────────────
 CM12_DEVICE_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit"
 DEVICE_TREE="$REPO_ROOT/workspace/device/amazon/biscuit"
 if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
-  # CM12 source is present — create the symlink
-  mkdir -p "$(dirname "$CM12_DEVICE_DIR")"
+  # CM12 uses find(1) for device/*/<name>/cm.mk and find does not descend into
+  # symlinked directories, so use a real ignored dir with symlinked contents.
+  mkdir -p "$CM12_DEVICE_DIR"
   if [[ -L "$CM12_DEVICE_DIR" ]]; then
-    echo "Device tree symlink already exists: $CM12_DEVICE_DIR"
-  elif [[ -d "$CM12_DEVICE_DIR" ]]; then
-    echo "WARNING: $CM12_DEVICE_DIR exists as a real directory; not overwriting."
-    echo "         Remove it manually and re-run preflight if you want the symlink."
-  else
-    ln -s "$DEVICE_TREE" "$CM12_DEVICE_DIR"
-    echo "Symlinked: $CM12_DEVICE_DIR -> $DEVICE_TREE"
+    rm "$CM12_DEVICE_DIR"
+    mkdir -p "$CM12_DEVICE_DIR"
   fi
+  find "$CM12_DEVICE_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+  for entry in "$DEVICE_TREE"/* "$DEVICE_TREE"/.??*; do
+    [[ -e "$entry" ]] || continue
+    ln -s "$entry" "$CM12_DEVICE_DIR/$(basename "$entry")"
+  done
+  echo "Linked device tree contents into: $CM12_DEVICE_DIR"
 else
-  echo "CM12 source not synced yet — skipping device tree symlink."
-  echo "After 'repo sync', re-run preflight.sh to create the symlink."
+  echo "CM12 source not synced yet — skipping device tree link."
+  echo "After 'repo sync', re-run preflight.sh to create the link farm."
 fi
 
 echo ""
