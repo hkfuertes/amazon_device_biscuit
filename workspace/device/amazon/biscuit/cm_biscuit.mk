@@ -1,11 +1,8 @@
 # CyanogenMod 12 product definition — Amazon Biscuit (Echo Dot 2nd gen)
 
-$(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
-$(call inherit-product, $(SRC_TARGET_DIR)/product/core_minimal.mk)
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
+$(call inherit-product, vendor/cm/config/common.mk)
 $(call inherit-product, device/amazon/biscuit/device.mk)
-
-PRODUCT_RUNTIMES := runtime_libart_default
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.zygote=zygote64_32
 
 PRODUCT_NAME         := cm_biscuit
 PRODUCT_DEVICE       := biscuit
