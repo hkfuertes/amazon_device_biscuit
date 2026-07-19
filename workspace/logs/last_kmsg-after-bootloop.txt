@@ -1,0 +1,659 @@
+ram console header, hw_status: 2, fiq step 0.
+e:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state extamp-dacmux-pulllow fail -19
+[    0.924460] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state i2s-mclk fail -19
+[    0.925674] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state lineout-off-pullhigh fail -19
+[    0.927020] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state lineout-on-pulllow fail -19
+[    0.928453] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_I2S_Select: Playback_Audio I2S_Enable=0 ret=0
+[    1.259706] <1> (1)[1:swapper/0][name:amzn_mt_spi&]amzn_mt_spi_probe: FPGA Revision = 34
+[    1.260739] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_I2S_Select: Playback_Audio I2S_Enable=1 ret=0
+[    1.369303] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state default fail -19
+[    1.370506] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state extamp-gain0 fail -19
+[    1.371761] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state extamp-gain1 fail -19
+[    1.373018] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state extamp-gain2 fail -19
+[    1.374276] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state extamp-gain3 fail -19
+[    1.375535] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state hpspk-pullhigh fail -19
+[    1.376814] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state hpspk-pulllow fail -19
+[    1.378101] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state hpamp-pullhigh fail -19
+[    1.379375] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state hpamp-pulllow fail -19
+[    1.380644] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state i2s-mclk fail -19
+[    1.381858] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state lineout-off-pullhigh fail -19
+[    1.383210] <1> (1)[1:swapper/0][name:AudDrv_Gpio&]AudDrv_GPIO_probe pinctrl_lookup_state lineout-on-pulllow fail -19
+[    1.390876] [name:mt_amzn_mclk&]pm_runtime_enable(ISP)
+[    1.391489] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]pm_runtime_get_sync(ISP)[    1.392429] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_snd_init card addr = ffffffc000c6aa68
+[    1.393698] <1> (1)[1:swapper/0]soc-audio soc-audio: ASoC: machine mt-snd-card should use snd_soc_register_card()
+[    1.395483] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: no source widget found for SPEAKER PGA
+[    1.396651] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to add route SPEAKER PGA -> Voice Mux -> VOICE_Mux_E
+[    1.398229] <1> (1)[1:swapper/0][name:domain&]audio: Power-off latency exceeded, new value 4846 ns
+[    1.399349] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: no source widget found for SPEAKER PGA
+[    1.400516] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to add route SPEAKER PGA -> Voice Mux -> VOICE_Mux_E
+[    1.402974] <1> (1)[1:swapper/0]soc-audio soc-audio: control 2:0:0:cmb stub Audio Control:0 is already present
+[    1.404219] <1> (1)[1:swapper/0]mt-soc-fm-i2s-pcm mt-soc-fm-i2s-pcm: ASoC: Failed to add cmb stub Audio Control: -16
+[    1.405644] <1> (1)[1:swapper/0][name:snd_soc_tlv320aic32x4&]aic32x4: aic32x4_probe
+[    1.412850] <1> (1)[1:swapper/0]tlv320aic32x4 2-0018: aic32x4_set_bias_level bias=1
+[    1.462299] <1> (1)[1:swapper/0][name:amzn_mt_spi&]amzn_asoc_capt_probe
+[    1.463159] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.464093] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-tx-dai <-> mt-soc-dl1dai-driver mapping ok
+[    1.465312] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.466222] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-rx-dai <-> mt-soc-ul1dai-driver mapping ok
+[    1.467454] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.468400] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-voicemd1-dai <-> mt-soc-voicemd1dai-driver mapping ok
+[    1.469739] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.470685] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-hdmi-dummy-dai-codec <-> mt-soc-hdmidai-driver mapping ok
+[    1.472002] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.472946] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-uldlloopback-dai <-> mt-soc-uldlloopbackdai-driver mapping ok
+[    1.474371] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.475321] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-i2s0-dummy-dai-codec <-> mt-soc-i2s0dai-driver mapping ok
+[    1.476638] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.477595] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-mrgrx-dai-codec <-> mt-soc-mrgrxdai-driver mapping ok
+[    1.478869] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.479815] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-mrgrx-dummy-dai-codec <-> mt-soc-mrgrxdai-driver mapping ok
+[    1.481154] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.482070] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-I2s0tx-dai <-> mt-soc-i2s0dl1dai-driver mapping ok
+[    1.483376] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.484291] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-dl1awb-dai <-> mt-soc-dl1awbdai-driver mapping ok
+[    1.485586] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.486497] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-voicemd1-bt-dai <-> mt-soc-voicemd1-btdai-driver mapping ok
+[    1.487913] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.488817] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-voipcall-btout-dai <-> mt-soc-voipcall-btdai-out-driver mapping ok
+[    1.490297] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.491218] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-voipcall-btin-dai <-> mt-soc-voipcall-btdai-in-driver mapping ok
+[    1.492676] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.493588] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-tdmrx-dai-codec <-> mt-soc-tdmrxdai-driver mapping ok
+[    1.494862] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.495773] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-fmmrg2tx-dummy-dai-codec <-> mt-soc-fmmrgtxdai-driver mapping ok
+[    1.497166] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.498091] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-rx-dai2 <-> mt-soc-ul2dai-driver mapping ok
+[    1.499321] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.500236] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-i2s0awb-dai <-> mt-soc-i2s0awbdai-driver mapping ok
+[    1.501553] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.502506] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-voicemd2-dai <-> mt-soc-voicemd2dai-driver mapping ok
+[    1.503845] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init2
+[    1.504769] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-dummy-dai-codec <-> Routing-Control mapping ok
+[    1.505966] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.506878] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-voicemd2-bt-dai <-> mt-soc-voicemd2-btdai-driver mapping ok
+[    1.508294] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.509202] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-codec-hp-impedance-dai <-> mt-soc-hpimpedancedai-driver mapping ok
+[    1.510617] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.511568] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-fm-i2s-dai-codec <-> mt-soc-fmi2S-driver mapping ok
+[    1.512820] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.513769] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-fm-i2s-dummy-dai-codec <-> mt-soc-fmi2S-driver mapping ok
+[    1.515086] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init_tlv
+[    1.516201] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_platform_device: of_find_compatible_node(mediatek,mt8163-ispsys) success !!
+[    1.517951] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]isp_clk_enable: enable=1
+[    1.518820] [name:mt_amzn_mclk&]ISP power/clock on by PM ==>
+[    1.519650] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_platform_device: of_find_compatible_node(mediatek,mt8163-ispsys) success !!
+[    1.521236] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]load_base_addr: i=0, PA(0x15004000) map_VA=0xffffff8000410000
+[    1.522526] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]load_base_addr: i=1, PA(0x15000000) map_VA=0xffffff8000420000
+[    1.523831] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]load_base_addr: i=2, PA(0x10217000) map_VA=0xffffff800041c000
+[    1.525138] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_platform_device: of_find_compatible_node(mediatek,mt8163-scpsys) success !!
+[    1.526671] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_nodeVA: (mediatek,mt8163-scpsys)ret_baseaddr PA=0x10006000, VA = 0xffffff800040e000
+[    1.528317] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_platform_device: of_find_compatible_node(mediatek,mt8163-ddrphy) success !!
+[    1.529846] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_nodeVA: (mediatek,mt8163-ddrphy)ret_baseaddr PA=0x1000f000, VA = 0xffffff800041a000
+[    1.531437] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]mclk_enable_reg: reg=ffffff8000414200 curr=0 en=1
+[    1.532705] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]of_get_platform_device: of_find_compatible_node(mediatek,mt8163-camera_hw) success !!
+[    1.534298] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]ccf_clk_enable: enable=1
+[    1.535204] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]mclk_enable_reg: reg=ffffff8000414200 curr=20000000 en=1
+[    1.536423] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]mclk_divider_reg: clk divider cnt=4 clkf_pol=1 clkf_edge=2
+[    1.537686] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: PH_CNT=ffffff8000414200 READ=0xa0000005, SEN_Ck=ffffff8000414204 READ=0x40002
+[    1.539297] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: [MTCMOS CHECK]===> [0x1000660c]=0x2effffa ,[0x10006610]=0x2effffa
+[    1.540783] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: [VENCPLL CHECK]===> [0x1000F800]=0xa120 [0x1000F80c]=0x2
+[    1.542170] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: [IMG_CG_CON CHECK]===> [0xffffff8000420000]=0xe
+[    1.543461] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: [0] TOP_CAMTG_SEL Freq = 48000000
+[    1.544599] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: [1] TOP_UNIVPLL_D26 Freq = 48000000
+[    1.545760] <1> (1)[1:swapper/0][name:mt_amzn_mclk&]register_dump: [2] TOP_UNIVPLL2_D2 Freq = 208000000
+[    1.547032] <1> (1)[1:swapper/0]soc-audio soc-audio: tlv320aic32x4-hifi <-> mt-soc-dl1dai-driver mapping ok
+[    1.548348] <1> (1)[1:swapper/0][name:amzn_mt_spi&]amzn_mt_spi_pcm_new
+[    1.549265] <1> (1)[1:swapper/0]soc-audio soc-audio: tlv320aic3101-codec <-> amzn-mt-spi-pcm mapping ok
+[    1.550431] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_audio_init
+[    1.551343] <1> (1)[1:swapper/0]soc-audio soc-audio: mt-soc-dummy-dai-codec <-> mt-soc-dl1dai-driver mapping ok
+[    1.565929] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create Voice_MD1_PLayback debugfs file
+[    1.567366] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create Voice_MD2_PLayback debugfs file
+[    1.568838] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create MultiMedia_Routing debugfs file
+[    1.570247] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create MultiMedia_Routing debugfs file
+[    1.571664] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create HMDI_PLayback debugfs file
+[    1.573025] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create I2S0_PLayback debugfs file
+[    1.574386] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create MRGRX_PLayback debugfs file
+[    1.575771] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create ANC_Debug_Record_MOD debugfs file
+[    1.577208] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create ANC_Debug_Record_ADC2 debugfs file
+[    1.578670] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create ANC_Debug_Record_IO2 debugfs file
+[    1.580108] <1> (1)[1:swapper/0]mt-soc-dummy-codec mt-soc-dummy-codec: ASoC: Failed to create FM_I2S_Playback debugfs file
+[    1.581568] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create Voice_MD1_PLayback debugfs file
+[    1.582863] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create Voice_MD2_PLayback debugfs file
+[    1.584167] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create ULDL_Loopback debugfs file
+[    1.585411] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create MRGRX_PLayback debugfs file
+[    1.586659] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create FM_I2S_Playback debugfs file
+[    1.587936] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create SPEAKER debugfs file
+[    1.589095] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create HEADSET debugfs file
+[    1.590255] <1> (1)[1:swapper/0]mt-soc-codec mt-soc-codec: ASoC: Failed to create EARPIECE debugfs file
+[    1.591455] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create HMDI_PLayback debugfs file
+[    1.592838] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create Voice_MD1_PLayback debugfs file
+[    1.594232] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create Voice_MD2_PLayback debugfs file
+[    1.595626] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create ULDL_Loopback debugfs file
+[    1.596965] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create I2S0_PLayback debugfs file
+[    1.598346] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create MRGRX_PLayback debugfs file
+[    1.599697] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create MRGRX_CAPTURE debugfs file
+[    1.601082] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create FM_I2S_Playback debugfs file
+[    1.602444] <1> (1)[1:swapper/0]mt-soc-dai-driver mt-soc-dai-driver: ASoC: Failed to create FM_I2S_Capture debugfs file
+[    1.611980] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_snd_init dai_link = ffffffc000c6aec0
+[    1.613084] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_snd_init dai_link -----
+[    1.614280] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_get_dts_data: No MCLK frequency in dts. Using default
+[    1.615567] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_get_dts_data: amp_fault pin info not found!
+[    1.616746] <1> (1)[1:swapper/0][name:mt_soc_machine&]mt_soc_get_dts_data: MCLK frequency = 9600000
+[    1.617925] <1> (1)[1:swapper/0][name:drop_monitor&]drop_monitor: Initializing network drop monitor service
+[    1.619203] <1> (1)[1:swapper/0][name:act_mirred&]Mirror/redirect action on
+[    1.620083] <1> (1)[1:swapper/0][name:cls_u32&]u32 classifier
+[    1.620789] <1> (1)[1:swapper/0][name:cls_u32&]    Performance counters on
+[    1.621647] <1> (1)[1:swapper/0][name:cls_u32&]    input device check on
+[    1.622482] <1> (1)[1:swapper/0][name:cls_u32&]    Actions configured
+[    1.623298] <1> (1)[1:swapper/0][name:nfnetlink&]Netfilter messages via NETLINK v0.30.
+[    1.624326] <1> (1)[1:swapper/0]nf_conntrack version 0.5.0 (3770 buckets, 15080 max)
+[    1.625550] <1> (1)[1:swapper/0][name:nf_conntrack_netlink&]ctnetlink v0.93: registering with nfnetlink.
+[    1.627110] <1> (1)[1:swapper/0]xt_time: kernel timezone is -0000
+[    1.627983] <1> (1)[1:swapper/0][name:ipip&]ipip: IPv4 over IPv4 tunneling driver
+[    1.629517] <1> (1)[1:swapper/0][name:ip_tables&]ip_tables: (C) 2000-2006 Netfilter Core Team
+[    1.630704] <1> (1)[1:swapper/0]arp_tables: (C) 2002 David S. Miller
+[    1.631509] <1> (1)[1:swapper/0][name:tcp_cong&]TCP: cubic registered
+[    1.633812] <0> (0)[1:swapper/0][name:mip6&]mip6: Mobile IPv6
+[    1.634550] <0> (0)[1:swapper/0][name:ip6_tables&]ip6_tables: (C) 2000-2006 Netfilter Core Team
+[    1.635779] <0> (0)[1:swapper/0][name:sit&]sit: IPv6 over IPv4 tunneling driver
+[    1.637718] <0> (0)[1:swapper/0][name:bridge&]bridge: automatic filtering via arp/ip/ip6tables has been deprecated. Update your scripts to load br_netfilter if you need this.
+[    1.639669] <0> (0)[1:swapper/0][name:8021q&]8021q: 802.1Q VLAN Support v1.8
+[    1.641070] <0> (0)[1:swapper/0][name:armv8_deprecated&]Registered cp15_barrier emulation handler
+[    1.642182] <0> (0)[1:swapper/0][name:armv8_deprecated&]Registered setend emulation handler
+[    1.644898] <2> (2)[1:swapper/0][name:key&]Key type encrypted registered
+[    1.646015] <2> (2)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [ERROR]cpufreq_apmixed_base = 0xffffff80004a4000
+[    1.647349] <2> (2)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [ERROR]infracfg_ao_base = 0xffffff80004a6000
+[    1.648612] <2> (2)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [ERROR]infracfg_ao_base = 0xffffff80004a8000
+[    1.650291] <2> (2)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [GPU/DRAM][Turbo], GPU800MHz_DRAM1866MHz_Flag=0
+[    1.651700] <2> (2)[32:kworker/2:1][name:domain&]mfg: Power-off latency exceeded, new value 14231 ns
+[    1.651839] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] @_mt_cpufreq_init: max_cpu_num: 4
+[    1.651844] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] No DT, get CPU frequency bounding from efuse = 1001
+[    1.651848] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] No DT, get CPU frequency bounding lv = 1 from efuse = 1001
+[    1.651853] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] current CPU efuse is 4097, AllowTurboMode=0
+[    1.651886] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [0] = { .cpufreq_khz = 1300000,	.cpufreq_ncpu = 4,	.cpufreq_power = 2224 }
+[    1.651891] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [1] = { .cpufreq_khz = 1216000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1935 }
+[    1.651896] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [2] = { .cpufreq_khz = 1300000,	.cpufreq_ncpu = 3,	.cpufreq_power = 1668 }
+[    1.651901] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [3] = { .cpufreq_khz = 1133000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1667 }
+[    1.651906] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [4] = { .cpufreq_khz = 1216000,	.cpufreq_ncpu = 3,	.cpufreq_power = 1451 }
+[    1.651910] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [5] = { .cpufreq_khz = 1050000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1416 }
+[    1.651915] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [6] = { .cpufreq_khz = 871000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1252 }
+[    1.651920] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [7] = { .cpufreq_khz = 1133000,	.cpufreq_ncpu = 3,	.cpufreq_power = 1250 }
+[    1.651925] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [8] = { .cpufreq_khz = 741000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1135 }
+[    1.651930] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [9] = { .cpufreq_khz = 1300000,	.cpufreq_ncpu = 2,	.cpufreq_power = 1112 }
+[    1.651934] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [10] = { .cpufreq_khz = 1050000,	.cpufreq_ncpu = 3,	.cpufreq_power = 1062 }
+[    1.651939] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [11] = { .cpufreq_khz = 624000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1028 }
+[    1.651944] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [12] = { .cpufreq_khz = 600000,	.cpufreq_ncpu = 4,	.cpufreq_power = 1006 }
+[    1.651949] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [13] = { .cpufreq_khz = 1216000,	.cpufreq_ncpu = 2,	.cpufreq_power = 967 }
+[    1.651954] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [14] = { .cpufreq_khz = 871000,	.cpufreq_ncpu = 3,	.cpufreq_power = 939 }
+[    1.651959] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [15] = { .cpufreq_khz = 741000,	.cpufreq_ncpu = 3,	.cpufreq_power = 851 }
+[    1.651964] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [16] = { .cpufreq_khz = 1133000,	.cpufreq_ncpu = 2,	.cpufreq_power = 833 }
+[    1.651968] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [17] = { .cpufreq_khz = 624000,	.cpufreq_ncpu = 3,	.cpufreq_power = 771 }
+[    1.651973] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [18] = { .cpufreq_khz = 600000,	.cpufreq_ncpu = 3,	.cpufreq_power = 754 }
+[    1.651978] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [19] = { .cpufreq_khz = 1050000,	.cpufreq_ncpu = 2,	.cpufreq_power = 708 }
+[    1.651983] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [20] = { .cpufreq_khz = 871000,	.cpufreq_ncpu = 2,	.cpufreq_power = 626 }
+[    1.651988] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [21] = { .cpufreq_khz = 741000,	.cpufreq_ncpu = 2,	.cpufreq_power = 567 }
+[    1.651993] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [22] = { .cpufreq_khz = 1300000,	.cpufreq_ncpu = 1,	.cpufreq_power = 556 }
+[    1.651998] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [23] = { .cpufreq_khz = 624000,	.cpufreq_ncpu = 2,	.cpufreq_power = 514 }
+[    1.652002] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [24] = { .cpufreq_khz = 600000,	.cpufreq_ncpu = 2,	.cpufreq_power = 503 }
+[    1.652007] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [25] = { .cpufreq_khz = 1216000,	.cpufreq_ncpu = 1,	.cpufreq_power = 483 }
+[    1.652012] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [26] = { .cpufreq_khz = 1133000,	.cpufreq_ncpu = 1,	.cpufreq_power = 416 }
+[    1.652017] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [27] = { .cpufreq_khz = 1050000,	.cpufreq_ncpu = 1,	.cpufreq_power = 354 }
+[    1.652022] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [28] = { .cpufreq_khz = 871000,	.cpufreq_ncpu = 1,	.cpufreq_power = 313 }
+[    1.652027] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [29] = { .cpufreq_khz = 741000,	.cpufreq_ncpu = 1,	.cpufreq_power = 283 }
+[    1.652031] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [30] = { .cpufreq_khz = 624000,	.cpufreq_ncpu = 1,	.cpufreq_power = 257 }
+[    1.652036] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] [31] = { .cpufreq_khz = 600000,	.cpufreq_ncpu = 1,	.cpufreq_power = 251 }
+[    1.652044] <2> (0)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] MT_CPU_DVFS_LITTLE freq = 1050000
+[    1.653128] <2> (0)[1:swapper/0][name:mtk_rtc_hal_common&]mtk_rtc_hal_common: RTC_IRQ_EN = 0x8, RTC_PDN1 = 0x0
+[    1.653136] <2> (0)[1:swapper/0][name:mtk_rtc_common&]mtk_rtc_common: There is Crystal
+[    1.654126] <2> (0)[1:swapper/0][name:musb_hdrc&]musb probe
+[    1.654175] <2> (0)[1:swapper/0][name:musb_hdrc&]musb probe reg: 0xffffff80004e0000 ,0xffffff8000500000 , irq: 0x51
+[    1.654313] <2> (0)[1:swapper/0][name:core&]usb_phy_generic.1.auto supply vcc not found, using dummy regulator
+[    1.654639] <2> (0)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: Cannot find usb pinctrl drvvbus
+[    1.654646] <2> (0)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: Cannot find usb pinctrl drvvbus_low
+[    1.654651] <2> (0)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: Cannot find usb pinctrl drvvbus_high
+[    1.654655] <2> (0)[1:swapper/0][name:usb20_host&]pinctrl_drvvbus couldn't be found, not selecting state
+[    1.654660] <2> (0)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: Cannot find usb pinctrl otg5ven
+[    1.654666] <2> (0)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: Cannot find usb pinctrl otg5ven_low
+[    1.654672] <2> (0)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: Cannot find usb pinctrl otg5ven_high
+[    1.654675] <2> (0)[1:swapper/0][name:usb20_host&]pinctrl_otg5ven couldn't be found, not selecting state
+[    1.665715] <2> (0)[1:swapper/0]usb phy read default eye value, Addr: 0x5=0x55
+[    1.665719] <2> (0)[1:swapper/0]usb phy read eye value after set, Addr: 0x5=0x77
+[    1.666824] <2> (0)[1:swapper/0][name:musb_hdrc&]musb core probe done base 0xffffff8000500000
+[    1.666851] <2> (0)[1:swapper/0][name:usb20&]USB probe done!
+[    1.669073] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_ffs, f->name = ffs
+[    1.669131] <2> (1)[1:swapper/0][name:g_android&][g_android]file system registered
+[    1.669134] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init ffs success!!
+[    1.669142] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_adb, f->name = adb
+[    1.669243] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init adb success!!
+[    1.669248] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_acm, f->name = acm
+[    1.669515] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init acm success!!
+[    1.669526] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_mtp, f->name = mtp
+[    1.669688] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init mtp success!!
+[    1.669693] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_ptp, f->name = ptp
+[    1.669738] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init ptp success!!
+[    1.669743] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_ecm, f->name = ecm
+[    1.669792] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init ecm success!!
+[    1.669800] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_eem, f->name = eem
+[    1.669847] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init eem success!!
+[    1.669855] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_gser, f->name = gser
+[    1.670112] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init gser success!!
+[    1.670120] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_rndis, f->name = rndis
+[    1.670166] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init rndis success!!
+[    1.670182] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_mass_storage, f->name = mass_storage
+[    1.670314] <2> (1)[1:swapper/0]android_usb gadget: Mass Storage Function, version: 2009/09/11
+[    1.670318] <2> (1)[1:swapper/0]android_usb gadget: Number of LUNs=1
+[    1.670322] <2> (1)[1:swapper/0] lun0: LUN: removable file: (no medium)
+[    1.670334] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init mass_storage success!!
+[    1.670342] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_accessory, f->name = accessory
+[    1.670442] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init accessory success!!
+[    1.670447] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_audio_source, f->name = audio_source
+[    1.670500] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init audio_source success!!
+[    1.670508] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: f->dev_name = f_midi, f->name = midi
+[    1.670555] <2> (1)[1:swapper/0][name:g_android&][g_android][USB]android_init_functions: init midi success!!
+[    1.670567] <2> (1)[1:swapper/0]android_usb gadget: android_usb ready
+[    1.670578] <2> (1)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: MUSB HDRC host driver
+[    1.670595] <2> (1)[1:swapper/0]musb-hdrc musb-hdrc.0.auto: new USB bus registered, assigned bus number 1
+[    1.671065] <2> (1)[1:swapper/0]hub 1-0:1.0: USB hub found
+[    1.671089] <2> (1)[1:swapper/0]hub 1-0:1.0: 1 port detected
+[    1.671867] <2> (1)[1:swapper/0][name:input_core&]input: keys as /devices/keys/input/input2
+[    1.673638] <2> (1)[1:swapper/0]mt-rtc mt-rtc: setting system clock to 2010-01-01 00:22:50 UTC (1262305370)
+[    1.674097] <2> (1)[1:swapper/0][name:mtk_wcn_stub_alps&][cmb_stub] thermal_ctrl_cb null
+[    1.674758] <2> (1)[1:swapper/0]Amazon: sign of life device driver init
+[    1.674768] <2> (1)[1:swapper/0]life_cycle_platform_init: Support MTK platform
+[    1.674776] <2> (1)[1:swapper/0]mtk_read_boot_reason: boot_reason is 0x101
+[    1.674782] <2> (1)[1:swapper/0][name:sign_of_life_mtk&]mtk_clear_boot_reason()
+[    1.674880] <2> (0)[110:kworker/u8:2][name:wd_common_drv&][WDK] WDT start kicker done CPU_NR=4
+[    1.674900] <2> (0)[110:kworker/u8:2][name:wd_common_drv&][WDK]init_wk done late_initcall cpus_kick_bit=0xf -----
+[    1.675798] <2> (1)[1:swapper/0]mtk_read_shutdown_reason: shutdown reason is 0x1
+[    1.675801] <2> (1)[1:swapper/0]Failed to read shutdown rtc boot reason
+[    1.675808] <2> (1)[1:swapper/0]mtk_read_thermal_shutdown_reason: thermal shutdown reason 0x1
+[    1.675810] <2> (1)[1:swapper/0]Failed to read boot rtc boot reason
+[    1.675817] <2> (1)[1:swapper/0]mtk_read_special_mode: special mode is 0x800
+[    1.675821] <2> (1)[1:swapper/0]dev_sol_init: life cycle reason is Warm Boot By Kernel Panic
+[    1.687710] <2> (3)[1:swapper/0][name:mt_amzn_mclk&]pm_runtime_put_sync(ISP)
+[    1.687711] <2> (3)[1:swapper/0][name:core&]vrf18: disabling
+[    1.687745] <2> (3)[1:swapper/0][name:core&]vmc: disabling
+[    1.687756] <2> (3)[1:swapper/0][name:core&]vio28: disabling
+[    1.688356] <2> (3)[1:swapper/0][name:mt_cpufreq&][Power/cpufreq] _calc_new_opp_idx(): for ptpod init, idx = 6
+[    1.691811] <2> (3)[1:swapper/0]ALSA device list:
+[    1.691814] <2> (3)[1:swapper/0]  #0: mt-snd-card
+[    1.767363] musb_bus_suspend is called. #line 2899[    1.789878] <3> (2)[32:kworker/2:1][name:domain&]mfg_async: Power-off latency exceeded, new value 7231 ns
+[    1.789892] <3> (2)[32:kworker/2:1][name:domain&]conn: Power-off latency exceeded, new value 5769 ns
+[    1.789905] <3> (2)[32:kworker/2:1][name:domain&]venc: Power-off latency exceeded, new value 5154 ns
+[    1.789915] <3> (2)[32:kworker/2:1][name:domain&]vdec: Power-off latency exceeded, new value 5077 ns
+[    1.789928] <3> (2)[32:kworker/2:1][name:domain&]mm: Power-off latency exceeded, new value 6539 ns
+
+[    1.796225] <3> (3)[1:swapper/0][name:uart&][UARTX]:E:1158: Port :0 not support vfifo
+[    1.797403] <3> (3)[1:swapper/0][name:page_alloc&]Freeing unused kernel memory: 404K (ffffffc000b78000 - ffffffc000bdd000)
+[    1.798778] <3> (3)[1:swapper/0][name:page_alloc&]Freeing alternatives memory: 16K (ffffffc000bdd000 - ffffffc000be1000)
+[    1.810258] <0> (0)[1:init]SELinux:  Permission audit_read in class capability2 not defined in policy.
+[    1.811424] <0> (0)[1:init]SELinux: the above unknown classes and permissions will be denied
+[    1.873534] <0> (0)[1:init][name:audit&]audit: type=1403 audit(1262305370.690:2): policy loaded auid=4294967295 ses=4294967295
+[    2.115632] <1> (1)[1:init]init: /dev/hw_random not found
+[    2.116340] <1> (1)[1:init]init: could not open /dev/keychord
+[    2.117165] <1> (1)[1:init][name:uart&][UARTX]:E:1158: Port :0 not support vfifo
+[    2.124199] <1> (1)[1:init]init: /dev/hw_random not found
+[    2.125654] <0> (0)[143:init]fs_mgr: Warning: unknown flag resize
+[    2.129872] <1> (1)[143:init]EXT4-fs (mmcblk0p13): mounted filesystem with ordered data mode. Opts: commit=1,nodelalloc,discard,errors=panic
+[    2.131530] <1> (1)[143:init]fs_mgr: __mount(source=/dev/block/platform/soc/by-name/system_a,target=/system,type=ext4)=0
+[    2.135936] <1> (1)[143:init]EXT4-fs (mmcblk0p16): Ignoring removed nomblk_io_submit option
+[    2.147406] <1> (1)[143:init]EXT4-fs (mmcblk0p16): recovery complete
+[    2.148796] <1> (1)[143:init]EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: nomblk_io_submit,errors=remount-ro
+[    2.150375] <1> (1)[143:init]fs_mgr: check_fs(): mount(/dev/block/platform/soc/by-name/userdata,/data,ext4)=0
+[    2.198898] <0> (0)[143:init]fs_mgr: Running /system/bin/e2fsck on /dev/block/platform/soc/by-name/userdata
+[    2.234517] <1> (1)[143:init]e2fsck: e2fsck 1.42.9 (28-Dec-2013)
+[    2.235335] <1> (1)[143:init]e2fsck: /dev/block/platform/soc/by-name/userdata: clean, 820/66816 files, 213856/266880 blocks
+[    2.239894] <1> (1)[143:init]EXT4-fs (mmcblk0p16): mounted filesystem with ordered data mode. Opts: commit=1,noauto_da_alloc,discard
+[    2.241508] <1> (1)[143:init]fs_mgr: __mount(source=/dev/block/platform/soc/by-name/userdata,target=/data,type=ext4)=0
+[    2.245750] <1> (1)[143:init]EXT4-fs (mmcblk0p15): Ignoring removed nomblk_io_submit option
+[    2.250340] <1> (1)[143:init]EXT4-fs (mmcblk0p15): recovery complete
+[    2.251147] <1> (1)[143:init]EXT4-fs (mmcblk0p15): mounted filesystem with ordered data mode. Opts: nomblk_io_submit,errors=remount-ro
+[    2.252772] <1> (1)[143:init]fs_mgr: check_fs(): mount(/dev/block/platform/soc/by-name/cache,/cache,ext4)=0
+[    2.288394] <1> (1)[143:init]fs_mgr: Running /system/bin/e2fsck on /dev/block/platform/soc/by-name/cache
+[    2.303614] <1> (1)[143:init]e2fsck: e2fsck 1.42.9 (28-Dec-2013)
+[    2.304417] <1> (1)[143:init]e2fsck: /dev/block/platform/soc/by-name/cache: clean, 17/50176 files, 6587/200704 blocks
+[    2.310138] <1> (1)[143:init]EXT4-fs (mmcblk0p15): mounted filesystem with ordered data mode. Opts: commit=1,noauto_da_alloc,discard
+[    2.311742] <1> (1)[143:init]fs_mgr: __mount(source=/dev/block/platform/soc/by-name/cache,target=/cache,type=ext4)=0
+[    2.318584] <0> (0)[1:init]fs_mgr: Warning: unknown flag resize
+[    2.320443] <0> (0)[1:init]zram0: detected capacity change from 0 to 268435456
+[    2.343520] <1> (1)[1:init][name:swapfile&]Adding 262140k swap on /dev/block/zram0.  Priority:-1 extents:1 across:262140k SS
+[    2.486687] <3> (3)[163:healthd][name:binder&]binder: 163:163 binder_context_mgr_node is NULL
+[    2.487812] <3> (3)[163:healthd][name:binder&]binder: 163:163 transaction failed 29189, size 0-0
+[    2.487902] <3> (1)[1:init]random: init urandom read with 32 bits of entropy available
+[    2.489910] <3> (3)[163:healthd][name:binder&]binder: read put err 29189 to user 00000000f6841108, thread error 29189:29185
+[    2.521298] <0> (0)[171:init][name:uart&][UARTX]:E:1158: Port :0 not support vfifo
+[    2.523603] <3> (3)[1:init]init: cannot find '/system/bin/debuggerd64', disabling 'debuggerd64'
+[    2.524756] <3> (3)[1:init]init: cannot find '/system/bin/rild', disabling 'ril-daemon'
+[    2.534148] <2> (2)[162:logd]logd.auditd: start
+[    2.547567] <3> (3)[1:init][name:g_android&][g_android][USB]enable_store: device_attr->attr.name: enable
+[    2.549010] <3> (3)[1:init][name:g_android&][g_android]android_usb: already disabled
+[    2.550228] <3> (3)[1:init][name:g_android&][g_android][USB]functions_store
+[    2.551862] <3> (3)[1:init][name:g_android&][g_android][USB]functions_store: name = adb 
+[    2.556143] <3> (3)[1:init][name:g_android&][g_android][USB]android_enable_function: name = adb, f->name=ffs 
+[    2.557406] <3> (3)[1:init][name:g_android&][g_android][USB]android_enable_function: name = adb, f->name=adb 
+[    2.558905] <3> (3)[1:init][name:g_android&][g_android][USB]enable_store: device_attr->attr.name: enable
+[    2.560104] <3> (3)[1:init][name:g_android&][g_android][USB]enable function 'adb'/ffffffc000c4aac0
+[    2.561230] <3> (3)[1:init][name:g_android&][g_android][USB]enable_store: enable 0->1 case, device_desc.idVendor = 0x18d1, device_desc.idProduct = 0x4ee7
+[    2.569957] <2> (2)[166:vold]fs_mgr: Warning: unknown flag resize
+[    2.574243] [name:g_android&][g_android][USB]android_bind_enabled_functions: 
+[    2.575312] <1> (1)[194:adbd][name:g_android&][g_android][USB]bind_config function 'adb'/ffffffc000c4aac0
+[    2.576852] <1> (1)[194:adbd]/tmp/tmp.fzn18LPu0r/src/kernel/mediatek/mt8163/3.18/drivers/usb/gadget/f_adb.c adb_bind_config 914
+[    2.578748] <1> (1)[194:adbd]android_usb gadget: cfg 1/ffffffc000c4a9e0 speeds: high full
+[    2.590690] <1> (1)[194:adbd]usb phy read default eye value, Addr: 0x5=0x77
+[    2.591559] <1> (1)[194:adbd]usb phy read eye value after set, Addr: 0x5=0x77
+[    2.655650] <0> (0)[210:iptables][name:fault&]Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[    2.657045] <0> (0)[210:iptables][name:fault&]pgd = ffffffc01c7a0000
+[    2.657937] [name:fault&][00000000] *pgd=0000000000000000, *pud=0000000000000000
+[    2.658849] <0> (0)[210:iptables][name:traps&]Internal error: Oops: 96000045 [#1] PREEMPT SMP
+[    2.659910] Modules linked in:[name:module&]
+[    2.660444] <0> (0)[210:iptables]CPU: 0 PID: 210 Comm: iptables Not tainted 3.18.19 #1
+[    2.661429] <0> (0)[210:iptables]Hardware name: MT8163 (DT)
+[    2.662124] <0> (0)[210:iptables]task: ffffffc01da75080 ti: ffffffc01c034000 task.ti: ffffffc01c034000
+[    2.663290] <0> (0)[210:iptables]PC is at memcpy+0xc0/0x180
+[    2.663982] <0> (0)[210:iptables]LR is at translate_compat_table.constprop.21+0x3e8/0x85c
+[    2.664998] <0> (0)[210:iptables]pc : [<ffffffc000321540>] lr : [<ffffffc000756e24>] pstate: 80000145
+[    2.666147] <0> (0)[210:iptables]sp : ffffffc01c037c10
+[    2.666785] x29: ffffffc01c037c10 x28: ffffffc01d3d9070 [    2.667299] <0> (1)[107:kworker/1:1][name:mtk_wcn_stub_alps&][cmb_stub] thermal_ctrl_cb null
+
+[    2.668478] <0> (0)[210:iptables]
+[    2.668911] x27: ffffffc01d3d9000 x26: ffffffc01d3d93c0 
+[    2.669572] x25: 0000000000000000 x24: ffffffc01d3d9000 
+[    2.670233] x23: 00000000ffffffea x22: 00000000000003c0 
+[    2.670895] x21: ffffffc01c4ba680 x20: ffffffc01c4ba6a0 
+[    2.671556] x19: 0000000000000000 x18: 00000000ee901e32 
+[    2.672218] x17: 00000000d9b97602 x16: ffffffc0006b9fb8 
+[    2.672880] x15: 0000000000000000 x14: 00000000f6f9d843 
+[    2.673542] x13: ffffff80007f7fff x12: 00000000ffc1c4f8 
+[    2.674203] x11: 0000000000000002 x10: 0101010101010101 
+[    2.674865] x9 : 0000000000000000 x8 : 0000000000000000 
+[    2.675526] x7 : 0000000000000000 x6 : 0000000000000000 
+[    2.676188] x5 : 0000000000000040 x4 : 0000000000000000 
+[    2.676850] x3 : ffffffc01c4ba5a0 x2 : fffffffffffffff0 
+[    2.677511] x1 : ffffffc01d3d9010 x0 : 0000000000000000 
+[    2.678175] <0> (0)[210:iptables]
+[    2.678175] <0>PC: 0xffffffc0003214c0:
+[    2.679053] 14c0  36180064 f8408423 f80084c3 f101005f 5400032a f27c0443 54000140 7100807f
+[    2.680070] 14e0  54000080 540000ab a8c12027 a88120c7 a8c12027 a88120c7 a8c12027 a88120c7
+[    2.681090] 1500  36180062 f8408423 f80084c3 36100062 b8404423 b80044c3 36080062 78402423
+[    2.682109] 1520  780024c3 36000062 39400023 390000c3 d65f03c0 f1020042 5400024a a8c12027
+[    2.683129] 1540  a88120c7 a8c12829 a8c1302b a88128c9 a88130cb a8c1382d a88138cd f240145f
+[    2.684148] 1560  54fffba1 d65f03c0 d503201f d503201f d503201f d503201f d503201f d503201f
+[    2.685168] 1580  a8c12027 a8c12829 a8c1302b a8c1382d a88120c7 a8c12027 a88128c9 a8c12829
+[    2.686187] 15a0  a88130cb a8c1302b a88138cd a8c1382d f1010042 54fffeea a88120c7 a88128c9
+[    2.687209] <0> (0)[210:iptables]
+[    2.687209] <0>LR: 0xffffffc000756da4:
+[    2.688087] 6da4  97ef2a77 aa1303e0 f94047a2 91001000 f9404fa3 91001042 b85fc041 eb02007f
+[    2.689105] 6dc4  b81fc001 f90047a2 b9401041 b9001001 54fffec1 910003e0 b94093a1 9272c400
+[    2.690125] 6de4  b900b7a1 eb1a031f b9805400 8b000ea0 f9402419 f9005fb9 54002322 aa1803fb
+[    2.691144] 6e04  aa1903f3 2a0103f6 910082b4 aa1b03e1 d2800e02 aa1303e0 8b02037c 97ef2998
+[    2.692164] 6e24  a9460760 a9060660 f9405fa0 9101c000 f9005fa0 7940b360 8b202361 eb01039f
+[    2.693183] 6e44  54000103 14000023 79400382 7940b360 8b202361 8b02039c eb01039f 540003a2
+[    2.694203] 6e64  aa1c03e0 9102e3a1 9102d3a2 97fe5869 2a0003f7 34fffea0 52800040 97fe5853
+[    2.695222] 6e84  52800040 97fe56b1 aa1503e0 b94097b9 97fe59b3 17ffff64 b9000022 17ffff96
+[    2.696244] <0> (0)[210:iptables]
+[    2.696244] <0>SP: 0xffffffc01c037b90:
+[    2.697122] 7b90  1c4ba6a0 ffffffc0 1c4ba680 ffffffc0 000003c0 00000000 ffffffea 00000000
+[    2.698140] 7bb0  1d3d9000 ffffffc0 00000000 00000000 1d3d93c0 ffffffc0 1d3d9000 ffffffc0
+[    2.699160] 7bd0  1d3d9070 ffffffc0 1c037c10 ffffffc0 00756e24 ffffffc0 1c037c10 ffffffc0
+[    2.700179] 7bf0  00321540 ffffffc0 80000145 00000000 00000006 00000000 1d3d93c0 ffffffc0
+[    2.701199] 7c10  1c037d00 ffffffc0 0075781c ffffffc0 00000000 00000000 f6449100 00000000
+[    2.702218] 7c30  00000000 00000000 f6449100 00000000 1c750000 ffffffc0 00000420 00000000
+[    2.703238] 7c50  00000182 00000000 00000126 00000000 0008e000 ffffffc0 1c034000 ffffffc0
+[    2.704257] 7c70  1c037d38 ffffffc0 1c037d30 ffffffc0 1c4ba580 ffffffc0 1c037d40 ffffffc0
+[    2.705279] <0> (0)[210:iptables]
+[    2.705279] <0>X1: 0xffffffc01d3d8f90:
+[    2.706157] 8f90  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.707175] 8fb0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.708194] 8fd0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.709214] 8ff0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.710233] 9010  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.711253] 9030  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.712272] 9050  00000000 00000000 00980070 00000000 00000000 00000000 00000000 00000000
+[    2.713292] 9070  00000028 00000000 00c78830 ffffffc0 00000000 00000000 00000000 00000000
+[    2.714314] <0> (0)[210:iptables]
+[    2.714314] <0>X3: 0xffffffc01c4ba520:
+[    2.715192] a520  1c4ba618 ffffffc0 00000000 00000000 1c4ba630 ffffffc0 1c4ba4b0 ffffffc0
+[    2.716210] a540  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.717229] a560  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.718249] a580  000003c0 00000006 00000000 00000000 00000000 00000098 00000130 00000000
+[    2.719268] a5a0  00000000 00000000 00000098 00000130 00000000 00000000 00000000 00000000
+[    2.720288] a5c0  00000000 00000000 1d3d9000 ffffffc0 1d3d9800 ffffffc0 1d3d8c00 ffffffc0
+[    2.721307] a5e0  1d3d8400 ffffffc0 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.722327] a600  007f7000 ffffff80 007f9000 ffffff80 00000004 00000000 1c4ba518 ffffffc0
+[    2.723352] <0> (0)[210:iptables]
+[    2.723352] <0>X16: 0xffffffc0006b9f38:
+[    2.724238] 9f38  17ffffdc 52800023 52800001 b9000043 35fffc21 91002384 aa0403e2 b1001042
+[    2.725255] 9f58  fa403042 9a9f87e5 b4fffb65 b9000083 35fffb21 aa1c03e2 b1001042 fa403042
+[    2.726275] 9f78  9a9f87e3 b4fffa83 531e76a0 11003000 b9000380 35fffa01 531e76a0 f94012e2
+[    2.727294] 9f98  11003000 f94016e1 93407c00 8b000042 cb000020 f90012e2 f90016e0 17ffffc6
+[    2.728314] 9fb8  a9ba7bfd 910003fd a90153f3 aa0103f4 910133a1 a90363f7 a9025bf5 aa0303f7
+[    2.729333] 9fd8  aa0203f5 aa0403f8 97ff198d aa0003f3 b40002a0 2a1403e1 2a1503e2 97f03464
+[    2.730353] 9ff8  b9004fa0 2a0003f6 350001a0 7100069f 54000260 f9401660 f9403c05 b40003a5
+[    2.731373] a018  aa1303e0 2a1403e1 2a1503e2 aa1703e3 2a1803e4 d63f00a0 b9004fa0 f9400e60
+[    2.732396] <0> (0)[210:iptables]
+[    2.732396] <0>X20: 0xffffffc01c4ba620:
+[    2.733283] a620  00000000 00000000 00000000 00000000 1c64f030 ffffffc0 1c4ba530 ffffffc0
+[    2.734301] a640  00000000 00000000 00000000 00000000 1d2abf80 ffffffc0 00000000 00000000
+[    2.735321] a660  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.736340] a680  000003c0 00000006 00000000 00000000 00000000 00000098 00000130 00000000
+[    2.737360] a6a0  00000000 00000000 00000098 00000130 00000000 00000000 00000000 00000000
+[    2.738379] a6c0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.739399] a6e0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.740418] a700  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.741440] <0> (0)[210:iptables]
+[    2.741440] <0>X21: 0xffffffc01c4ba600:
+[    2.742329] a600  007f7000 ffffff80 007f9000 ffffff80 00000004 00000000 1c4ba518 ffffffc0
+[    2.743347] a620  00000000 00000000 00000000 00000000 1c64f030 ffffffc0 1c4ba530 ffffffc0
+[    2.744366] a640  00000000 00000000 00000000 00000000 1d2abf80 ffffffc0 00000000 00000000
+[    2.745386] a660  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.746405] a680  000003c0 00000006 00000000 00000000 00000000 00000098 00000130 00000000
+[    2.747425] a6a0  00000000 00000000 00000098 00000130 00000000 00000000 00000000 00000000
+[    2.748444] a6c0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.749464] a6e0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.750486] <0> (0)[210:iptables]
+[    2.750486] <0>X24: 0xffffffc01d3d8f80:
+[    2.751375] 8f80  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.752392] 8fa0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.753412] 8fc0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.754432] 8fe0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.755451] 9000  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.756470] 9020  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.757490] 9040  00000000 00000000 00000000 00000000 00000000 00000000 00980070 00000000
+[    2.758510] 9060  00000000 00000000 00000000 00000000 00000028 00000000 00c78830 ffffffc0
+[    2.759532] <0> (0)[210:iptables]
+[    2.759532] <0>X26: 0xffffffc01d3d9340:
+[    2.760421] 9340  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.761438] 9360  00000000 00000000 00b00070 00000000 00000000 00000000 00000000 00000000
+[    2.762458] 9380  52450040 00524f52 00c788a8 ffffffc0 00000000 00000000 00000000 00000000
+[    2.763477] 93a0  4f525245 00000052 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.764497] 93c0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.765516] 93e0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.766536] 9400  6c656873 6962406c 69756373 202f3a74 00002024 00000000 00000000 00000000
+[    2.767555] 9420  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.768577] <0> (0)[210:iptables]
+[    2.768577] <0>X27: 0xffffffc01d3d8f80:
+[    2.769466] 8f80  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.770484] 8fa0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.771503] 8fc0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.772523] 8fe0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.773542] 9000  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.774562] 9020  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.775582] 9040  00000000 00000000 00000000 00000000 00000000 00000000 00980070 00000000
+[    2.776601] 9060  00000000 00000000 00000000 00000000 00000028 00000000 00c78830 ffffffc0
+[    2.777623] <0> (0)[210:iptables]
+[    2.777623] <0>X28: 0xffffffc01d3d8ff0:
+[    2.778512] 8ff0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.779529] 9010  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.780549] 9030  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.781568] 9050  00000000 00000000 00980070 00000000 00000000 00000000 00000000 00000000
+[    2.782588] 9070  00000028 00000000 00c78830 ffffffc0 00000000 00000000 00000000 00000000
+[    2.783608] 9090  fffffffe 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.784627] 90b0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.785647] 90d0  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.786668] <0> (0)[210:iptables]
+[    2.786668] <0>X29: 0xffffffc01c037b90:
+[    2.787557] 7b90  1c4ba6a0 ffffffc0 1c4ba680 ffffffc0 000003c0 00000000 ffffffea 00000000
+[    2.788575] 7bb0  1d3d9000 ffffffc0 00000000 00000000 1d3d93c0 ffffffc0 1d3d9000 ffffffc0
+[    2.789595] 7bd0  1d3d9070 ffffffc0 1c037c10 ffffffc0 00756e24 ffffffc0 1c037c10 ffffffc0
+[    2.790614] 7bf0  00321540 ffffffc0 80000145 00000000 00000006 00000000 1d3d93c0 ffffffc0
+[    2.791634] 7c10  1c037d00 ffffffc0 0075781c ffffffc0 00000000 00000000 f6449100 00000000
+[    2.792653] 7c30  00000000 00000000 f6449100 00000000 1c750000 ffffffc0 00000420 00000000
+[    2.793673] 7c50  00000182 00000000 00000126 00000000 0008e000 ffffffc0 1c034000 ffffffc0
+[    2.794692] 7c70  1c037d38 ffffffc0 1c037d30 ffffffc0 1c4ba580 ffffffc0 1c037d40 ffffffc0
+[    2.795713] <0> (0)[210:iptables]
+[    2.796128] <0> (0)[210:iptables][name:traps&]Process iptables (pid: 210, stack limit = 0xffffffc01c034068)
+[    2.797343] <0> (0)[210:iptables]Stack: (0xffffffc01c037c10 to 0xffffffc01c038000)
+[    2.798288] <0> (0)[210:iptables]7c00:                                     1c037d00 ffffffc0 0075781c ffffffc0
+[    2.799536] <0> (0)[210:iptables]7c20: 00000000 00000000 f6449100 00000000 00000000 00000000 f6449100 00000000
+[    2.800784] <0> (0)[210:iptables]7c40: 1c750000 ffffffc0 00000420 00000000 00000182 00000000 00000126 00000000
+[    2.802031] <0> (0)[210:iptables]7c60: 0008e000 ffffffc0 1c034000 ffffffc0 1c037d38 ffffffc0 1c037d30 ffffffc0
+[    2.803278] <0> (0)[210:iptables]7c80: 1c4ba580 ffffffc0 1c037d40 ffffffc0 0008e000 0000000e 1c4ba5a0 ffffffc0
+[    2.804525] <0> (0)[210:iptables]7ca0: 000003c0 00000006 1c4ba5a0 ffffffc0 1c037d80 ffffffc0 1c4ba68c ffffffc0
+[    2.805773] <0> (0)[210:iptables]7cc0: 000003c0 000003c0 00000000 00000000 00000000 00000000 f6449100 00000000
+[    2.807020] <0> (0)[210:iptables]7ce0: 1c750000 ffffffc0 00000420 00000000 00000182 00000000 00000126 00000000
+[    2.808267] <0> (0)[210:iptables]7d00: 1c037da0 ffffffc0 00757930 ffffffc0 00000040 00000000 00000040 00000000
+[    2.809515] <0> (0)[210:iptables]7d20: 1c750000 ffffffc0 00000000 ffffffc0 1c4ba580 ffffffc0 1d3d9000 ffffffc0
+[    2.810762] <0> (0)[210:iptables]7d40: 746c6966 00007265 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.812009] <0> (0)[210:iptables]7d60: 0000000e 00000006 000003c0 00000000 00000000 00000098 00000130 00000000
+[    2.813257] <0> (0)[210:iptables]7d80: 00000000 00000000 00000098 00000130 00000000 00000004 f6459040 00000000
+[    2.814504] <0> (0)[210:iptables]7da0: 1c037dd0 ffffffc0 006d1f28 ffffffc0 00c78768 ffffffc0 f6449100 00000000
+[    2.815751] <0> (0)[210:iptables]7dc0: 00000420 00000000 f6449100 00000000 1c037e10 ffffffc0 00707e4c ffffffc0
+[    2.816998] <0> (0)[210:iptables]7de0: 00000040 00000000 00000000 00000000 00000420 00000000 00707e34 ffffffc0
+[    2.818246] <0> (0)[210:iptables]7e00: f6449100 00000000 00000420 00000000 1c037e50 ffffffc0 007281d8 ffffffc0
+[    2.819493] <0> (0)[210:iptables]7e20: 1e389180 ffffffc0 00000000 00000000 00000040 00000000 00000000 00000000
+[    2.820740] <0> (0)[210:iptables]7e40: f6449100 00000000 00000000 00000000 1c037e60 ffffffc0 00684e8c ffffffc0
+[    2.821988] <0> (0)[210:iptables]7e60: 1c037e70 ffffffc0 006ba030 ffffffc0 00000000 00000000 0008448c ffffffc0
+[    2.823235] <0> (0)[210:iptables]7e80: 00400200 00000000 00000000 00000000 ffffffff ffffffff f6f30278 00000000
+[    2.824482] <0> (0)[210:iptables]7ea0: 600f0010 00000000 00000011 00000000 00400200 00000000 00000000 00000000
+[    2.825730] <0> (0)[210:iptables]7ec0: ffffffff ffffffff f6f30278 00000000 00000004 00000000 00000000 00000000
+[    2.826977] <0> (0)[210:iptables]7ee0: 00000040 00000000 f6449100 00000000 00000420 00000000 00000000 00000000
+[    2.828224] <0> (0)[210:iptables]7f00: 00000000 00000000 00000126 00000000 f6439080 00000000 f6439088 00000000
+[    2.829471] <0> (0)[210:iptables]7f20: 00000006 00000000 f6fac396 00000000 ffc1c4f8 00000000 ffc1c4e8 00000000
+[    2.830718] <0> (0)[210:iptables]7f40: f6f9d843 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.831966] <0> (0)[210:iptables]7f60: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.833213] <0> (0)[210:iptables]7f80: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.834460] <0> (0)[210:iptables]7fa0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.835708] <0> (0)[210:iptables]7fc0: 00000000 00000000 00000000 00000000 f6f30278 00000000 600f0010 00000000
+[    2.836955] <0> (0)[210:iptables]7fe0: 00000004 00000000 00000126 00000000 00000000 00000000 00000000 00000000
+[    2.838199] <0> (0)[210:iptables][name:traps&]Call trace:
+[    2.838877] <0> (0)[210:iptables][<ffffffc000321540>] memcpy+0xc0/0x180
+[    2.839699] <0> (0)[210:iptables][<ffffffc000757818>] compat_do_replace.isra.14.constprop.20+0x134/0x1d0
+[    2.840881] <0> (0)[210:iptables][<ffffffc00075792c>] compat_do_ipt_set_ctl+0x78/0x90
+[    2.841859] <0> (0)[210:iptables][<ffffffc0006d1f24>] compat_nf_setsockopt+0x5c/0x88
+[    2.842824] <0> (0)[210:iptables][<ffffffc000707e48>] compat_ip_setsockopt+0xc8/0xe0
+[    2.843788] <0> (0)[210:iptables][<ffffffc0007281d4>] compat_raw_setsockopt+0x28/0x60
+[    2.844765] <0> (0)[210:iptables][<ffffffc000684e88>] compat_sock_common_setsockopt+0x18/0x34
+[    2.845827] <0> (0)[210:iptables][<ffffffc0006ba02c>] compat_SyS_setsockopt+0x74/0x1fc
+[    2.846814] <0> (0)[210:iptables]Code: d65f03c0 f1020042 5400024a a8c12027 (a88120c7) 
+[    2.847908] <0> (0)[210:iptables][name:panic&]---[ end trace e0e5ddd52249984c ]---
+[    2.848864] <0> (0)[210:iptables][name:panic&]Kernel panic - not syncing: Fatal exception
+[    2.849887] <0> (0)[210:iptables][name:mtk_rtc_hal&]mtk_rtc_hal: REBOOT_REASON status(RTC_SPAR0=0x4040)
+[    2.851141] <0> (0)[210:iptables]mtk_write_boot_reason:current 0x1 boot_reason 0x100
+[    2.853109] <3> (3)[181:drmserver][name:smp&]CPU3: stopping
+[    2.853798] <3> (3)[181:drmserver]CPU: 3 PID: 181 Comm: drmserver Tainted: G      D        3.18.19 #1
+[    2.854944] <3> (3)[181:drmserver]Hardware name: MT8163 (DT)
+[    2.855648] <3> (3)[181:drmserver][name:traps&]Call trace:
+[    2.856339] <3> (3)[181:drmserver][<ffffffc000088acc>] dump_backtrace+0x0/0x124
+[    2.857246] <3> (3)[181:drmserver][<ffffffc000088c00>] show_stack+0x10/0x1c
+[    2.858114] <3> (3)[181:drmserver][<ffffffc00081bff4>] dump_stack+0x74/0xb8
+[    2.858981] <3> (3)[181:drmserver][<ffffffc000091194>] handle_IPI+0x1c0/0x288
+[    2.859869] <3> (3)[181:drmserver][<ffffffc000081464>] gic_handle_irq+0x78/0x80
+[    2.860779] <3> (3)[181:drmserver]Exception stack(0xffffffc01c6efeb0 to 0xffffffc01c6effd0)
+[    2.861822] <3> (3)[181:drmserver]fea0:                                     00400000 00000000 00000000 00000000
+[    2.863081] <3> (3)[181:drmserver]fec0: ffffffff ffffffff f73ee96c 00000000 f720c154 00000000 00001bb2 00000000
+[    2.864340] <3> (3)[181:drmserver]fee0: f722947c 00000000 00000407 00000000 f720c154 00000000 000000af 00000000
+[    2.865598] <3> (3)[181:drmserver]ff00: f71c0c38 00000000 0d209e6c 00000000 f722947c 00000000 f71c0148 00000000
+[    2.866856] <3> (3)[181:drmserver]ff20: 00000147 00000000 f723b7a4 00000000 00000af0 00000000 ffaa6988 00000000
+[    2.868114] <3> (3)[181:drmserver]ff40: f73eea07 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.869372] <3> (3)[181:drmserver]ff60: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.870630] <3> (3)[181:drmserver]ff80: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.871888] <3> (3)[181:drmserver]ffa0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    2.873145] <3> (3)[181:drmserver]ffc0: 00000000 00000000 00000000 00000000
+[    2.874012] <2> (2)[0:swapper/2][name:smp&]CPU2: stopping
+[    2.874686] <2> (2)[0:swapper/2]CPU: 2 PID: 0 Comm: swapper/2 Tainted: G      D        3.18.19 #1
+[    2.875790] <2> (2)[0:swapper/2]Hardware name: MT8163 (DT)
+[    2.876472] <2> (2)[0:swapper/2][name:traps&]Call trace:
+[    2.877137] <2> (2)[0:swapper/2][<ffffffc000088acc>] dump_backtrace+0x0/0x124
+[    2.878026] <2> (2)[0:swapper/2][<ffffffc000088c00>] show_stack+0x10/0x1c
+[    2.878872] <2> (2)[0:swapper/2][<ffffffc00081bff4>] dump_stack+0x74/0xb8
+[    2.879718] <2> (2)[0:swapper/2][<ffffffc000091194>] handle_IPI+0x1c0/0x288
+[    2.880585] <2> (2)[0:swapper/2][<ffffffc000081464>] gic_handle_irq+0x78/0x80
+[    2.881474] <2> (2)[0:swapper/2]Exception stack(0xffffffc003117da0 to 0xffffffc003117ec0)
+[    2.882496] <2> (2)[0:swapper/2]7da0: a9078b52 00000000 00000004 00000000 03117ee0 ffffffc0 0059aad0 ffffffc0
+[    2.883733] <2> (2)[0:swapper/2]7dc0: 00000000 00000000 5cfe514f 00288c86 00020af3 00000000 4cec4ec5 00000000
+[    2.884969] <2> (2)[0:swapper/2]7de0: 00000214 00000000 00000018 00000000 8011da50 0027ef63 0000000e 00000000
+[    2.886205] <2> (2)[0:swapper/2]7e00: 03118620 ffffffc0 03117d50 ffffffc0 00000001 00000000 00000001 00000000
+[    2.887442] <2> (2)[0:swapper/2]7e20: 00000001 00000000 0000023e 00000000 00a6b4d8 ffffffc0 00000000 00000000
+[    2.888678] <2> (2)[0:swapper/2]7e40: 000fffff 00000000 00000001 00000000 0000000e 00000000 a9078b52 00000000
+[    2.889915] <2> (2)[0:swapper/2]7e60: 00000004 00000000 00000001 00000000 1f592aa0 ffffffc0 a8d515f4 00000000
+[    2.891151] <2> (2)[0:swapper/2]7e80: 00c8e310 ffffffc0 00000002 00000000 00c97000 ffffffc0 03117f40 ffffffc0
+[    2.892388] <2> (2)[0:swapper/2]7ea0: 00cc25c0 ffffffc0 03117ee0 ffffffc0 0059aab8 ffffffc0 03117ee0 ffffffc0
+[    2.893623] <2> (2)[0:swapper/2][<ffffffc000083da0>] el1_irq+0x60/0xd0
+[    2.894439] <2> (2)[0:swapper/2][<ffffffc00059ad14>] cpuidle_enter+0x14/0x20
+[    2.895316] <2> (2)[0:swapper/2][<ffffffc0000d77f0>] cpu_startup_entry+0x364/0x39c
+[    2.896258] <2> (2)[0:swapper/2][<ffffffc000090c54>] secondary_start_kernel+0x110/0x120
+[    2.897256] <1> (1)[0:swapper/1][name:smp&]CPU1: stopping
+[    2.897929] <1> (1)[0:swapper/1]CPU: 1 PID: 0 Comm: swapper/1 Tainted: G      D        3.18.19 #1
+[    2.899033] <1> (1)[0:swapper/1]Hardware name: MT8163 (DT)
+[    2.899716] <1> (1)[0:swapper/1][name:traps&]Call trace:
+[    2.900381] <1> (1)[0:swapper/1][<ffffffc000088acc>] dump_backtrace+0x0/0x124
+[    2.901270] <1> (1)[0:swapper/1][<ffffffc000088c00>] show_stack+0x10/0x1c
+[    2.902116] <1> (1)[0:swapper/1][<ffffffc00081bff4>] dump_stack+0x74/0xb8
+[    2.902961] <1> (1)[0:swapper/1][<ffffffc000091194>] handle_IPI+0x1c0/0x288
+[    2.903828] <1> (1)[0:swapper/1][<ffffffc000081464>] gic_handle_irq+0x78/0x80
+[    2.904717] <1> (1)[0:swapper/1]Exception stack(0xffffffc003113da0 to 0xffffffc003113ec0)
+[    2.905739] <1> (1)[0:swapper/1]3da0: a9078b52 00000000 00000004 00000000 03113ee0 ffffffc0 0059aad0 ffffffc0
+[    2.906976] <1> (1)[0:swapper/1]3dc0: 00000000 00000000 5cfe514f 00288c86 00020af3 00000000 4cec4ec5 00000000
+[    2.908212] <1> (1)[0:swapper/1]3de0: 00000214 00000000 00000018 00000000 8011da50 0027ef63 0000b8cf 00000000
+[    2.909449] <1> (1)[0:swapper/1]3e00: 030cf920 ffffffc0 03113d50 ffffffc0 00000000 00000000 0082e810 ffffffc0
+[    2.910685] <1> (1)[0:swapper/1]3e20: 00000001 00000000 1c7e1400 ffffffc0 fffffffe 0fffffff 00000000 00000000
+[    2.911922] <1> (1)[0:swapper/1]3e40: 0009fbcc ffffffc0 d9b97602 00000000 52e2f9da 00000000 a9078b52 00000000
+[    2.913158] <1> (1)[0:swapper/1]3e60: 00000004 00000000 00000001 00000000 1f583aa0 ffffffc0 a8d52762 00000000
+[    2.914394] <1> (1)[0:swapper/1]3e80: 00c8e310 ffffffc0 00000001 00000000 00c97000 ffffffc0 03113f40 ffffffc0
+[    2.915631] <1> (1)[0:swapper/1]3ea0: 00cc25c0 ffffffc0 03113ee0 ffffffc0 0059aab8 ffffffc0 03113ee0 ffffffc0
+[    2.916866] <1> (1)[0:swapper/1][<ffffffc000083da0>] el1_irq+0x60/0xd0
+[    2.917680] <1> (1)[0:swapper/1][<ffffffc00059ad14>] cpuidle_enter+0x14/0x20
+[    2.918558] <1> (1)[0:swapper/1][<ffffffc0000d77f0>] cpu_startup_entry+0x364/0x39c
+[    2.919502] <1> (1)[0:swapper/1][<ffffffc000090c54>] secondary_start_kernel+0x110/0x120
+[    2.920501] [name:panic&]Rebooting in 1 seconds..
+[    3.921064] <0> (0)[210:iptables][name:process&]machine_restart, arm_pm_restart(          (null))
+[    3.922179] <0> (0)[210:iptables][name:wd_api&]ARCH_RESET happen!!!
+[    3.922959] <0> (0)[210:iptables][name:wd_api&]arch_reset: cmd = NULL
+[    3.923763] <0> (0)[210:iptables]CPU: 0 PID: 210 Comm: iptables Tainted: G      D        3.18.19 #1
+[    3.924890] <0> (0)[210:iptables]Hardware name: MT8163 (DT)
+[    3.925583] <0> (0)[210:iptables][name:traps&]Call trace:
+[    3.926259] <0> (0)[210:iptables][<ffffffc000088acc>] dump_backtrace+0x0/0x124
+[    3.927159] <0> (0)[210:iptables][<ffffffc000088c00>] show_stack+0x10/0x1c
+[    3.928016] <0> (0)[210:iptables][<ffffffc00081bff4>] dump_stack+0x74/0xb8
+[    3.928873] <0> (0)[210:iptables][<ffffffc00057c430>] arch_reset+0x108/0x134
+[    3.929751] <0> (0)[210:iptables][<ffffffc00057c488>] mtk_arch_reset_handle+0x2c/0x48
+[    3.930729] <0> (0)[210:iptables][<ffffffc0000ba3fc>] notifier_call_chain+0x50/0x8c
+[    3.931682] <0> (0)[210:iptables][<ffffffc0000ba6a4>] atomic_notifier_call_chain+0x30/0x48
+[    3.932713] <0> (0)[210:iptables][<ffffffc0000bba34>] do_kernel_restart+0x18/0x24
+[    3.933645] <0> (0)[210:iptables][<ffffffc0000853ec>] machine_restart+0x5c/0x64
+[    3.934556] <0> (0)[210:iptables][<ffffffc0000bb8d0>] emergency_restart+0x14/0x20
+[    3.935489] <0> (0)[210:iptables][<ffffffc00081ac3c>] panic+0x1b8/0x220
+[    3.936313] <0> (0)[210:iptables][<ffffffc000088dac>] die+0x1a0/0x1b0
+[    3.937116] <0> (0)[210:iptables][<ffffffc00081aa38>] __do_kernel_fault.part.5+0x70/0x84
+[    3.938126] <0> (0)[210:iptables][<ffffffc0000965fc>] do_page_fault+0x21c/0x340
+[    3.939036] <0> (0)[210:iptables][<ffffffc0000967dc>] do_translation_fault+0xbc/0xf0
+[    3.940000] <0> (0)[210:iptables][<ffffffc000081298>] do_mem_abort+0x38/0x9c
+[    3.940878] <0> (0)[210:iptables]Exception stack(0xffffffc01c037a50 to 0xffffffc01c037b70)
+[    3.941910] <0> (0)[210:iptables]7a40:                                     00000000 00000000 1c4ba6a0 ffffffc0
+[    3.943159] <0> (0)[210:iptables]7a60: 1c037c10 ffffffc0 00321540 ffffffc0 1c037b50 ffffffc0 001912dc ffffffc0
+[    3.944406] <0> (0)[210:iptables]7a80: 00bde760 ffffffc0 00000000 00000000 000003c0 00000000 03031a80 ffffffc0
+[    3.945653] <0> (0)[210:iptables]7aa0: 000000d0 00000000 006ed6dc ffffffc0 00cc2000 ffffffc0 00001038 00000000
+[    3.946900] <0> (0)[210:iptables]7ac0: 1c037af0 ffffffc0 0008c3c8 ffffffc0 00000001 00000000 00000003 00000000
+[    3.948147] <0> (0)[210:iptables]7ae0: 000003c0 00000000 000002d2 00000000 00000000 00000000 1d3d9010 ffffffc0
+[    3.949395] <0> (0)[210:iptables]7b00: fffffff0 ffffffff 1c4ba5a0 ffffffc0 00000000 00000000 00000040 00000000
+[    3.950642] <0> (0)[210:iptables]7b20: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    3.951890] <0> (0)[210:iptables]7b40: 01010101 01010101 00000002 00000000 ffc1c4f8 00000000 007f7fff ffffff80
+[    3.953135] <0> (0)[210:iptables]7b60: f6f9d843 00000000 00000000 00000000
+[    3.953992] <0> (0)[210:iptables][<ffffffc000083c24>] el1_da+0x14/0x6c
+[    3.954808] <0> (0)[210:iptables][<ffffffc000757818>] compat_do_replace.isra.14.constprop.20+0x134/0x1d0
+[    3.955989] <0> (0)[210:iptables][<ffffffc00075792c>] compat_do_ipt_set_ctl+0x78/0x90
+[    3.956968] <0> (0)[210:iptables][<ffffffc0006d1f24>] compat_nf_setsockopt+0x5c/0x88
+[    3.957931] <0> (0)[210:iptables][<ffffffc000707e48>] compat_ip_setsockopt+0xc8/0xe0
+[    3.958895] <0> (0)[210:iptables][<ffffffc0007281d4>] compat_raw_setsockopt+0x28/0x60
+[    3.959872] <0> (0)[210:iptables][<ffffffc000684e88>] compat_sock_common_setsockopt+0x18/0x34
+[    3.960935] <0> (0)[210:iptables][<ffffffc0006ba02c>] compat_SyS_setsockopt+0x74/0x1fc
