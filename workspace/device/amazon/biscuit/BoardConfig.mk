@@ -4,8 +4,7 @@
 LOCAL_PATH := device/amazon/biscuit
 
 # ── Architecture ─────────────────────────────────────────────────────────────
-# 32-bit userspace, 64-bit binder: matches the known Biscuit CM12 strategy while
-# keeping the 64-bit kernel/bootopt.
+# 32-bit userspace only. No secondary arch, no multilib.
 TARGET_ARCH          := arm
 TARGET_ARCH_VARIANT  := armv7-a-neon
 TARGET_CPU_ABI       := armeabi-v7a

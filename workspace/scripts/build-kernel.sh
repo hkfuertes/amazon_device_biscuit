@@ -22,7 +22,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 UPSTREAM="$REPO_ROOT/workspace/upstream"
 DOWNLOADS="$REPO_ROOT/workspace/downloads"
 PREBUILT_DIR="$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt"
-KERNEL_OUT="$REPO_ROOT/workspace/kernel-out"
+KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out-netfilter}"
 DOCKER_IMAGE="biscuit-kernel-builder:latest"
 CONTAINER="biscuit-kernel-build"
 JOBS="${JOBS:-$(nproc)}"
@@ -118,6 +118,14 @@ mkdir -p \"\$SRC_DIR\"
 echo '==> Extracting platform.tar (kernel source only, this may take a while) ...'
 tar -xf /upstream/platform.tar -C \"\$SRC_DIR\" \"\$KERNEL_SUBPATH\"
 
+# Fix 32-bit iptables on arm64 kernel: Amazon/MTK compat netfilter clears
+# xt_alloc_table_info() per-CPU entry pointers, then panics in memcpy().
+for f in \
+  \"\$SRC_DIR/\$KERNEL_SUBPATH/net/ipv4/netfilter/ip_tables.c\" \
+  \"\$SRC_DIR/\$KERNEL_SUBPATH/net/ipv6/netfilter/ip6_tables.c\"; do
+  perl -0pi -e 's/\n\tmemset\(newinfo->entries, 0, size\);/\n\t\/* biscuit: removed bogus memset; xt_alloc_table_info already sets per-cpu entry pointers. *\//g' \"\$f\"
+done
+
 OUT_DIR=\"\$TMPDIR/out\"
 mkdir -p \"\$OUT_DIR\"
 
@@ -195,7 +203,7 @@ tarball=workspace/downloads/$(cat "$SENTINEL")
 sha256=$(awk '{print $1}' "$DOWNLOADS/$(cat "$SENTINEL").sha256" 2>/dev/null || true)
 container=$CONTAINER
 log=docker logs $CONTAINER
-reason=official Amazon Echo Dot 5.5.5.4 source kernel, Image.gz-dtb
+reason=official Amazon Echo Dot 5.5.5.4 source kernel with netfilter compat memset fix, Image.gz-dtb
 EOF
 
 echo ""

@@ -9,3 +9,5 @@ PRODUCT_DEVICE       := biscuit
 PRODUCT_BRAND        := Amazon
 PRODUCT_MODEL        := Echo Dot
 PRODUCT_MANUFACTURER := amazon
+
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += ro.zygote=zygote32

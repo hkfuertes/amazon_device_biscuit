@@ -4,6 +4,7 @@ workspace/tools/
 workspace/upstream/
 workspace/vendor/
 workspace/kernel-out/
+workspace/kernel-out-netfilter/
 workspace/out/
 workspace/bin/
 workspace/cm12/*
