@@ -49,6 +49,20 @@ El kernel sale de `workspace/upstream/platform.tar` + `build_kernel.tar.gz` usan
 `biscuit_defconfig`. El sistema usa blobs stock Biscuit no-GPU/headless; el extractor
 excluye `libGLES_mali`, `gralloc.mt8163.mali` y `libgpu_aux`, y fuerza `egl.cfg = 0 0 android`.
 
+## CI GitLab on-demand
+
+La pipeline solo se crea manualmente desde **Run pipeline** (`workflow: web`). Requiere runner Docker privilegiado.
+
+Variables necesarias:
+
+- `AMAZON_SOURCE_URL`: tarball Amazon Echo Dot 5.5.5.4.
+- `BISCUIT_SYSTEM_IMG_URL`: URL descargable a `system.img` stock Biscuit ya convertido a ext4.
+- `CM12_TARBALL_URL`: tar de un checkout CM12 preparado; por defecto se extrae con `--strip-components=1`.
+- `CM12_STRIP_COMPONENTS`: opcional, cambia el strip del tar CM12.
+- `AMAZON_SOURCE_SHA256`: opcional, verificación estricta del tarball Amazon.
+
+Artefactos CI: OTA zip, `boot.img`, `system.img`, kernel-selection y logs Docker.
+
 ## Flujo preflight → build
 
 ### 1. Preflight (`workspace/scripts/preflight.sh`)
