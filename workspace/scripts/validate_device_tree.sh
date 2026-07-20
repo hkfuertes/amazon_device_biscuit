@@ -37,8 +37,8 @@ check "DECISIONS.md exists"         "[[ -f '$TREE/DECISIONS.md' ]]"
 
 echo ""
 echo "-- AndroidProducts.mk content --"
-check "PRODUCT_MAKEFILES references cm_biscuit.mk" \
-  "grep -q 'cm_biscuit.mk' '$TREE/AndroidProducts.mk'"
+check "PRODUCT_MAKEFILES references cm.mk" \
+  "grep -q 'cm.mk' '$TREE/AndroidProducts.mk'"
 
 echo ""
 echo "-- cm_biscuit.mk content --"
@@ -51,8 +51,10 @@ check "includes device.mk" \
 
 echo ""
 echo "-- BoardConfig.mk content --"
-check "TARGET_ARCH := arm64" \
-  "grep -q 'TARGET_ARCH.*arm64' '$TREE/BoardConfig.mk'"
+check "TARGET_ARCH := arm" \
+  "grep -q 'TARGET_ARCH.*arm' '$TREE/BoardConfig.mk'"
+check "TARGET_KERNEL_ARCH := arm64" \
+  "grep -q 'TARGET_KERNEL_ARCH.*arm64' '$TREE/BoardConfig.mk'"
 check "TARGET_BOARD_PLATFORM := mt8163" \
   "grep -q 'TARGET_BOARD_PLATFORM.*mt8163' '$TREE/BoardConfig.mk'"
 check "BOARD_KERNEL_BASE present" \
@@ -63,10 +65,12 @@ check "Partition size comment references gpt-biscuit.bin" \
   "grep -q 'gpt-biscuit.bin' '$TREE/BoardConfig.mk'"
 
 echo ""
-echo "-- Symlink check (if CM12 synced) --"
-SYMLINK="$REPO_ROOT/workspace/cm12/device/amazon/biscuit"
+echo "-- CM12 sync check (if CM12 synced) --"
+CM12_BISCUIT="$REPO_ROOT/workspace/cm12/device/amazon/biscuit"
+CM12_COMMON="$REPO_ROOT/workspace/cm12/device/amazon/mt8163-common"
 if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
-  check "device tree symlink in cm12/" "[[ -L '$SYMLINK' ]]"
+  check "device tree link farm in cm12/" "[[ -f '$CM12_BISCUIT/cm_biscuit.mk' ]]"
+  check "mt8163-common copied in cm12/" "[[ -f '$CM12_COMMON/mt8163-common.mk' ]]"
 else
   echo "  SKIP cm12/ not synced — run preflight.sh after repo sync"
 fi

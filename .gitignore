@@ -3,6 +3,7 @@ workspace/downloads/
 workspace/tools/
 workspace/upstream/
 workspace/vendor/
+workspace/extracted/
 workspace/kernel-out/
 workspace/kernel-out-netfilter/
 workspace/out/
@@ -12,4 +13,5 @@ workspace/cm12/*
 workspace/device/amazon/biscuit/prebuilt/kernel
 workspace/device/amazon/biscuit/prebuilt/kernel.sha256
 workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt
+workspace/device/amazon/biscuit/prebuilt/system/
 

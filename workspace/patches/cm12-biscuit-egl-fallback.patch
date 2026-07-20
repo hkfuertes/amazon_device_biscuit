@@ -1,0 +1,21 @@
+# Biscuit EGL fallback for CM12 frameworks/native
+# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-egl-fallback.patch
+
+diff --git a/frameworks/native/opengl/libs/EGL/Loader.cpp b/frameworks/native/opengl/libs/EGL/Loader.cpp
+--- a/frameworks/native/opengl/libs/EGL/Loader.cpp
++++ b/frameworks/native/opengl/libs/EGL/Loader.cpp
+@@ -311,9 +311,12 @@ void *Loader::load_driver(const char* kind,
+                 }
+             }
+ 
+-            // we didn't find the driver. gah.
+-            result.clear();
++            // ponytail: headless Biscuit has no GLES vendor blob; boot with software renderer.
++#if defined(__LP64__)
++            result.setTo("/system/lib64/egl/libGLES_android.so");
++#else
++            result.setTo("/system/lib/egl/libGLES_android.so");
++#endif
+             return result;
+         }
+ 

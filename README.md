@@ -26,6 +26,29 @@ workspace/
 
 ---
 
+## Reproducir en otro ordenador
+
+Inputs ignorados por git que debes aportar:
+
+- Amazon Echo Dot 5.5.5.4 source tarball URL (`AMAZON_SOURCE_URL` o `workspace/downloads/amazon-source.url`)
+- Biscuit OTA stock extraída hasta `workspace/extracted/biscuit-ota/system.img`
+- checkout CM12 en `workspace/cm12/`
+- imágenes Docker `biscuit-kernel-builder:latest` y `cm12-ubuntu14:latest`
+
+Orden mínimo:
+
+```sh
+workspace/scripts/preflight.sh
+workspace/scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
+workspace/scripts/preflight.sh   # re-sincroniza device/common/vendor dentro de workspace/cm12
+workspace/scripts/build-kernel.sh
+workspace/scripts/build.sh
+```
+
+El kernel sale de `workspace/upstream/platform.tar` + `build_kernel.tar.gz` usando
+`biscuit_defconfig`. El sistema usa blobs stock Biscuit no-GPU/headless; el extractor
+excluye `libGLES_mali`, `gralloc.mt8163.mali` y `libgpu_aux`, y fuerza `egl.cfg = 0 0 android`.
+
 ## Flujo preflight → build
 
 ### 1. Preflight (`workspace/scripts/preflight.sh`)

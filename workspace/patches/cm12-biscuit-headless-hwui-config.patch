@@ -1,0 +1,24 @@
+# Biscuit headless HWUI EGL config fallback for CM12
+# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-headless-hwui-config.patch
+
+diff --git a/frameworks/base/libs/hwui/renderthread/EglManager.cpp b/frameworks/base/libs/hwui/renderthread/EglManager.cpp
+--- a/frameworks/base/libs/hwui/renderthread/EglManager.cpp
++++ b/frameworks/base/libs/hwui/renderthread/EglManager.cpp
+@@ -141,7 +141,16 @@ void EglManager::loadConfig() {
+             mCanSetPreserveBuffer = false;
+             loadConfig();
+         } else {
+-            LOG_ALWAYS_FATAL("Failed to choose config, error = %s", egl_error_str());
++            // ponytail: headless Biscuit uses Android's software GLES fallback; take any ES2 window config.
++            EGLint fallbackAttribs[] = {
++                    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
++                    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
++                    EGL_NONE
++            };
++            if (!eglChooseConfig(mEglDisplay, fallbackAttribs, &mEglConfig, num_configs, &num_configs)
++                    || num_configs != 1) {
++                LOG_ALWAYS_FATAL("Failed to choose config, error = %s", egl_error_str());
++            }
+         }
+     }
+ }

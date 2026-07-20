@@ -22,7 +22,8 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 UPSTREAM="$REPO_ROOT/workspace/upstream"
 DOWNLOADS="$REPO_ROOT/workspace/downloads"
 PREBUILT_DIR="$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt"
-KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out-netfilter}"
+CM12_PREBUILT_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit/prebuilt"
+KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out}"
 DOCKER_IMAGE="biscuit-kernel-builder:latest"
 CONTAINER="biscuit-kernel-build"
 JOBS="${JOBS:-$(nproc)}"
@@ -195,7 +196,10 @@ if [[ -z "$KERNEL_IMAGE" ]]; then
 fi
 
 cp "$KERNEL_IMAGE" "$PREBUILT_DIR/kernel"
+mkdir -p "$CM12_PREBUILT_DIR"
+cp "$KERNEL_IMAGE" "$CM12_PREBUILT_DIR/kernel"
 sha256sum "$PREBUILT_DIR/kernel" | tee "$PREBUILT_DIR/kernel.sha256"
+sha256sum "$CM12_PREBUILT_DIR/kernel" > "$CM12_PREBUILT_DIR/kernel.sha256"
 cat > "$PREBUILT_DIR/kernel-selection.txt" <<EOF
 source=amazon-source
 kernel=${KERNEL_IMAGE#$REPO_ROOT/}
@@ -203,8 +207,9 @@ tarball=workspace/downloads/$(cat "$SENTINEL")
 sha256=$(awk '{print $1}' "$DOWNLOADS/$(cat "$SENTINEL").sha256" 2>/dev/null || true)
 container=$CONTAINER
 log=docker logs $CONTAINER
-reason=official Amazon Echo Dot 5.5.5.4 source kernel with netfilter compat memset fix, Image.gz-dtb
+reason=official Amazon Echo Dot 5.5.5.4 platform.tar kernel, biscuit_defconfig, CM12/netfilter fix, Image.gz-dtb
 EOF
+cp "$PREBUILT_DIR/kernel-selection.txt" "$CM12_PREBUILT_DIR/kernel-selection.txt"
 
 echo ""
 echo "Kernel build complete."

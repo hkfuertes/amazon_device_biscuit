@@ -1,0 +1,3 @@
+source=https://github.com/amazon-oss/android_device_amazon_mt8163-common
+branch=cm-12.1
+commit=5eccc77535adf265242577bbb095ab22ffd0b956

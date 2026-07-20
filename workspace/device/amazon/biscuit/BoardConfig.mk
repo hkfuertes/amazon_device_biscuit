@@ -3,6 +3,10 @@
 
 LOCAL_PATH := device/amazon/biscuit
 
+# ponytail: use MT8163 common for display props/flags; Biscuit values below override unsafe arch/partition defaults.
+-include device/amazon/mt8163-common/BoardConfigCommon.mk
+-include vendor/amazon/biscuit/BoardConfigVendor.mk
+
 # ── Architecture ─────────────────────────────────────────────────────────────
 # 32-bit userspace only. No secondary arch, no multilib.
 TARGET_ARCH          := arm
@@ -62,6 +66,8 @@ BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE   := ext4
 # ── Graphics ────────────────────────────────────────────────────────────────
 # libandroid_runtime references HWUI symbols even on this headless target.
 USE_OPENGL_RENDERER := true
+# ponytail: Amazon MTK display blobs reference lab126_log_write in liblog.
+COMMON_GLOBAL_CFLAGS += -DAMAZON_LOG -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL
 
 # ── SELinux ──────────────────────────────────────────────────────────────────
 # ponytail: permissive for bring-up; policy stubs added here when needed.

@@ -119,8 +119,25 @@ if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
     ln -s "$entry" "$CM12_DEVICE_DIR/$(basename "$entry")"
   done
   echo "Linked device tree contents into: $CM12_DEVICE_DIR"
+
+  CM12_COMMON_DIR="$REPO_ROOT/workspace/cm12/device/amazon/mt8163-common"
+  rm -rf "$CM12_COMMON_DIR"
+  mkdir -p "$(dirname "$CM12_COMMON_DIR")"
+  cp -a "$REPO_ROOT/workspace/device/amazon/mt8163-common" "$CM12_COMMON_DIR"
+  echo "Copied mt8163-common into: $CM12_COMMON_DIR"
+
+  VENDOR_TREE="$REPO_ROOT/workspace/vendor/amazon/biscuit"
+  if [[ -d "$VENDOR_TREE" ]]; then
+    CM12_VENDOR_DIR="$REPO_ROOT/workspace/cm12/vendor/amazon/biscuit"
+    rm -rf "$CM12_VENDOR_DIR"
+    mkdir -p "$(dirname "$CM12_VENDOR_DIR")"
+    cp -a "$VENDOR_TREE" "$CM12_VENDOR_DIR"
+    echo "Copied Biscuit vendor blobs into: $CM12_VENDOR_DIR"
+  else
+    echo "Biscuit vendor blobs not generated yet. Run workspace/scripts/extract-biscuit-stock-blobs.sh."
+  fi
 else
-  echo "CM12 source not synced yet — skipping device tree link."
+  echo "CM12 source not synced yet — skipping device/common/vendor sync."
   echo "After 'repo sync', re-run preflight.sh to create the link farm."
 fi
 
