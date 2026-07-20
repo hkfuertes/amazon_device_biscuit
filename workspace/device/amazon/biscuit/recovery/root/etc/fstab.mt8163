@@ -1,0 +1,12 @@
+# fstab.mt8163 — Biscuit (Echo Dot 2nd gen)
+# Partition layout from gpt-biscuit.bin (amonet v1.1.0).
+# amonet remaps boot_a/boot_b to exploit slots; real boot is boot_a_x/boot_b_x.
+# TWRP and hacked fastboot handle the remap; fstab uses the post-remap names.
+#
+# <src>                       <mnt_point>  <type>   <mnt_flags>                   <fs_mgr_flags>
+/dev/block/platform/mtk-msdc.0/by-name/boot_a_x  /boot      emmc  defaults                    defaults
+/dev/block/platform/mtk-msdc.0/by-name/recovery  /recovery  emmc  defaults                    defaults
+/dev/block/platform/mtk-msdc.0/by-name/system_a  /system    ext4  ro,barrier=1                  wait
+/dev/block/platform/mtk-msdc.0/by-name/userdata  /data      ext4  noatime,nosuid,nodev,barrier=1 wait,encryptable=footer
+/dev/block/platform/mtk-msdc.0/by-name/cache     /cache     ext4  noatime,nosuid,nodev,barrier=1 wait
+/dev/block/platform/mtk-msdc.0/by-name/persist   /persist   ext4  noatime,nosuid,nodev,barrier=1 wait

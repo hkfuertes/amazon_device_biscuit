@@ -5,9 +5,18 @@ Reglas para agentes en este repo.
 ## Referencias
 
 - Ayuda Amazon: https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480
+- Source Amazon Echo Dot 5.5.5.4: https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
+- Amazon OSS MT8163 common: https://github.com/amazon-oss/android_device_amazon_mt8163-common
+- OTA Biscuit full 272.6.4.1: https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin
 - Notas amonet Biscuit: `docs/amonet-biscuit-unlock.md`
 - amonet local ignorado por git: `workspace/tools/amonet-biscuit-v1.1.0/amonet`
 - amonet root-owned con sudo NOPASSWD solo para boot: `/opt/amonet-biscuit-v1.1.0/amonet`
+
+## Workflow del agente
+
+- Antes de cada acción operativa, decir explícitamente qué voy a hacer, qué no voy a hacer y por qué.
+- En este dispositivo `adb wait-for-device` puede quedarse colgado o no ser buena señal de progreso. Preferir chequeos explícitos con `adb devices -l`, estado visual del LED/TWRP, y timeouts cortos; si ADB no aparece, parar y reportar.
+- Salvo petición explícita del usuario, no hacer polling ni esperas largas. Los builds/flash/reboots largos deben lanzarse detached o como una acción concreta, reportar cómo mirarlos, y devolver control para que el usuario pueda preguntar entre pasos.
 
 ## Seguridad del dispositivo
 
@@ -65,23 +74,37 @@ Métodos:
 
 ## Build CM12
 
-El build local nativo falla por Python 2 legacy. Usa Docker:
+El build local nativo falla por Python 2 legacy. Usa Docker.
+
+Para compilar/generar OTA en background, usar siempre Docker detached para que el usuario pueda seguir escribiendo y monitorizar:
 
 ```sh
-docker run --rm -v "$PWD:$PWD" -w "$PWD/workspace/cm12" cm12-ubuntu14:latest \
-  bash -lc 'source build/envsetup.sh >/dev/null && lunch cm_biscuit-userdebug >/tmp/lunch.log && export OUT_DIR="$PWD/out-docker" && export PATH="$OUT_DIR/host/linux-x86/bin:$PATH" && make -j$(nproc) otapackage'
+docker rm -f cm12-biscuit-build >/dev/null 2>&1 || true
+docker run -d --name cm12-biscuit-build \
+  -v "$PWD:$PWD" \
+  -w "$PWD/workspace/cm12" \
+  cm12-ubuntu14:latest \
+  bash -lc 'source build/envsetup.sh >/dev/null && lunch cm_biscuit-userdebug && export OUT_DIR="$PWD/out-docker" && export PATH="$OUT_DIR/host/linux-x86/bin:$PATH" && make -j$(nproc) otapackage'
 ```
 
 Notas:
 
 - `OUT_DIR` debe ser absoluto (`$PWD/out-docker` dentro de `workspace/cm12`); `OUT_DIR=out-docker` rompe recovery por rutas relativas.
 - Si cambian flags de `hostapd`, limpia sus intermediates desde Docker porque `out-docker` queda owned by root.
+- Para cualquier build/OTA/compilación larga, no usar foreground: contenedor fijo `cm12-biscuit-build` con `docker run -d`.
+
+## Repos relacionados
+
+- `../cm12-biscuit` es solo para leer/aprender. No ensuciarlo.
+- No copiar nada as-is desde `../cm12-biscuit` sin pedir permiso explícito al usuario.
 
 ## Flasheo recomendado
 
-Preferir ZIP desde TWRP:
+Preferir ZIP desde TWRP. Confirmar primero que ADB ve `recovery` y que existe `/sbin/twrp`; no depender solo de `adb wait-for-device`.
 
 ```sh
+adb devices -l
+adb shell 'command -v twrp; getprop ro.twrp.version'
 adb push update.zip /sdcard/
 adb shell twrp install /sdcard/update.zip
 ```

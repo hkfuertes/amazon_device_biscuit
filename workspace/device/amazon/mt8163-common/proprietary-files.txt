@@ -1,0 +1,34 @@
+# Stock Biscuit no-GPU/headless blobs extracted from system.img.
+# Intentionally excludes libGLES_mali, gralloc.mt8163.mali, libgpu_aux.
+
+# Display/headless
+lib/egl/egl.cfg
+lib/hw/gralloc.mt8163.so
+lib/hw/hwcomposer.mt8163.so
+lib/libGdmaScalerPipe.so
+lib/libbwc.so
+lib/libdpframework.so
+lib/libgralloc_extra.so
+lib/libgui_ext.so
+lib/libion_mtk.so
+lib/libm4u.so
+lib/libstlport.so
+lib/libui_ext.so
+lib64/hw/gralloc.mt8163.so
+lib64/hw/hwcomposer.mt8163.so
+lib64/libbwc.so
+lib64/libdpframework.so
+lib64/libgralloc_extra.so
+lib64/libion_mtk.so
+lib64/libm4u.so
+lib64/libstlport.so
+
+# IDME
+bin/idme
+bin/devicetype_service
+
+# Keymaster
+lib/hw/keystore.mt8163.so
+lib/libtz_uree.so
+lib64/hw/keystore.mt8163.so
+lib64/libtz_uree.so

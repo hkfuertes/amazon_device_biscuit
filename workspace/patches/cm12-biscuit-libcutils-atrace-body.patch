@@ -1,0 +1,55 @@
+# Biscuit libcutils atrace body ABI shim for CM12
+# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-libcutils-atrace-body.patch
+
+--- a/system/core/libcutils/trace.c
++++ b/system/core/libcutils/trace.c
+@@ -184,3 +184,52 @@ void atrace_setup()
+ {
+     pthread_once(&atrace_once_control, atrace_init_once);
+ }
++
++// ponytail: newer MTK/Amazon blobs link these exported body symbols; CM12 had them inline.
++void atrace_begin_body(const char* name)
++{
++    char buf[ATRACE_MESSAGE_LENGTH];
++    size_t len = snprintf(buf, ATRACE_MESSAGE_LENGTH, "B|%d|%s", getpid(), name);
++    write(atrace_marker_fd, buf, len);
++}
++
++void atrace_end_body()
++{
++    char c = 'E';
++    write(atrace_marker_fd, &c, 1);
++}
++
++void atrace_async_begin_body(const char* name, int32_t cookie)
++{
++    char buf[ATRACE_MESSAGE_LENGTH];
++    size_t len = snprintf(buf, ATRACE_MESSAGE_LENGTH, "S|%d|%s|%" PRId32,
++            getpid(), name, cookie);
++    write(atrace_marker_fd, buf, len);
++}
++
++void atrace_async_end_body(const char* name, int32_t cookie)
++{
++    char buf[ATRACE_MESSAGE_LENGTH];
++    size_t len = snprintf(buf, ATRACE_MESSAGE_LENGTH, "F|%d|%s|%" PRId32,
++            getpid(), name, cookie);
++    write(atrace_marker_fd, buf, len);
++}
++
++void atrace_int_body(const char* name, int32_t value)
++{
++    char buf[ATRACE_MESSAGE_LENGTH];
++    size_t len = snprintf(buf, ATRACE_MESSAGE_LENGTH, "C|%d|%s|%" PRId32,
++            getpid(), name, value);
++    write(atrace_marker_fd, buf, len);
++}
++
++void atrace_int64_body(const char* name, int64_t value)
++{
++    char buf[ATRACE_MESSAGE_LENGTH];
++    size_t len = snprintf(buf, ATRACE_MESSAGE_LENGTH, "C|%d|%s|%" PRId64,
++            getpid(), name, value);
++    write(atrace_marker_fd, buf, len);
++}
