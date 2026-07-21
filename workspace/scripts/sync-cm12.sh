@@ -23,7 +23,14 @@ if [[ -z "$REPO_BIN" ]]; then
 fi
 
 cd "$CM12"
-"$REPO_BIN" init -u https://github.com/CyanogenMod/android.git -b cm-12.1
+INIT_ARGS=(-u https://github.com/CyanogenMod/android.git -b cm-12.1)
+if [[ -n "${CM12_REFERENCE:-}" ]]; then
+  INIT_ARGS+=(--reference "$CM12_REFERENCE")
+fi
+if [[ -n "${CM12_DEPTH:-}" ]]; then
+  INIT_ARGS+=(--depth "$CM12_DEPTH")
+fi
+"$REPO_BIN" init "${INIT_ARGS[@]}"
 cp "$LOCK" .repo/manifests/cm12.lock.xml
 "$REPO_BIN" init -m cm12.lock.xml
-"$REPO_BIN" sync -c -j"${SYNC_JOBS:-4}"
+"$REPO_BIN" sync -c --no-tags --fail-fast -j"${SYNC_JOBS:-4}"
