@@ -20,6 +20,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DOWNLOADS="$REPO_ROOT/workspace/downloads"
 UPSTREAM="$REPO_ROOT/workspace/upstream"
 URL_FILE="$DOWNLOADS/amazon-source.url"
+mkdir -p "$DOWNLOADS" "$UPSTREAM"
 
 FORCE_EXTRACT=0
 for arg in "$@"; do
