@@ -1,10 +1,11 @@
 # Biscuit EGL fallback for CM12 frameworks/native
-# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-egl-fallback.patch
+# Apply from repo root with: workspace/scripts/apply-patches.sh
 
 diff --git a/frameworks/native/opengl/libs/EGL/Loader.cpp b/frameworks/native/opengl/libs/EGL/Loader.cpp
+index c998f51..1bcce4f 100644
 --- a/frameworks/native/opengl/libs/EGL/Loader.cpp
 +++ b/frameworks/native/opengl/libs/EGL/Loader.cpp
-@@ -311,9 +311,12 @@ void *Loader::load_driver(const char* kind,
+@@ -311,8 +311,12 @@ void *Loader::load_driver(const char* kind,
                  }
              }
  

@@ -2,7 +2,6 @@ issues/
 workspace/downloads/
 workspace/tools/
 workspace/upstream/
-workspace/vendor/
 workspace/extracted/
 workspace/kernel-out/
 workspace/kernel-out-netfilter/

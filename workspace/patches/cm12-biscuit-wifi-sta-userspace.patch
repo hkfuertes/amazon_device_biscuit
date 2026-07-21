@@ -1,5 +1,5 @@
 # Biscuit WiFi STA userspace cleanup for CM12
-# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-wifi-sta-userspace.patch
+# Apply from repo root with: workspace/scripts/apply-patches.sh
 
 --- a/vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant.conf
 +++ b/vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant.conf
@@ -16,17 +16,105 @@
 -p2p_no_group_iface=1
 -driver_param=use_p2p_group_interface=1
  wowlan_triggers=disconnect
+diff --git a/external/wpa_supplicant_8/wpa_supplicant/Android.mk b/external/wpa_supplicant_8/wpa_supplicant/Android.mk
+index b266414..9b8d2ea 100644
+--- a/external/wpa_supplicant_8/wpa_supplicant/Android.mk
++++ b/external/wpa_supplicant_8/wpa_supplicant/Android.mk
+@@ -28,10 +28,12 @@ L_CFLAGS += -DANDROID_LOG_NAME=\"wpa_supplicant\"
+ L_CFLAGS += -Wno-unused-parameter
+
+ # Set Android extended P2P functionality
+-L_CFLAGS += -DANDROID_P2P
+-ifeq ($(BOARD_WPA_SUPPLICANT_PRIVATE_LIB),)
+-L_CFLAGS += -DANDROID_P2P_STUB
+-endif
++# Biscuit bring-up: disable ANDROID_P2P in wpa_supplicant; MTK P2P/WPS hooks crash before STA connect.
++# Hostapd AP remains source-built; revisit P2P after client WiFi is stable.
++# L_CFLAGS += -DANDROID_P2P
++# ifeq ($(BOARD_WPA_SUPPLICANT_PRIVATE_LIB),)
++# L_CFLAGS += -DANDROID_P2P_STUB
++# endif
+
+ # Disable roaming in wpa_supplicant
+ ifdef CONFIG_NO_ROAMING
+diff --git a/external/wpa_supplicant_8/wpa_supplicant/android.config b/external/wpa_supplicant_8/wpa_supplicant/android.config
+index 3ed734d..59db6ad 100644
+--- a/external/wpa_supplicant_8/wpa_supplicant/android.config
++++ b/external/wpa_supplicant_8/wpa_supplicant/android.config
+@@ -140,14 +140,15 @@ CONFIG_EAP_AKA_PRIME=y
+ #CONFIG_EAP_TNC=y
+
+ # Wi-Fi Protected Setup (WPS)
+-CONFIG_WPS=y
++# Biscuit bring-up: WPS crashes MTK/CM12 wpa_supplicant before STA connect.
++# CONFIG_WPS=y
+ # Enable WPS external registrar functionality
+-CONFIG_WPS_ER=y
++# CONFIG_WPS_ER=y
+ # Disable credentials for an open network by default when acting as a WPS
+ # registrar.
+ #CONFIG_WPS_REG_DISABLE_OPEN=y
+ # Enable WPS support with NFC config method
+-CONFIG_WPS_NFC=y
++# CONFIG_WPS_NFC=y
+
+ # EAP-IKEv2
+ #CONFIG_EAP_IKEV2=y
+@@ -433,10 +434,12 @@ CONFIG_WNM=y
+ # This can be used to enable functionality to improve interworking with
+ # external networks (GAS/ANQP to learn more about the networks and network
+ # selection based on available credentials).
+-CONFIG_INTERWORKING=y
++# Biscuit STA bring-up: disable GAS/offchannel path while P2P/AP/WPS are off.
++# CONFIG_INTERWORKING=y
+
+ # Hotspot 2.0
+-CONFIG_HS20=y
++# Biscuit STA bring-up: disable Hotspot 2.0; it forces Interworking/GAS.
++# CONFIG_HS20=y
+
+ # Disable roaming in wpa_supplicant
+ CONFIG_NO_ROAMING=y
+@@ -446,12 +449,14 @@ CONFIG_NO_ROAMING=y
+ # should be noted that this is mainly aimed at simple cases like
+ # WPA2-Personal while more complex configurations like WPA2-Enterprise with an
+ # external RADIUS server can be supported with hostapd.
+-CONFIG_AP=y
++# Biscuit bring-up: hostapd handles AP; disable AP code inside wpa_supplicant STA build.
++# CONFIG_AP=y
+
+ # P2P (Wi-Fi Direct)
+ # This can be used to enable P2P support in wpa_supplicant. See README-P2P for
+ # more information on P2P operations.
+-CONFIG_P2P=y
++# Biscuit bring-up: defer P2P until STA is stable.
++# CONFIG_P2P=y
+
+ # Enable TDLS support
+ CONFIG_TDLS=y
+@@ -459,7 +464,8 @@ CONFIG_TDLS=y
+ # Wi-Fi Direct
+ # This can be used to enable Wi-Fi Direct extensions for P2P using an external
+ # program to control the additional information exchanges in the messages.
+-CONFIG_WIFI_DISPLAY=y
++# Biscuit bring-up: disable Wi-Fi Display; it pulls P2P/WPS path.
++# CONFIG_WIFI_DISPLAY=y
+
+ # Autoscan
+ # This can be used to enable automatic scan support in wpa_supplicant.
+diff --git a/external/wpa_supplicant_8/wpa_supplicant/ctrl_iface.c b/external/wpa_supplicant_8/wpa_supplicant/ctrl_iface.c
+index 9726be9..dcd539a 100644
 --- a/external/wpa_supplicant_8/wpa_supplicant/ctrl_iface.c
 +++ b/external/wpa_supplicant_8/wpa_supplicant/ctrl_iface.c
-@@ -5704,6 +5704,7 @@
- 
+@@ -5704,6 +5704,7 @@ static int wpa_supplicant_driver_cmd(struct wpa_supplicant *wpa_s, char *cmd,
+
  	ret = wpa_drv_driver_cmd(wpa_s, cmd, buf, buflen);
  	if (ret == 0) {
 +#ifdef CONFIG_P2P
  		if (os_strncasecmp(cmd, "COUNTRY", 7) == 0) {
  			struct p2p_data *p2p = wpa_s->global->p2p;
  			if (p2p) {
-@@ -5714,6 +5715,7 @@
+@@ -5714,6 +5715,7 @@ static int wpa_supplicant_driver_cmd(struct wpa_supplicant *wpa_s, char *cmd,
  				p2p_set_country(p2p, country);
  			}
  		}
@@ -34,9 +122,11 @@
  		ret = os_snprintf(buf, buflen, "%s\n", "OK");
  	}
  	return ret;
+diff --git a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
+index 0a9cb42..e33cb76 100755
 --- a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
 +++ b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
-@@ -5220,7 +5220,9 @@
+@@ -5220,7 +5220,9 @@ public class WifiStateMachine extends StateMachine {
                      if (mWifiConfigStore.associatedPartialScanPeriodMilli < 0) {
                          mWifiConfigStore.associatedPartialScanPeriodMilli = 0;
                      }
@@ -44,6 +134,23 @@
 +                    if (mP2pSupported) {
 +                        initializeWpsDetails();
 +                    }
- 
+
                      mIbssSupported = mWifiNative.getModeCapability("IBSS");
- 
+
+@@ -5278,9 +5280,14 @@ public class WifiStateMachine extends StateMachine {
+                     defaultInterval);
+
+             mWifiNative.setScanInterval((int)mSupplicantScanIntervalMs / 1000);
+-            mWifiNative.setExternalSim(true);
+
+-            setRandomMacOui();
++            // ponytail: EAP-SIM is not needed for basic STA and crashes this MTK supplicant.
++            // Re-enable only if SIM/AKA enterprise auth is needed.
++            // mWifiNative.setExternalSim(true);
++
++            // ponytail: MTK/CM12 STA works without scan MAC randomization; HAL stub trips bring-up.
++            // Re-enable after basic STA association is stable.
++            // setRandomMacOui();
+             if (mWifiConfigStore.enableAutoJoinWhenAssociated) {
+                 mWifiNative.enableAutoConnect(false);
+             } else {

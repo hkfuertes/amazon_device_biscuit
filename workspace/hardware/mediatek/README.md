@@ -1,8 +1,10 @@
 # MediaTek WiFi userspace helpers
 
-Source: `workspace/tools/android_hardware_mediatek-lbule` commit `a4df15d`.
+Vendored snapshot for Biscuit CM12 WiFi bring-up.
 
-Vendored for Biscuit CM12 WiFi bring-up:
+Provenance: `lbule/android_hardware_mediatek` commit `a4df15d`.
+
+Included files:
 
 - `wlan/wpa_supplicant_8_lib/Android.mk`
 - `wlan/wpa_supplicant_8_lib/mediatek_driver_cmd_nl80211.c`
