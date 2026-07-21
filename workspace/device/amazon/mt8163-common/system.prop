@@ -18,3 +18,17 @@ debug.sf.nobootanimation=1
 
 # USB
 ro.usb.vid=1949
+
+# MTK connectivity/audio props read by stock Biscuit blobs.
+wifi.interface=wlan0
+ro.mediatek.platform=MT8163
+ro.btstack=bluedroid
+persist.service.bt.a2dp.sink=true
+persist.mtk.wcn.combo.chipid=-1
+mediatek.wlan.chip=CONSYS_MT8163
+mediatek.wlan.module.postfix=_consys_mt8163
+ro.mtk_wlan_support=1
+ro.mtk_wifi_mcc_support=1
+ro.mtk_dhcpv6c_wifi=1
+ro.mtk_bt_support=1
+ro.mtk_audio_profiles=1

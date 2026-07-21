@@ -15,3 +15,6 @@ workspace/device/amazon/biscuit/prebuilt/kernel.sha256
 workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt
 workspace/device/amazon/biscuit/prebuilt/system/
 
+
+# Local test credentials
+workspace/secrets/

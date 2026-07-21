@@ -126,6 +126,15 @@ if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
   cp -a "$REPO_ROOT/workspace/device/amazon/mt8163-common" "$CM12_COMMON_DIR"
   echo "Copied mt8163-common into: $CM12_COMMON_DIR"
 
+  AMAZON_HARDWARE_TREE="$REPO_ROOT/workspace/hardware/amazon"
+  if [[ -d "$AMAZON_HARDWARE_TREE" ]]; then
+    CM12_HARDWARE_DIR="$REPO_ROOT/workspace/cm12/hardware/amazon"
+    rm -rf "$CM12_HARDWARE_DIR"
+    mkdir -p "$(dirname "$CM12_HARDWARE_DIR")"
+    cp -a "$AMAZON_HARDWARE_TREE" "$CM12_HARDWARE_DIR"
+    echo "Copied Amazon hardware helpers into: $CM12_HARDWARE_DIR"
+  fi
+
   VENDOR_TREE="$REPO_ROOT/workspace/vendor/amazon/biscuit"
   if [[ -d "$VENDOR_TREE" ]]; then
     CM12_VENDOR_DIR="$REPO_ROOT/workspace/cm12/vendor/amazon/biscuit"
