@@ -269,3 +269,20 @@ Scope now: WiFi client + P2P/AP where feasible, Bluetooth base bring-up. Avoid s
 - Kept Biscuit defensive `DRIVER MACADDR` path: read `/sys/class/net/wlan0/address` before touching supplicant/driver private state.
 - Enabled `BOARD_WLAN_DEVICE := MediaTek` so CM12 links `libwifi-service` against MTK WiFi HAL.
 
+
+## 2026-07-21 Bluetooth framework bring-up
+
+- Root cause for missing `bluetooth_manager`: product did not install Bluetooth feature XMLs.
+- Required files:
+  - `frameworks/native/data/etc/android.hardware.bluetooth.xml -> system/etc/permissions/android.hardware.bluetooth.xml`
+  - `frameworks/native/data/etc/android.hardware.bluetooth_le.xml -> system/etc/permissions/android.hardware.bluetooth_le.xml`
+- After manually copying those XMLs and rebooting:
+  - `pm list features` reports `android.hardware.bluetooth` and `android.hardware.bluetooth_le`.
+  - `service list` reports `bluetooth_manager`.
+  - CM12 `IBluetoothManager.enable(String)` transaction is `service call bluetooth_manager 8 s16 com.android.shell`.
+  - Bluetooth reaches `state: 12`/ON with address `FC:65:DE:2D:FD:DD` and name `Echo Dot`.
+  - Discovery starts successfully and logs visible devices via `BluetoothEventManager`/`btm_process_inq_results`.
+- Added local helpers under `workspace/scripts/bluetooth/`:
+  - `bt-enable.sh`
+  - `bt-discover.sh`
+  - `BtDiscover.java`
