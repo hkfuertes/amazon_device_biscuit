@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -16,11 +17,17 @@
 #include <tinyalsa/asoundlib.h>
 
 #define CARD 0
-#define DEVICE 23
-#define RATE 48000
-#define CHANNELS 2
-#define PERIOD_SIZE 1024
-#define PERIOD_COUNT 4
+#define OUT_DEVICE 23
+#define OUT_RATE 48000
+#define OUT_CHANNELS 2
+#define OUT_PERIOD_SIZE 1024
+#define OUT_PERIOD_COUNT 4
+#define IN_DEVICE 24
+#define IN_RATE 16000
+#define IN_CHANNELS 1
+#define IN_HW_CHANNELS 9
+#define IN_PERIOD_SIZE 256
+#define IN_PERIOD_COUNT 4
 
 struct biscuit_audio_device {
     struct audio_hw_device device;
@@ -35,12 +42,26 @@ struct biscuit_stream_out {
     uint64_t frames_written;
 };
 
+struct biscuit_stream_in {
+    struct audio_stream_in stream;
+    pthread_mutex_t lock;
+    struct pcm *pcm;
+};
+
 static struct pcm_config out_config = {
-    .channels = CHANNELS,
-    .rate = RATE,
-    .period_size = PERIOD_SIZE,
-    .period_count = PERIOD_COUNT,
+    .channels = OUT_CHANNELS,
+    .rate = OUT_RATE,
+    .period_size = OUT_PERIOD_SIZE,
+    .period_count = OUT_PERIOD_COUNT,
     .format = PCM_FORMAT_S16_LE,
+};
+
+static struct pcm_config in_config = {
+    .channels = IN_HW_CHANNELS,
+    .rate = IN_RATE,
+    .period_size = IN_PERIOD_SIZE,
+    .period_count = IN_PERIOD_COUNT,
+    .format = PCM_FORMAT_S24_3LE,
 };
 
 static int route_enum_or_value(struct mixer *mixer, const char *name, const char *value, int fallback)
@@ -109,9 +130,39 @@ static void apply_speaker_route(void)
     mixer_close(mixer);
 }
 
-static uint32_t out_get_sample_rate(const struct audio_stream *stream) { return RATE; }
-static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate) { return rate == RATE ? 0 : -EINVAL; }
-static size_t out_get_buffer_size(const struct audio_stream *stream) { return PERIOD_SIZE * CHANNELS * sizeof(int16_t); }
+static void apply_mic_route(void)
+{
+    struct mixer *mixer = mixer_open(CARD);
+    const char *adcs[] = {"A", "B", "C", "D"};
+    unsigned int i;
+
+    if (!mixer) {
+        ALOGE("mixer_open(%d) failed", CARD);
+        return;
+    }
+
+    /* ponytail: stock fixed 7-mic route; HAL exposes mono ch0 until beamforming exists. */
+    for (i = 0; i < 4; i++) {
+        char name[80];
+        snprintf(name, sizeof(name), "ADC_%s Left Ip Select ADC_%s DIF1_L switch", adcs[i], adcs[i]);
+        route_enum_or_value(mixer, name, "On", 1);
+        snprintf(name, sizeof(name), "ADC_%s Right Ip Select ADC_%s DIF1_R switch", adcs[i], adcs[i]);
+        route_enum_or_value(mixer, name, "On", 1);
+        snprintf(name, sizeof(name), "ADC_%s MICPGA Volume Ctrl", adcs[i]);
+        route_value(mixer, name, 40, 40);
+        snprintf(name, sizeof(name), "ADC_%s DIF1_L Input Gain", adcs[i]);
+        route_enum_or_value(mixer, name, "Off", 0);
+        snprintf(name, sizeof(name), "ADC_%s DIF1_R Input Gain", adcs[i]);
+        route_enum_or_value(mixer, name, "Off", 0);
+    }
+    route_enum_or_value(mixer, "SpiTimeStamps", "Off", 0);
+
+    mixer_close(mixer);
+}
+
+static uint32_t out_get_sample_rate(const struct audio_stream *stream) { return OUT_RATE; }
+static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate) { return rate == OUT_RATE ? 0 : -EINVAL; }
+static size_t out_get_buffer_size(const struct audio_stream *stream) { return OUT_PERIOD_SIZE * OUT_CHANNELS * sizeof(int16_t); }
 static audio_channel_mask_t out_get_channels(const struct audio_stream *stream) { return AUDIO_CHANNEL_OUT_STEREO; }
 static audio_format_t out_get_format(const struct audio_stream *stream) { return AUDIO_FORMAT_PCM_16_BIT; }
 static int out_set_format(struct audio_stream *stream, audio_format_t format) { return format == AUDIO_FORMAT_PCM_16_BIT ? 0 : -EINVAL; }
@@ -122,7 +173,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kv_pairs)
 static char *out_get_parameters(const struct audio_stream *stream, const char *keys) { return strdup(""); }
 static int out_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect) { return 0; }
 static int out_remove_audio_effect(const struct audio_stream *stream, effect_handle_t effect) { return 0; }
-static uint32_t out_get_latency(const struct audio_stream_out *stream) { return (PERIOD_SIZE * PERIOD_COUNT * 1000) / RATE; }
+static uint32_t out_get_latency(const struct audio_stream_out *stream) { return (OUT_PERIOD_SIZE * OUT_PERIOD_COUNT * 1000) / OUT_RATE; }
 static int out_set_volume(struct audio_stream_out *stream, float left, float right) { return -ENOSYS; }
 static int out_get_render_position(const struct audio_stream_out *stream, uint32_t *dsp_frames) { *dsp_frames = 0; return -EINVAL; }
 static int out_get_next_write_timestamp(const struct audio_stream_out *stream, int64_t *timestamp) { return -EINVAL; }
@@ -154,22 +205,22 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer, si
     if (!out->pcm) {
         apply_speaker_route();
         struct pcm_config config = out_config;
-        out->pcm = pcm_open(CARD, DEVICE, PCM_OUT, &config);
+        out->pcm = pcm_open(CARD, OUT_DEVICE, PCM_OUT, &config);
         if (!out->pcm || !pcm_is_ready(out->pcm)) {
-            ALOGE("pcm_open(%d,%d) failed: %s", CARD, DEVICE, out->pcm ? pcm_get_error(out->pcm) : "NULL");
+            ALOGE("pcm_open(%d,%d) failed: %s", CARD, OUT_DEVICE, out->pcm ? pcm_get_error(out->pcm) : "NULL");
             if (out->pcm) {
                 pcm_close(out->pcm);
                 out->pcm = NULL;
             }
             pthread_mutex_unlock(&out->lock);
-            usleep((bytes * 1000000ULL) / (RATE * CHANNELS * sizeof(int16_t)));
+            usleep((bytes * 1000000ULL) / (OUT_RATE * OUT_CHANNELS * sizeof(int16_t)));
             return -ENODEV;
         }
     }
 
     ret = pcm_write(out->pcm, buffer, bytes);
     if (ret == 0)
-        out->frames_written += bytes / (CHANNELS * sizeof(int16_t));
+        out->frames_written += bytes / (OUT_CHANNELS * sizeof(int16_t));
     pthread_mutex_unlock(&out->lock);
 
     return ret == 0 ? (ssize_t)bytes : -EIO;
@@ -194,7 +245,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     struct biscuit_stream_out *out;
 
     if (config) {
-        config->sample_rate = RATE;
+        config->sample_rate = OUT_RATE;
         config->channel_mask = AUDIO_CHANNEL_OUT_STEREO;
         config->format = AUDIO_FORMAT_PCM_16_BIT;
     }
@@ -242,6 +293,93 @@ static void adev_close_output_stream(struct audio_hw_device *dev, struct audio_s
     free(out);
 }
 
+static int32_t s24_3le_to_s32(const unsigned char *p)
+{
+    int32_t v = (int32_t)(p[0] | (p[1] << 8) | (p[2] << 16));
+    if (v & 0x800000)
+        v |= ~0xffffff;
+    return v;
+}
+
+static uint32_t in_get_sample_rate(const struct audio_stream *stream) { return IN_RATE; }
+static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate) { return rate == IN_RATE ? 0 : -EINVAL; }
+static size_t in_get_buffer_size(const struct audio_stream *stream) { return IN_PERIOD_SIZE * IN_CHANNELS * sizeof(int16_t); }
+static audio_channel_mask_t in_get_channels(const struct audio_stream *stream) { return AUDIO_CHANNEL_IN_MONO; }
+static audio_format_t in_get_format(const struct audio_stream *stream) { return AUDIO_FORMAT_PCM_16_BIT; }
+static int in_set_format(struct audio_stream *stream, audio_format_t format) { return format == AUDIO_FORMAT_PCM_16_BIT ? 0 : -EINVAL; }
+static int in_dump(const struct audio_stream *stream, int fd) { return 0; }
+static audio_devices_t in_get_device(const struct audio_stream *stream) { return AUDIO_DEVICE_IN_BUILTIN_MIC; }
+static int in_set_device(struct audio_stream *stream, audio_devices_t device) { return 0; }
+static int in_set_parameters(struct audio_stream *stream, const char *kv_pairs) { return 0; }
+static char *in_get_parameters(const struct audio_stream *stream, const char *keys) { return strdup(""); }
+static int in_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect) { return 0; }
+static int in_remove_audio_effect(const struct audio_stream *stream, effect_handle_t effect) { return 0; }
+static int in_set_gain(struct audio_stream_in *stream, float gain) { return 0; }
+static uint32_t in_get_input_frames_lost(struct audio_stream_in *stream) { return 0; }
+
+static int in_standby(struct audio_stream *stream)
+{
+    struct biscuit_stream_in *in = (struct biscuit_stream_in *)stream;
+
+    pthread_mutex_lock(&in->lock);
+    if (in->pcm) {
+        pcm_close(in->pcm);
+        in->pcm = NULL;
+    }
+    pthread_mutex_unlock(&in->lock);
+    return 0;
+}
+
+static ssize_t in_read(struct audio_stream_in *stream, void *buffer, size_t bytes)
+{
+    struct biscuit_stream_in *in = (struct biscuit_stream_in *)stream;
+    size_t frames = bytes / sizeof(int16_t);
+    size_t raw_bytes = frames * IN_HW_CHANNELS * 3;
+    unsigned char *raw;
+    int16_t *dst = (int16_t *)buffer;
+    size_t i;
+
+    if (bytes == 0)
+        return 0;
+
+    raw = malloc(raw_bytes);
+    if (!raw)
+        return -ENOMEM;
+
+    pthread_mutex_lock(&in->lock);
+    if (!in->pcm) {
+        struct pcm_config config = in_config;
+        apply_mic_route();
+        in->pcm = pcm_open(CARD, IN_DEVICE, PCM_IN, &config);
+        if (!in->pcm || !pcm_is_ready(in->pcm)) {
+            ALOGE("pcm_open(%d,%d) failed: %s", CARD, IN_DEVICE, in->pcm ? pcm_get_error(in->pcm) : "NULL");
+            if (in->pcm) {
+                pcm_close(in->pcm);
+                in->pcm = NULL;
+            }
+            pthread_mutex_unlock(&in->lock);
+            free(raw);
+            usleep((frames * 1000000ULL) / IN_RATE);
+            return -ENODEV;
+        }
+    }
+
+    if (pcm_read(in->pcm, raw, raw_bytes) != 0) {
+        ALOGE("pcm_read failed: %s", pcm_get_error(in->pcm));
+        pthread_mutex_unlock(&in->lock);
+        free(raw);
+        usleep((frames * 1000000ULL) / IN_RATE);
+        return -EIO;
+    }
+    pthread_mutex_unlock(&in->lock);
+
+    for (i = 0; i < frames; i++)
+        dst[i] = (int16_t)(s24_3le_to_s32(raw + i * IN_HW_CHANNELS * 3) >> 8);
+
+    free(raw);
+    return bytes;
+}
+
 static int adev_close(hw_device_t *device)
 {
     struct biscuit_audio_device *adev = (struct biscuit_audio_device *)device;
@@ -250,7 +388,7 @@ static int adev_close(hw_device_t *device)
     return 0;
 }
 
-static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev) { return AUDIO_DEVICE_OUT_SPEAKER; }
+static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev) { return AUDIO_DEVICE_OUT_SPEAKER | AUDIO_DEVICE_IN_BUILTIN_MIC; }
 static int adev_init_check(const struct audio_hw_device *dev) { return 0; }
 static int adev_set_voice_volume(struct audio_hw_device *dev, float volume) { return 0; }
 static int adev_set_master_volume(struct audio_hw_device *dev, float volume) { return -ENOSYS; }
@@ -260,9 +398,61 @@ static int adev_get_master_mute(struct audio_hw_device *dev, bool *mute) { *mute
 static int adev_set_mode(struct audio_hw_device *dev, audio_mode_t mode) { return 0; }
 static int adev_set_parameters(struct audio_hw_device *dev, const char *kv_pairs) { return 0; }
 static char *adev_get_parameters(const struct audio_hw_device *dev, const char *keys) { return strdup(""); }
-static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev, const struct audio_config *config) { return 0; }
-static int adev_open_input_stream(struct audio_hw_device *dev, audio_io_handle_t handle, audio_devices_t devices, struct audio_config *config, struct audio_stream_in **stream_in, audio_input_flags_t flags, const char *address, audio_source_t source) { return -ENOSYS; }
-static void adev_close_input_stream(struct audio_hw_device *dev, struct audio_stream_in *stream) { }
+static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev, const struct audio_config *config)
+{
+    if (!config || config->format != AUDIO_FORMAT_PCM_16_BIT)
+        return 0;
+    return IN_PERIOD_SIZE * IN_CHANNELS * sizeof(int16_t);
+}
+
+static int adev_open_input_stream(struct audio_hw_device *dev, audio_io_handle_t handle,
+                                  audio_devices_t devices, struct audio_config *config,
+                                  struct audio_stream_in **stream_in,
+                                  audio_input_flags_t flags, const char *address,
+                                  audio_source_t source)
+{
+    struct biscuit_stream_in *in;
+
+    if (config) {
+        config->sample_rate = IN_RATE;
+        config->channel_mask = AUDIO_CHANNEL_IN_MONO;
+        config->format = AUDIO_FORMAT_PCM_16_BIT;
+    }
+
+    in = calloc(1, sizeof(*in));
+    if (!in)
+        return -ENOMEM;
+
+    pthread_mutex_init(&in->lock, NULL);
+    in->stream.common.get_sample_rate = in_get_sample_rate;
+    in->stream.common.set_sample_rate = in_set_sample_rate;
+    in->stream.common.get_buffer_size = in_get_buffer_size;
+    in->stream.common.get_channels = in_get_channels;
+    in->stream.common.get_format = in_get_format;
+    in->stream.common.set_format = in_set_format;
+    in->stream.common.standby = in_standby;
+    in->stream.common.dump = in_dump;
+    in->stream.common.get_device = in_get_device;
+    in->stream.common.set_device = in_set_device;
+    in->stream.common.set_parameters = in_set_parameters;
+    in->stream.common.get_parameters = in_get_parameters;
+    in->stream.common.add_audio_effect = in_add_audio_effect;
+    in->stream.common.remove_audio_effect = in_remove_audio_effect;
+    in->stream.set_gain = in_set_gain;
+    in->stream.read = in_read;
+    in->stream.get_input_frames_lost = in_get_input_frames_lost;
+
+    *stream_in = &in->stream;
+    return 0;
+}
+
+static void adev_close_input_stream(struct audio_hw_device *dev, struct audio_stream_in *stream)
+{
+    struct biscuit_stream_in *in = (struct biscuit_stream_in *)stream;
+    in_standby(&stream->common);
+    pthread_mutex_destroy(&in->lock);
+    free(in);
+}
 static int adev_dump(const audio_hw_device_t *device, int fd) { return 0; }
 
 static int adev_set_mic_mute(struct audio_hw_device *dev, bool state)
