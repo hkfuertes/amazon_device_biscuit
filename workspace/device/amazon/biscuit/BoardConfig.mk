@@ -15,6 +15,10 @@ TARGET_CPU_ABI       := armeabi-v7a
 TARGET_CPU_ABI2      := armeabi
 TARGET_CPU_VARIANT   := cortex-a7
 TARGET_2ND_ARCH      :=
+TARGET_2ND_ARCH_VARIANT :=
+TARGET_2ND_CPU_VARIANT :=
+TARGET_2ND_CPU_ABI   :=
+TARGET_2ND_CPU_ABI2  :=
 TARGET_USES_64_BIT_BINDER := true
 
 # ── Platform ─────────────────────────────────────────────────────────────────
