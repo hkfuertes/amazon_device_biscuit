@@ -1,0 +1,2 @@
+/system/bin/biscuit-ledd u:object_r:biscuit_ledd_exec:s0
+/dev/socket/biscuit-ledd u:object_r:biscuit_ledd_socket:s0

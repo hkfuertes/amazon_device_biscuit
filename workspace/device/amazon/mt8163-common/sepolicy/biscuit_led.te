@@ -1,0 +1,13 @@
+type biscuit_ledd, domain;
+type biscuit_ledd_exec, exec_type, file_type;
+type biscuit_ledd_socket, file_type;
+
+init_daemon_domain(biscuit_ledd)
+
+# init-created /dev/socket/biscuit-ledd; only the privileged service talks to it.
+unix_socket_connect(system_app, biscuit_ledd, biscuit_ledd)
+
+# LED driver attributes: frame, boot_animation, led_current.
+# ponytail: keep this broad sysfs write until real AVCs show a stable per-attr label.
+allow biscuit_ledd sysfs:file rw_file_perms;
+allow biscuit_ledd sysfs:dir r_dir_perms;
