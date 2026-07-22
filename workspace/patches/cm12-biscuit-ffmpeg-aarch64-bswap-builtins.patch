@@ -1,0 +1,28 @@
+diff --git a/external/ffmpeg/libavutil/aarch64/bswap.h b/external/ffmpeg/libavutil/aarch64/bswap.h
+--- a/external/ffmpeg/libavutil/aarch64/bswap.h
++++ b/external/ffmpeg/libavutil/aarch64/bswap.h
+@@ -29,20 +29,17 @@
+ static av_always_inline av_const unsigned av_bswap16(unsigned x)
+ {
+-    __asm__("rev16 %w0, %w0" : "+r"(x));
+-    return x;
++    return __builtin_bswap32(x) >> 16;
+ }
+ 
+ #define av_bswap32 av_bswap32
+ static av_always_inline av_const uint32_t av_bswap32(uint32_t x)
+ {
+-    __asm__("rev %w0, %w0" : "+r"(x));
+-    return x;
++    return __builtin_bswap32(x);
+ }
+ 
+ #define av_bswap64 av_bswap64
+ static av_always_inline av_const uint64_t av_bswap64(uint64_t x)
+ {
+-    __asm__("rev %0, %0" : "+r"(x));
+-    return x;
++    return __builtin_bswap64(x);
+ }
+ 
+ #endif /* HAVE_INLINE_ASM */
