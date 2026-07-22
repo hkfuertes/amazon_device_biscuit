@@ -12,6 +12,10 @@ $(call inherit-product-if-exists, vendor/amazon/biscuit/biscuit-vendor.mk)
 # Headless device: no display, no telephony, no sdcard.
 PRODUCT_CHARACTERISTICS := nosdcard
 
+# ── Setup wizard ─────────────────────────────────────────────────────────────
+# ponytail: no screen/account flow on Echo; keep Provision/ManagedProvisioning for boot state.
+PRODUCT_PACKAGES := $(filter-out CyanogenSetupWizard SetupWizard,$(PRODUCT_PACKAGES))
+
 # ── Overlays ────────────────────────────────────────────────────────────────
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
