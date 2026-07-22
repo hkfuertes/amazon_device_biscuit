@@ -1,0 +1,4 @@
+# ponytail: runtime persist mirrors the TWRP hotfix; never put this in default.prop or it becomes adb,adb.
+on boot
+    setprop persist.sys.usb.config adb
+    setprop sys.usb.config adb

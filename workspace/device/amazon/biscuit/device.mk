@@ -39,14 +39,14 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.adb.secure=0 \
     ro.secure=0 \
     ro.debuggable=1 \
-    service.adb.root=1 \
-    persist.sys.usb.config=adb
+    service.adb.root=1
 
 # ── Ramdisk init ─────────────────────────────────────────────────────────────
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/fstab.mt8163:root/fstab.mt8163 \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc:root/init.mt8163.rc \
     $(LOCAL_PATH)/rootdir/init.device.rc:root/init.device.rc \
+    $(LOCAL_PATH)/rootdir/init.biscuit.usb.rc:root/init.biscuit.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.usb.rc:root/init.mt8163.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc
 
