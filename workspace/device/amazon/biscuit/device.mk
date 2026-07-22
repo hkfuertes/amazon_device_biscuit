@@ -24,6 +24,16 @@ DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 PRODUCT_PACKAGES += \
     libGLES_android
 
+# ── Audio ───────────────────────────────────────────────────────────────────
+# ponytail: source-only speaker HAL; mic/input/routes later if needed.
+PRODUCT_PACKAGES += \
+    audio.primary.mt8163 \
+    biscuit_audiotrack_test \
+    tinymix \
+    tinyplay \
+    tinycap \
+    tinypcminfo
+
 # ── Platform ────────────────────────────────────────────────────────────────
 TARGET_BOARD_PLATFORM  := mt8163
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
