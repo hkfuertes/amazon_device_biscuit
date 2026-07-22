@@ -1,9 +1,11 @@
 # Biscuit libcutils atrace body ABI shim for CM12
-# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-libcutils-atrace-body.patch
+# Apply from repo root with: workspace/scripts/apply-patches.sh
 
+diff --git a/system/core/libcutils/trace.c b/system/core/libcutils/trace.c
+index f57aac2..c10386d 100644
 --- a/system/core/libcutils/trace.c
 +++ b/system/core/libcutils/trace.c
-@@ -184,3 +184,52 @@ void atrace_setup()
+@@ -183,3 +183,49 @@ void atrace_setup()
  {
      pthread_once(&atrace_once_control, atrace_init_once);
  }

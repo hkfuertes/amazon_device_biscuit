@@ -1,4 +1,0 @@
-# ponytail: force adb during bring-up; default.prop post-processing appends duplicate adb.
-on boot
-    setprop persist.sys.usb.config adb
-    setprop sys.usb.config adb

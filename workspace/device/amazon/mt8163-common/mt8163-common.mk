@@ -8,6 +8,25 @@
 PRODUCT_PACKAGES += \
     libion
 
+# Wi-Fi
+PRODUCT_PACKAGES += \
+    hostapd \
+    hostapd_cli \
+    wpa_cli \
+    wpa_supplicant
+
+# Bluetooth
+PRODUCT_PACKAGES += \
+    Bluetooth \
+    bluetooth.default \
+    bt_did.conf \
+    bt_stack.conf \
+    auto_pair_devlist.conf
+
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
+    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml
+
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 

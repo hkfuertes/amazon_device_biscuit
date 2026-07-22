@@ -7,6 +7,10 @@ Reglas para agentes en este repo.
 - Ayuda Amazon: https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480
 - Source Amazon Echo Dot 5.5.5.4: https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
 - Amazon OSS MT8163 common: https://github.com/amazon-oss/android_device_amazon_mt8163-common
+- Amazon OSS hardware helpers: https://github.com/amazon-oss/android_hardware_amazon/tree/cm-12.1
+- MTK hardware helper referencia: https://github.com/lbule/android_hardware_mediatek
+  - Usar solo para comparar/extraer ideas puntuales de `wlan/wpa_supplicant_8_lib/mediatek_driver_cmd_nl80211.c` (`lib_driver_cmd_mt66xx`): `COUNTRY`, `GET_STA_STATISTICS`, start/stop/AP si hace falta.
+  - No sustituir wholesale nuestro helper Amazon/CM12: su `DRIVER MACADDR` también dereferencia `priv` antes de responder y no arregla el SIGSEGV as-is.
 - OTA Biscuit full 272.6.4.1: https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin
 - Notas amonet Biscuit: `docs/amonet-biscuit-unlock.md`
 - amonet local ignorado por git: `workspace/tools/amonet-biscuit-v1.1.0/amonet`
@@ -17,6 +21,7 @@ Reglas para agentes en este repo.
 - Antes de cada acción operativa, decir explícitamente qué voy a hacer, qué no voy a hacer y por qué.
 - En este dispositivo `adb wait-for-device` puede quedarse colgado o no ser buena señal de progreso. Preferir chequeos explícitos con `adb devices -l`, estado visual del LED/TWRP, y timeouts cortos; si ADB no aparece, parar y reportar.
 - Salvo petición explícita del usuario, no hacer polling ni esperas largas. Los builds/flash/reboots largos deben lanzarse detached o como una acción concreta, reportar cómo mirarlos, y devolver control para que el usuario pueda preguntar entre pasos.
+- Cualquier cambio dentro de `workspace/cm12` debe tener una forma reproducible desde el repo trackeado: preferir `workspace/patches/*.patch`, `workspace/scripts/stage-tree.sh`, `workspace/scripts/apply-patches.sh` o scripts equivalentes. No dejar cambios manuales solo en `workspace/cm12`.
 
 ## Seguridad del dispositivo
 

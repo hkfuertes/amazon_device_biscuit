@@ -20,6 +20,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DOWNLOADS="$REPO_ROOT/workspace/downloads"
 UPSTREAM="$REPO_ROOT/workspace/upstream"
 URL_FILE="$DOWNLOADS/amazon-source.url"
+mkdir -p "$DOWNLOADS" "$UPSTREAM"
 
 FORCE_EXTRACT=0
 for arg in "$@"; do
@@ -102,43 +103,13 @@ else
   echo "Extraction complete. upstream is read-only source-of-truth — do not modify."
 fi
 
-# ── 5. Link device tree into CM12 source tree ───────────────────────────────
-CM12_DEVICE_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit"
+# ── 5. Stage vendored trees into CM12 source tree ───────────────────────────
 DEVICE_TREE="$REPO_ROOT/workspace/device/amazon/biscuit"
 if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
-  # CM12 uses find(1) for device/*/<name>/cm.mk and find does not descend into
-  # symlinked directories, so use a real ignored dir with symlinked contents.
-  mkdir -p "$CM12_DEVICE_DIR"
-  if [[ -L "$CM12_DEVICE_DIR" ]]; then
-    rm "$CM12_DEVICE_DIR"
-    mkdir -p "$CM12_DEVICE_DIR"
-  fi
-  find "$CM12_DEVICE_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
-  for entry in "$DEVICE_TREE"/* "$DEVICE_TREE"/.??*; do
-    [[ -e "$entry" ]] || continue
-    ln -s "$entry" "$CM12_DEVICE_DIR/$(basename "$entry")"
-  done
-  echo "Linked device tree contents into: $CM12_DEVICE_DIR"
-
-  CM12_COMMON_DIR="$REPO_ROOT/workspace/cm12/device/amazon/mt8163-common"
-  rm -rf "$CM12_COMMON_DIR"
-  mkdir -p "$(dirname "$CM12_COMMON_DIR")"
-  cp -a "$REPO_ROOT/workspace/device/amazon/mt8163-common" "$CM12_COMMON_DIR"
-  echo "Copied mt8163-common into: $CM12_COMMON_DIR"
-
-  VENDOR_TREE="$REPO_ROOT/workspace/vendor/amazon/biscuit"
-  if [[ -d "$VENDOR_TREE" ]]; then
-    CM12_VENDOR_DIR="$REPO_ROOT/workspace/cm12/vendor/amazon/biscuit"
-    rm -rf "$CM12_VENDOR_DIR"
-    mkdir -p "$(dirname "$CM12_VENDOR_DIR")"
-    cp -a "$VENDOR_TREE" "$CM12_VENDOR_DIR"
-    echo "Copied Biscuit vendor blobs into: $CM12_VENDOR_DIR"
-  else
-    echo "Biscuit vendor blobs not generated yet. Run workspace/scripts/extract-biscuit-stock-blobs.sh."
-  fi
+  "$REPO_ROOT/workspace/scripts/stage-tree.sh"
 else
-  echo "CM12 source not synced yet — skipping device/common/vendor sync."
-  echo "After 'repo sync', re-run preflight.sh to create the link farm."
+  echo "CM12 source not synced yet — skipping stage-tree."
+  echo "After 'repo sync', re-run preflight.sh."
 fi
 
 echo ""

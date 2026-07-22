@@ -2,7 +2,6 @@ issues/
 workspace/downloads/
 workspace/tools/
 workspace/upstream/
-workspace/vendor/
 workspace/extracted/
 workspace/kernel-out/
 workspace/kernel-out-netfilter/
@@ -15,3 +14,6 @@ workspace/device/amazon/biscuit/prebuilt/kernel.sha256
 workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt
 workspace/device/amazon/biscuit/prebuilt/system/
 
+
+# Local test credentials
+workspace/secrets/

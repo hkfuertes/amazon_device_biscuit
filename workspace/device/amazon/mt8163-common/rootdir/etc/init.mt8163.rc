@@ -357,9 +357,9 @@ service wmtLoader /system/bin/wmt_loader
     oneshot
     disabled
 
-service conn_launcher /system/bin/6620_launcher -p /vendor/etc/firmware/
-    user system
-    group system
+service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
+    user root
+    group root system
     disabled
 
 on property:ro.product.device=douglas
@@ -367,6 +367,16 @@ on property:ro.product.device=douglas
     start conn_launcher
 
 on property:ro.product.device=giza
+    start wmtLoader
+    start conn_launcher
+
+on property:ro.product.device=biscuit
+    chmod 0660 /dev/stpwmt
+    chmod 0660 /dev/wmtWifi
+    chmod 0660 /dev/stpbt
+    chown system system /dev/stpwmt
+    chown system system /dev/wmtWifi
+    chown bluetooth bluetooth /dev/stpbt
     start wmtLoader
     start conn_launcher
 
@@ -384,17 +394,18 @@ service amzn_dha_hmac /system/bin/amzn_dha_hmac
     oneshot
     disabled
 
-service dhcpcd_eth0 /system/bin/logwrapper /system/bin/dhcpcd -A -BK
+# ponytail: framework/libnetutils appends "-f conf <iface>" via ctl.start service:args.
+service dhcpcd_eth0 /system/bin/logwrapper /system/bin/dhcpcd -ABKL
     class main
     disabled
     oneshot
 
-service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -A -BK
+service dhcpcd_wlan0 /system/bin/logwrapper /system/bin/dhcpcd -ABKL
     class main
     disabled
     oneshot
 
-service dhcpcd_p2p /system/bin/logwrapper /system/bin/dhcpcd -A -BK
+service dhcpcd_p2p /system/bin/logwrapper /system/bin/dhcpcd -ABKL
     class main
     disabled
     oneshot

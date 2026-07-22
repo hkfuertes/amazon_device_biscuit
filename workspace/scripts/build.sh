@@ -10,6 +10,10 @@ CM12_DIR="$REPO_ROOT/workspace/cm12"
 OUT_DIR="$CM12_DIR/out-docker"   # absolute, required by amonet remap
 BUILD_TARGET="${BUILD_TARGET:-otapackage}"
 
+# --- preflight: source tree must match tracked inputs ---
+"$REPO_ROOT/workspace/scripts/stage-tree.sh"
+"$REPO_ROOT/workspace/scripts/apply-patches.sh"
+
 # --- preflight: image must exist ---
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "ERROR: Docker image '$IMAGE' not found."
@@ -28,9 +32,9 @@ if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
   docker rm -f "$CONTAINER" >/dev/null
 fi
 
-# --- run build (no --rm: keep logs) ---
-echo "Starting build in container '$CONTAINER'..."
-docker run \
+# --- run build detached (no --rm: keep logs) ---
+echo "Starting build in detached container '$CONTAINER'..."
+docker run -d \
   --name "$CONTAINER" \
   -v "$REPO_ROOT:$REPO_ROOT" \
   -w "$CM12_DIR" \
@@ -43,5 +47,5 @@ docker run \
     make -j\$(nproc) '$BUILD_TARGET'
   "
 
-echo "Build finished ($BUILD_TARGET). Output: $OUT_DIR"
-echo "Logs: docker logs $CONTAINER"
+echo "Build started ($BUILD_TARGET). Output: $OUT_DIR"
+echo "Logs: docker logs -f $CONTAINER"

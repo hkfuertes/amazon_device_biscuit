@@ -1,0 +1,39 @@
+# Biscuit WMT WiFi power toggle for CM12 libhardware_legacy
+# Apply from repo root with: workspace/scripts/apply-patches.sh
+
+diff --git a/hardware/libhardware_legacy/wifi/wifi.c b/hardware/libhardware_legacy/wifi/wifi.c
+index 5c5c360..92c22c6 100644
+--- a/hardware/libhardware_legacy/wifi/wifi.c
++++ b/hardware/libhardware_legacy/wifi/wifi.c
+@@ -352,6 +352,19 @@ int wifi_load_driver()
+     wifi_unload_driver();
+     return -1;
+ #else
++    int fd = TEMP_FAILURE_RETRY(open("/dev/wmtWifi", O_WRONLY));
++    if (fd < 0) {
++        ALOGE("Cannot open /dev/wmtWifi: %s", strerror(errno));
++        property_set(DRIVER_PROP_NAME, "failed");
++        return -1;
++    }
++    if (TEMP_FAILURE_RETRY(write(fd, "1", 1)) != 1) {
++        ALOGE("Cannot enable /dev/wmtWifi: %s", strerror(errno));
++        close(fd);
++        property_set(DRIVER_PROP_NAME, "failed");
++        return -1;
++    }
++    close(fd);
+     property_set(DRIVER_PROP_NAME, "ok");
+     return 0;
+ #endif
+@@ -379,6 +392,11 @@ int wifi_unload_driver()
+     } else
+         return -1;
+ #else
++    int fd = TEMP_FAILURE_RETRY(open("/dev/wmtWifi", O_WRONLY));
++    if (fd >= 0) {
++        TEMP_FAILURE_RETRY(write(fd, "0", 1));
++        close(fd);
++    }
+     property_set(DRIVER_PROP_NAME, "unloaded");
+     return 0;
+ #endif
