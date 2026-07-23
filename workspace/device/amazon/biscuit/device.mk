@@ -73,6 +73,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.biscuit.usb.rc:root/init.biscuit.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.usb.rc:root/init.mt8163.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc \
+    frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
     $(LOCAL_PATH)/biscuit-service/animations/volume.animation:system/etc/biscuit-ledd/volume.animation \
     $(LOCAL_PATH)/biscuit-service/animations/volume-muted.animation:system/etc/biscuit-ledd/volume-muted.animation \

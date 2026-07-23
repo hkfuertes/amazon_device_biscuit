@@ -34,7 +34,6 @@ PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin:system/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin \
     vendor/amazon/biscuit/proprietary/etc/firmware/WIFI_RAM_CODE_8163:system/etc/firmware/WIFI_RAM_CODE_8163 \
     vendor/amazon/biscuit/proprietary/etc/firmware/WMT_SOC.cfg:system/etc/firmware/WMT_SOC.cfg \
-    vendor/amazon/biscuit/proprietary/etc/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
     vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
     vendor/amazon/biscuit/proprietary/bin/linker64:system/bin/linker64 \

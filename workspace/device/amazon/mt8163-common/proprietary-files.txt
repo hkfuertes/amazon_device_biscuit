@@ -40,7 +40,6 @@ etc/firmware/ROMv2_lm_patch_1_0_hdr.bin
 etc/firmware/ROMv2_lm_patch_1_1_hdr.bin
 etc/firmware/WIFI_RAM_CODE_8163
 etc/firmware/WMT_SOC.cfg
-etc/wifi/p2p_supplicant_overlay.conf
 etc/wifi/wpa_supplicant.conf
 etc/wifi/wpa_supplicant_overlay.conf
 # 64-bit runtime shim for stock 64-bit WMT launchers on 32-bit CM12 userspace.

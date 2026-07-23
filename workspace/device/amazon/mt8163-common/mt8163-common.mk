@@ -10,8 +10,6 @@ PRODUCT_PACKAGES += \
 
 # Wi-Fi
 PRODUCT_PACKAGES += \
-    hostapd \
-    hostapd_cli \
     wpa_cli \
     wpa_supplicant
 
