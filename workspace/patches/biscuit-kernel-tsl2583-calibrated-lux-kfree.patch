@@ -1,0 +1,27 @@
+--- kernel/mediatek/mt8163/3.18/drivers/misc/tsl2583.c
++++ kernel/mediatek/mt8163/3.18/drivers/misc/tsl2583.c
+@@ -1007,6 +1007,7 @@ static int parse_alscal_idme(int *coeff)
+ 	struct device_node *ap = NULL;
+ 	char *alscal_idme = NULL;
+ 	char *alscal = NULL;
++	char *alscal_orig = NULL;
+ 	int dummy;
+ 
+ 	ap = of_find_node_by_path(ALS_CAL_OF_PATH);
+@@ -1018,6 +1019,7 @@ static int parse_alscal_idme(int *coeff)
+ 	}
+ 
+ 	alscal = kstrdup(alscal_idme, GFP_KERNEL);
++	alscal_orig = alscal;
+ 
+ 	/* Move pointer to ams_400_0 */
+ 	strsep(&alscal, " ");
+@@ -1027,7 +1029,7 @@ static int parse_alscal_idme(int *coeff)
+ 		return -1;
+ 	}
+ 
+-	kfree(alscal);
++	kfree(alscal_orig);
+ 	return 0;
+ }
+ 

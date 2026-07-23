@@ -92,6 +92,7 @@ echo "Starting kernel build in container '$CONTAINER' (jobs=$JOBS) ..."
 docker run \
   --name "$CONTAINER" \
   -v "$UPSTREAM:/upstream:ro" \
+  -v "$REPO_ROOT/workspace/patches:/patches:ro" \
   -v "$KERNEL_OUT:/kernel-out" \
   "$DOCKER_IMAGE" \
   bash -lc "
@@ -126,6 +127,9 @@ for f in \
   \"\$SRC_DIR/\$KERNEL_SUBPATH/net/ipv6/netfilter/ip6_tables.c\"; do
   perl -0pi -e 's/\n\tmemset\(newinfo->entries, 0, size\);/\n\t\/* biscuit: removed bogus memset; xt_alloc_table_info already sets per-cpu entry pointers. *\//g' \"\$f\"
 done
+
+echo '==> Applying Biscuit kernel patches ...'
+patch -d "\$SRC_DIR" -p0 < /patches/biscuit-kernel-tsl2583-calibrated-lux-kfree.patch
 
 OUT_DIR=\"\$TMPDIR/out\"
 mkdir -p \"\$OUT_DIR\"
