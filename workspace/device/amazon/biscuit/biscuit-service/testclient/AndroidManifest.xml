@@ -1,0 +1,15 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.amazon.biscuit.service.test">
+
+    <uses-permission android:name="com.amazon.biscuit.permission.CONTROL_BISCUIT_SERVICE" />
+
+    <application android:label="Biscuit Service Intent Client">
+        <service
+            android:name=".BiscuitServiceIntentService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.amazon.biscuit.service.test.COMMAND" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

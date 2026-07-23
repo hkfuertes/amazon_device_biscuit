@@ -36,6 +36,18 @@ PRODUCT_PACKAGES += \
     tinycap \
     tinypcminfo
 
+# ── LED ring / buttons ──────────────────────────────────────────────────────
+# Source-only Biscuit LED daemon + framework bridge; no stock lights/button blobs.
+PRODUCT_PACKAGES += \
+    biscuit-ledd \
+    biscuit-keyd \
+    biscuit-ledctl \
+    BiscuitService
+
+# ── Sensors ─────────────────────────────────────────────────────────────────
+PRODUCT_PACKAGES += \
+    sensors.mt8163
+
 # ── Platform ────────────────────────────────────────────────────────────────
 TARGET_BOARD_PLATFORM  := mt8163
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
@@ -60,7 +72,15 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.device.rc:root/init.device.rc \
     $(LOCAL_PATH)/rootdir/init.biscuit.usb.rc:root/init.biscuit.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.usb.rc:root/init.mt8163.usb.rc \
-    device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc
+    device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc \
+    frameworks/native/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
+    $(LOCAL_PATH)/biscuit-service/animations/volume.animation:system/etc/biscuit-ledd/volume.animation \
+    $(LOCAL_PATH)/biscuit-service/animations/volume-muted.animation:system/etc/biscuit-ledd/volume-muted.animation \
+    $(LOCAL_PATH)/biscuit-service/animations/solid_blue.animation:system/etc/biscuit-ledd/solid_blue.animation \
+    $(LOCAL_PATH)/biscuit-service/animations/solid_green.animation:system/etc/biscuit-ledd/solid_green.animation \
+    $(LOCAL_PATH)/biscuit-service/animations/solid_cyan.animation:system/etc/biscuit-ledd/solid_cyan.animation \
+    $(LOCAL_PATH)/biscuit-service/animations/alexa_thinking.animation:system/etc/biscuit-ledd/alexa_thinking.animation \
+    $(LOCAL_PATH)/biscuit-service/animations/boot-complete-green.animation:system/etc/biscuit-ledd/boot-complete-green.animation
 
 # ── AAPT ─────────────────────────────────────────────────────────────────────
 PRODUCT_AAPT_CONFIG      := normal mdpi

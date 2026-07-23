@@ -8,6 +8,25 @@ on post-fs
     swapon_all /fstab.mt8163
     write /proc/sys/vm/page-cluster 0
 
+on property:sys.boot_completed=1
+    start biscuit-ledd
+    start biscuit-keyd
+
+service biscuit-ledd /system/bin/biscuit-ledd
+    class main
+    user root
+    group system
+    socket biscuit-ledd stream 0660 system system
+    disabled
+
+service biscuit-keyd /system/bin/biscuit-keyd
+    class main
+    user root
+    group input system
+    # ponytail: keyd shells out to `am broadcast`; su domain matched tested CM12 path.
+    seclabel u:r:su:s0
+    disabled
+
 # ponytail: only stock A/B symlinks needed for bring-up; pull the full vendor init later if logs demand it.
 on property:ro.boot.slot_suffix=_a
     symlink /dev/block/platform/soc/by-name/lk_b       /dev/block/other-lk

@@ -1,0 +1,28 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.amazon.biscuit.service"
+    android:sharedUserId="android.uid.system">
+
+    <permission
+        android:name="com.amazon.biscuit.permission.CONTROL_BISCUIT_SERVICE"
+        android:protectionLevel="normal" />
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application android:label="Biscuit Service">
+        <receiver android:name=".BiscuitService$BootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.media.VOLUME_CHANGED_ACTION" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".BiscuitService"
+            android:exported="true"
+            android:permission="com.amazon.biscuit.permission.CONTROL_BISCUIT_SERVICE">
+            <intent-filter>
+                <action android:name="com.amazon.biscuit.service.IBiscuitService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>
