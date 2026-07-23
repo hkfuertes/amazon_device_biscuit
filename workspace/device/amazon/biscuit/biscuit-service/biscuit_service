@@ -1,0 +1,52 @@
+#!/system/bin/sh
+
+PKG=com.amazon.biscuit.service
+COMP=$PKG/.BiscuitService
+
+usage() {
+    cat <<EOF
+usage: biscuit_service <command>
+
+Bluetooth:
+  bt pair        enable Bluetooth and enter pairing mode
+  bt off         disable Bluetooth / disconnect clients
+
+WiFi:
+  wifi on                 enable WiFi and reconnect saved network
+  wifi connect <ssid> [psk]  save/connect WPA-PSK or open network
+  wifi off                disable WiFi
+EOF
+}
+
+case "$1" in
+    bt|bluetooth)
+        case "$2" in
+            pair|pairing|pairing-mode|on)
+                exec am startservice -a $PKG.BLUETOOTH_PAIRING_MODE $COMP
+                ;;
+            off|disable|stop)
+                exec am startservice -a $PKG.BLUETOOTH_OFF $COMP
+                ;;
+        esac
+        ;;
+    wifi)
+        case "$2" in
+            on)
+                exec svc wifi enable
+                ;;
+            connect)
+                [ -n "$3" ] || { echo "missing ssid" >&2; usage >&2; exit 2; }
+                if [ -n "${4:-}" ]; then
+                    exec am startservice -a $PKG.WIFI_CONNECT --es ssid "$3" --es psk "$4" $COMP
+                fi
+                exec am startservice -a $PKG.WIFI_CONNECT --es ssid "$3" $COMP
+                ;;
+            off|disable|stop)
+                exec svc wifi disable
+                ;;
+        esac
+        ;;
+esac
+
+usage
+exit 2

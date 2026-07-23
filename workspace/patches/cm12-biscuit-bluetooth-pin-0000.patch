@@ -1,0 +1,22 @@
+diff --git a/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/RemoteDevices.java b/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/RemoteDevices.java
+@@ -464,17 +464,8 @@
+         }
+         infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
+                 cod + "secure" + secure );
+-        // Acquire wakelock during PIN code request to bring up LCD display
+-        mWakeLock.acquire();
+-        Intent intent = new Intent(BluetoothDevice.ACTION_PAIRING_REQUEST);
+-        intent.putExtra(BluetoothDevice.EXTRA_DEVICE, getDevice(address));
+-        intent.putExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT,
+-                BluetoothDevice.PAIRING_VARIANT_PIN);
+-        intent.putExtra(BluetoothDevice.EXTRA_SECURE_PAIRING, secure);
+-        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+-        mAdapterService.sendOrderedBroadcast(intent, mAdapterService.BLUETOOTH_ADMIN_PERM);
+-        // Release wakelock to allow the LCD to go off after the PIN popup notification.
+-        mWakeLock.release();
++        // Biscuit has no pairing UI; use the classic speaker PIN.
++        byte[] pin = BluetoothDevice.convertPinToBytes("0000");
++        mAdapterService.setPin(bdDevice, true, pin.length, pin);
+         return;
+     }
+ 

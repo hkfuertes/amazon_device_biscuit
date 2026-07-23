@@ -1,11 +1,14 @@
 package com.amazon.biscuit.service;
 
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.net.LocalSocket;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.net.LocalSocketAddress;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -28,7 +31,13 @@ public final class BiscuitService extends Service {
 
     private static final String SOCKET = "biscuit-ledd";
     private static final String VOLUME_CHANGED = "android.media.VOLUME_CHANGED_ACTION";
+    public static final String BLUETOOTH_PAIRING_MODE = "com.amazon.biscuit.service.BLUETOOTH_PAIRING_MODE";
+    public static final String BLUETOOTH_OFF = "com.amazon.biscuit.service.BLUETOOTH_OFF";
+    public static final String WIFI_CONNECT = "com.amazon.biscuit.service.WIFI_CONNECT";
+    private static final String EXTRA_SSID = "ssid";
+    private static final String EXTRA_PSK = "psk";
     private static final String EXTRA_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
+    private static final int PAIRING_MODE_SECONDS = 300;
     private final Object mLock = new Object();
 
     private final IBiscuitService.Stub mBinder = new IBiscuitService.Stub() {
@@ -68,6 +77,12 @@ public final class BiscuitService extends Service {
             try {
                 sendOk("VOLUME " + audio.getStreamVolume(stream) + " " + audio.getStreamMaxVolume(stream));
             } catch (RemoteException ignored) { }
+        } else if (intent != null && BLUETOOTH_PAIRING_MODE.equals(intent.getAction())) {
+            startBluetoothPairingMode();
+        } else if (intent != null && BLUETOOTH_OFF.equals(intent.getAction())) {
+            stopBluetooth();
+        } else if (intent != null && WIFI_CONNECT.equals(intent.getAction())) {
+            connectWifi(intent.getStringExtra(EXTRA_SSID), intent.getStringExtra(EXTRA_PSK));
         }
         return START_STICKY;
     }
@@ -95,6 +110,61 @@ public final class BiscuitService extends Service {
             boolean ok = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
             if (!ok) throw new RemoteException("bad frame");
         }
+    }
+
+    private void startBluetoothPairingMode() {
+        final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter == null) return;
+        if (!adapter.isEnabled()) adapter.enable();
+        new Thread(new Runnable() {
+            public void run() {
+                for (int i = 0; i < 20 && !adapter.isEnabled(); i++) {
+                    try { Thread.sleep(500); } catch (InterruptedException ignored) { return; }
+                }
+                if (adapter.isEnabled()) {
+                    adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE,
+                            PAIRING_MODE_SECONDS);
+                }
+            }
+        }, "BiscuitBtPairingMode").start();
+    }
+
+    private void stopBluetooth() {
+        BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+        if (adapter != null && adapter.isEnabled()) adapter.disable();
+    }
+
+    private void connectWifi(String ssid, String psk) {
+        if (ssid == null || ssid.length() == 0) return;
+        WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+        if (wifi == null) return;
+        WifiConfiguration config = new WifiConfiguration();
+        config.SSID = quote(ssid);
+        if (psk == null || psk.length() == 0) {
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+        } else {
+            config.preSharedKey = isHexPsk(psk) ? psk : quote(psk);
+        }
+        wifi.setWifiEnabled(true);
+        int id = wifi.addNetwork(config);
+        if (id >= 0) {
+            wifi.enableNetwork(id, true);
+            wifi.saveConfiguration();
+            wifi.reconnect();
+        }
+    }
+
+    private static String quote(String s) {
+        return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    }
+
+    private static boolean isHexPsk(String s) {
+        if (s.length() != 64) return false;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) return false;
+        }
+        return true;
     }
 
     private boolean sendOk(String command) throws RemoteException {

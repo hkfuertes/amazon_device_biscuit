@@ -31,6 +31,14 @@ LOCAL_MODULE_TAGS := optional
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := biscuit_service
+LOCAL_SRC_FILES := biscuit_service
+LOCAL_MODULE_CLASS := EXECUTABLES
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_PATH := $(TARGET_OUT_EXECUTABLES)
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
 LOCAL_PACKAGE_NAME := BiscuitService
 LOCAL_MODULE_TAGS := optional
 LOCAL_CERTIFICATE := platform
