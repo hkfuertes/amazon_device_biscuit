@@ -1,0 +1,82 @@
+diff --git a/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java b/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java
+@@ -22,6 +22,7 @@
+ import android.bluetooth.BluetoothProfile;
+ import android.bluetooth.BluetoothDevice;
+ import com.android.bluetooth.a2dp.A2dpService;
++import com.android.bluetooth.a2dp.A2dpSinkService;
+ import com.android.bluetooth.hid.HidService;
+ import com.android.bluetooth.hfp.HeadsetService;
+ import android.content.Context;
+@@ -227,25 +228,21 @@
+                         }
+                         else if (newState == BluetoothDevice.BOND_BONDED)
+                         {
+-                           // Do not set profile priority
+-                           // Profile priority should be set after SDP completion
+-
+-                           // Restore the profile priorty settings
+-                           //setProfilePriorty(dev);
++                           setSpeakerPriorityAndConnect(dev);
+                         }
+                     }
+                     else if(!mDevices.contains(dev))
+                         result=true;
+                     break;
+                 case SSP_REQUEST:
+-                    int passkey = msg.arg1;
+                     int variant = msg.arg2;
+                     if(devProp == null)
+                     {
+                         Log.e(TAG,"Received msg from an unknown device");
+                         return false;
+                     }
+-                    sendDisplayPinIntent(devProp.getAddress(), passkey, variant);
++                    // Biscuit is a headless speaker: accept SSP instead of showing UI.
++                    mAdapterService.setPairingConfirmation(dev, true);
+                     break;
+                 case PIN_REQUEST:
+                     BluetoothClass btClass = dev.getBluetoothClass();
+@@ -480,6 +477,14 @@
+         }
+     }
+ 
++    private void setSpeakerPriorityAndConnect(BluetoothDevice device) {
++        A2dpSinkService a2dpSinkService = A2dpSinkService.getA2dpSinkService();
++        if (a2dpSinkService != null) {
++            a2dpSinkService.setPriority(device, BluetoothProfile.PRIORITY_AUTO_CONNECT);
++            a2dpSinkService.connect(device);
++        }
++    }
++
+     private void clearProfilePriorty (BluetoothDevice device){
+         HidService hidService = HidService.getHidService();
+         A2dpService a2dpService = A2dpService.getA2dpService();
+diff --git a/packages/apps/Bluetooth/res/values/config.xml b/packages/apps/Bluetooth/res/values/config.xml
+@@ -14,7 +14,7 @@
+ <resources>
+     <bool name="profile_supported_a2dp">true</bool>
+-    <bool name="profile_supported_a2dp_sink">false</bool>
++    <bool name="profile_supported_a2dp_sink">true</bool>
+     <bool name="profile_supported_hdp">true</bool>
+     <bool name="profile_supported_hs_hfp">true</bool>
+     <bool name="profile_supported_hfpclient">false</bool>
+@@ -26,6 +26,6 @@
+     <bool name="pbap_use_profile_for_owner_vcard">true</bool>
+     <bool name="profile_supported_map">true</bool>
+-    <bool name="profile_supported_avrcp_controller">false</bool>
++    <bool name="profile_supported_avrcp_controller">true</bool>
+     <bool name="config_airplane_invalid">false</bool>
+ </resources>
+diff --git a/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/Config.java b/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/Config.java
+@@ -87,6 +87,11 @@
+         ArrayList<Class> profiles = new ArrayList<Class>(PROFILE_SERVICES.length);
+         for (int i=0; i < PROFILE_SERVICES_FLAG.length; i++) {
+             boolean supported = resources.getBoolean(PROFILE_SERVICES_FLAG[i]);
++            if (SystemProperties.getBoolean("persist.service.bt.a2dp.sink", false) &&
++                    (PROFILE_SERVICES[i] == A2dpSinkService.class ||
++                     PROFILE_SERVICES[i] == AvrcpControllerService.class)) {
++                supported = true;
++            }
+             if (supported) {
+                 Log.d(TAG, "Adding " + PROFILE_SERVICES[i].getSimpleName());
+                 profiles.add(PROFILE_SERVICES[i]);

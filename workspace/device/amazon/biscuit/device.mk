@@ -42,6 +42,7 @@ PRODUCT_PACKAGES += \
     biscuit-ledd \
     biscuit-keyd \
     biscuit-ledctl \
+    biscuit_service \
     BiscuitService
 
 # ── Sensors ─────────────────────────────────────────────────────────────────
