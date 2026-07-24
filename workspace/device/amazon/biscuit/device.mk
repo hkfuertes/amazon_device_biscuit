@@ -40,7 +40,6 @@ PRODUCT_PACKAGES += \
 # Source-only Biscuit LED daemon + framework bridge; no stock lights/button blobs.
 PRODUCT_PACKAGES += \
     biscuit-ledd \
-    biscuit-keyd \
     biscuit-ledctl \
     biscuit_service \
     BiscuitService

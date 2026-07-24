@@ -7,6 +7,7 @@
         android:protectionLevel="normal" />
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -17,6 +18,8 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.media.VOLUME_CHANGED_ACTION" />
+                <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED" />
+                <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE" />
             </intent-filter>
         </receiver>
 
@@ -28,7 +31,15 @@
                 <action android:name="com.amazon.biscuit.service.IBiscuitService" />
                 <action android:name="com.amazon.biscuit.service.BLUETOOTH_PAIRING_MODE" />
                 <action android:name="com.amazon.biscuit.service.BLUETOOTH_OFF" />
+                <action android:name="com.amazon.biscuit.service.WIFI_ON" />
+                <action android:name="com.amazon.biscuit.service.WIFI_OFF" />
                 <action android:name="com.amazon.biscuit.service.WIFI_CONNECT" />
+                <action android:name="com.amazon.biscuit.service.VOLUME_UP" />
+                <action android:name="com.amazon.biscuit.service.VOLUME_DOWN" />
+                <action android:name="com.amazon.biscuit.service.VOLUME_SET" />
+                <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_ON" />
+                <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_OFF" />
+                <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE" />
             </intent-filter>
         </service>
     </application>
