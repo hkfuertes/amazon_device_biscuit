@@ -1,0 +1,58 @@
+--- a/frameworks/base/data/keyboards/Generic.kl
++++ b/frameworks/base/data/keyboards/Generic.kl
+@@ -132,7 +132,7 @@
+ key 110   INSERT
+ key 111   FORWARD_DEL
+ # key 112 "KEY_MACRO"
+-key 113   VOLUME_MUTE
++key 113   MUTE
+ key 114   VOLUME_DOWN
+ key 115   VOLUME_UP
+ key 116   POWER
+--- a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
++++ b/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+@@ -5457,6 +5457,19 @@
+                     }
+                 }
+ 
++                if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
++                        || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
++                    result &= ~ACTION_PASS_TO_USER;
++                    if (down && event.getRepeatCount() == 0) {
++                        AudioManager audioManager = (AudioManager)
++                                mContext.getSystemService(Context.AUDIO_SERVICE);
++                        audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC,
++                                keyCode == KeyEvent.KEYCODE_VOLUME_UP
++                                        ? AudioManager.ADJUST_RAISE : AudioManager.ADJUST_LOWER,
++                                0);
++                    }
++                    break;
++                }
+ 
+                 if (down) {
+                     TelecomManager telecomManager = getTelecommService();
+@@ -5545,6 +5558,16 @@
+                 break;
+             }
+ 
++            case KeyEvent.KEYCODE_MUTE: {
++                result &= ~ACTION_PASS_TO_USER;
++                if (down && event.getRepeatCount() == 0) {
++                    AudioManager audioManager = (AudioManager)
++                            mContext.getSystemService(Context.AUDIO_SERVICE);
++                    audioManager.setMicrophoneMute(!audioManager.isMicrophoneMute());
++                }
++                break;
++            }
++
+             case KeyEvent.KEYCODE_HOME:
+                 if (down && !interactive && mHomeWakeScreen) {
+                     isWakeKey = true;
+@@ -5662,7 +5685,6 @@
+             case KeyEvent.KEYCODE_MEDIA_PAUSE:
+             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+             case KeyEvent.KEYCODE_HEADSETHOOK:
+-            case KeyEvent.KEYCODE_MUTE:
+             case KeyEvent.KEYCODE_MEDIA_STOP:
+             case KeyEvent.KEYCODE_MEDIA_NEXT:
+             case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
