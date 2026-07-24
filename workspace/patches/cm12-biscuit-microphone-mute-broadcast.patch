@@ -1,0 +1,31 @@
+# Biscuit: broadcast real microphone mute changes for LED feedback.
+# Apply from repo root with: patch -d workspace/cm12 -p1 < workspace/patches/cm12-biscuit-microphone-mute-broadcast.patch
+
+--- a/frameworks/base/media/java/android/media/AudioService.java
++++ b/frameworks/base/media/java/android/media/AudioService.java
+@@ -1681,6 +1681,14 @@
+         sendStickyBroadcastToAll(intent);
+     }
+ 
++    private void broadcastMicrophoneMuteStatus(boolean muted) {
++        Intent intent = new Intent("com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED");
++        intent.putExtra("com.amazon.biscuit.service.EXTRA_MICROPHONE_MUTED", muted);
++        intent.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
++                | Intent.FLAG_RECEIVER_REPLACE_PENDING);
++        sendStickyBroadcastToAll(intent);
++    }
++
+     /**
+      * Sets the stream state's index, and posts a message to set system volume.
+      * This will not call out to the UI. Assumes a valid stream type.
+@@ -2019,7 +2027,10 @@
+             return;
+         }
+ 
++        boolean oldMuted = AudioSystem.isMicrophoneMuted();
+         AudioSystem.muteMicrophone(on);
++        boolean muted = AudioSystem.isMicrophoneMuted();
++        if (oldMuted != muted) broadcastMicrophoneMuteStatus(muted);
+         // Post a persist microphone msg.
+         sendMsg(mAudioHandler, MSG_PERSIST_MICROPHONE_MUTE, SENDMSG_REPLACE, on ? 1
+                 : 0, UserHandle.getCallingUserId(), null, PERSIST_DELAY);

@@ -31,12 +31,24 @@ public final class BiscuitService extends Service {
 
     private static final String SOCKET = "biscuit-ledd";
     private static final String VOLUME_CHANGED = "android.media.VOLUME_CHANGED_ACTION";
+    private static final String MIC_MUTE_CHANGED = "com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED";
     public static final String BLUETOOTH_PAIRING_MODE = "com.amazon.biscuit.service.BLUETOOTH_PAIRING_MODE";
     public static final String BLUETOOTH_OFF = "com.amazon.biscuit.service.BLUETOOTH_OFF";
+    public static final String WIFI_ON = "com.amazon.biscuit.service.WIFI_ON";
+    public static final String WIFI_OFF = "com.amazon.biscuit.service.WIFI_OFF";
     public static final String WIFI_CONNECT = "com.amazon.biscuit.service.WIFI_CONNECT";
+    public static final String VOLUME_UP = "com.amazon.biscuit.service.VOLUME_UP";
+    public static final String VOLUME_DOWN = "com.amazon.biscuit.service.VOLUME_DOWN";
+    public static final String VOLUME_SET = "com.amazon.biscuit.service.VOLUME_SET";
+    public static final String MIC_MUTE_ON = "com.amazon.biscuit.service.MICROPHONE_MUTE_ON";
+    public static final String MIC_MUTE_OFF = "com.amazon.biscuit.service.MICROPHONE_MUTE_OFF";
+    public static final String MIC_MUTE_TOGGLE = "com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE";
     private static final String EXTRA_SSID = "ssid";
     private static final String EXTRA_PSK = "psk";
+    private static final String EXTRA_VOLUME = "volume";
     private static final String EXTRA_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
+    private static final String EXTRA_STREAM_VALUE = "android.media.EXTRA_VOLUME_STREAM_VALUE";
+    private static final String EXTRA_MICROPHONE_MUTED = "com.amazon.biscuit.service.EXTRA_MICROPHONE_MUTED";
     private static final int PAIRING_MODE_SECONDS = 300;
     private final Object mLock = new Object();
 
@@ -57,7 +69,8 @@ public final class BiscuitService extends Service {
         }
 
         public boolean setMicMuted(boolean muted) throws RemoteException {
-            return sendOk("MUTE " + (muted ? "1" : "0"));
+            setRealMicMuted(muted);
+            return true;
         }
 
         public boolean clear() throws RemoteException {
@@ -74,15 +87,36 @@ public final class BiscuitService extends Service {
         if (intent != null && VOLUME_CHANGED.equals(intent.getAction())) {
             AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
             int stream = intent.getIntExtra(EXTRA_STREAM_TYPE, AudioManager.STREAM_MUSIC);
+            int current = intent.getIntExtra(EXTRA_STREAM_VALUE, audio.getStreamVolume(stream));
             try {
-                sendOk("VOLUME " + audio.getStreamVolume(stream) + " " + audio.getStreamMaxVolume(stream));
+                sendOk("VOLUME " + current + " " + audio.getStreamMaxVolume(stream));
             } catch (RemoteException ignored) { }
+        } else if (intent != null && MIC_MUTE_CHANGED.equals(intent.getAction())) {
+            updateMicLed(intent.getBooleanExtra(EXTRA_MICROPHONE_MUTED,
+                    ((AudioManager) getSystemService(AUDIO_SERVICE)).isMicrophoneMute()));
+        } else if (intent != null && MIC_MUTE_TOGGLE.equals(intent.getAction())) {
+            AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+            setRealMicMuted(!audio.isMicrophoneMute());
         } else if (intent != null && BLUETOOTH_PAIRING_MODE.equals(intent.getAction())) {
             startBluetoothPairingMode();
         } else if (intent != null && BLUETOOTH_OFF.equals(intent.getAction())) {
             stopBluetooth();
+        } else if (intent != null && WIFI_ON.equals(intent.getAction())) {
+            setWifiEnabled(true);
+        } else if (intent != null && WIFI_OFF.equals(intent.getAction())) {
+            setWifiEnabled(false);
         } else if (intent != null && WIFI_CONNECT.equals(intent.getAction())) {
             connectWifi(intent.getStringExtra(EXTRA_SSID), intent.getStringExtra(EXTRA_PSK));
+        } else if (intent != null && VOLUME_UP.equals(intent.getAction())) {
+            adjustVolume(AudioManager.ADJUST_RAISE);
+        } else if (intent != null && VOLUME_DOWN.equals(intent.getAction())) {
+            adjustVolume(AudioManager.ADJUST_LOWER);
+        } else if (intent != null && VOLUME_SET.equals(intent.getAction())) {
+            setVolume(intent.getIntExtra(EXTRA_VOLUME, -1));
+        } else if (intent != null && MIC_MUTE_ON.equals(intent.getAction())) {
+            setRealMicMuted(true);
+        } else if (intent != null && MIC_MUTE_OFF.equals(intent.getAction())) {
+            setRealMicMuted(false);
         }
         return START_STICKY;
     }
@@ -112,6 +146,29 @@ public final class BiscuitService extends Service {
         }
     }
 
+    private void setRealMicMuted(boolean muted) {
+        ((AudioManager) getSystemService(AUDIO_SERVICE)).setMicrophoneMute(muted);
+    }
+
+    private void adjustVolume(int direction) {
+        AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+        audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, 0);
+    }
+
+    private void setVolume(int volume) {
+        AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+        int max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        if (volume < 0) volume = 0;
+        if (volume > max) volume = max;
+        audio.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+    }
+
+    private void updateMicLed(boolean muted) {
+        try {
+            sendOk("MUTE " + (muted ? "1" : "0"));
+        } catch (RemoteException ignored) { }
+    }
+
     private void startBluetoothPairingMode() {
         final BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter == null) return;
@@ -132,6 +189,13 @@ public final class BiscuitService extends Service {
     private void stopBluetooth() {
         BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
         if (adapter != null && adapter.isEnabled()) adapter.disable();
+    }
+
+    private void setWifiEnabled(boolean enabled) {
+        WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
+        if (wifi == null) return;
+        wifi.setWifiEnabled(enabled);
+        if (enabled) wifi.reconnect();
     }
 
     private void connectWifi(String ssid, String psk) {

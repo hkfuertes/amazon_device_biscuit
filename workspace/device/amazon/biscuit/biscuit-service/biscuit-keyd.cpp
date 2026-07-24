@@ -3,6 +3,7 @@
 #include <linux/input.h>
 #include <poll.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -38,7 +39,6 @@ int main() {
     }
     if (n == 0) return 1;
 
-    bool muted = false;
     int volume = 5;
 
     for (;;) {
@@ -55,8 +55,7 @@ int main() {
 
                 if (ev.value != 1) continue;    // ignore key-up / repeat for other keys
                 if (ev.code == KEY_MUTE) {
-                    muted = !muted;
-                    send_led(muted ? "MUTE 1\n" : "MUTE 0\n");
+                    system("/system/bin/am broadcast -n com.amazon.biscuit.service/.BiscuitService\\$BootReceiver -a com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE >/dev/null 2>&1");
                 } else if (ev.code == KEY_VOLUMEUP || ev.code == KEY_VOLUMEDOWN) {
                     if (ev.code == KEY_VOLUMEUP && volume < 10) ++volume;
                     if (ev.code == KEY_VOLUMEDOWN && volume > 0) --volume;
