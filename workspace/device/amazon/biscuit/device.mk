@@ -12,9 +12,10 @@ $(call inherit-product-if-exists, vendor/amazon/biscuit/biscuit-vendor.mk)
 # Headless device: no display, no telephony, no sdcard.
 PRODUCT_CHARACTERISTICS := nosdcard
 
-# ── Setup wizard ─────────────────────────────────────────────────────────────
-# ponytail: no screen/account flow on Echo; keep Provision/ManagedProvisioning for boot state.
-PRODUCT_PACKAGES := $(filter-out CyanogenSetupWizard SetupWizard,$(PRODUCT_PACKAGES))
+# ── Headless HOME / setup ───────────────────────────────────────────────────
+# ponytail: no screen/account flow or Trebuchet DB on Echo; one black HOME is enough.
+PRODUCT_PACKAGES := $(filter-out CyanogenSetupWizard SetupWizard Trebuchet Launcher2 Launcher3,$(PRODUCT_PACKAGES))
+PRODUCT_PACKAGES += BiscuitEmptyLauncher
 
 # ── Overlays ────────────────────────────────────────────────────────────────
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
