@@ -43,3 +43,28 @@ The current 32-bit userspace build panics before framework boot. Evidence saved 
   - `compat_SyS_setsockopt`
 
 Working hypothesis: 32-bit `iptables` on a 64-bit kernel hits the kernel compat netfilter path and panics. Therefore test 64-bit userspace first; only if 64-bit also fails, use the other repo findings above as guided fixes.
+
+## Next CM12 graphics/runtime steps
+
+CM12 currently boots with a minimal headless graphics stack: software `libGLES_android`, `egl.cfg = 0 0 android`, and dummy gralloc/hwcomposer. That is enough for boot and services, but normal UI apps can crash in HWUI/RenderThread when they create an OpenGL-backed surface.
+
+Follow-up when the device is booted into stock Fire OS live:
+
+- Compare stock vs CM12 graphics files:
+  - `/system/lib/egl/*`
+  - `/system/lib/hw/gralloc*`
+  - `/system/lib/hw/hwcomposer*`
+  - `/system/lib*/libGLES*`
+  - `/system/lib*/libgpu*`
+  - `egl.cfg`
+- Compare stock vs CM12 graphics properties:
+  - `ro.opengles.version`
+  - `ro.config.low_ram`
+  - `debug.hwui*`
+  - `ro.sf.*`
+  - `debug.sf.*`
+- Test whether stock MTK/Amazon graphics blobs can replace the current dummy/software path without breaking framework boot.
+- If stock blobs do not load, improve the dummy gralloc/hwcomposer/EGL path enough for HWUI config selection.
+- Treat `ro.config.low_ram=true` as a cheap experiment, not the assumed root cause: try `false`, but expect the real blocker to be missing/weak EGL/HWUI support.
+
+Keep this scoped to CM12. App-specific headless/service fixes belong in the app/provisioning repo.
