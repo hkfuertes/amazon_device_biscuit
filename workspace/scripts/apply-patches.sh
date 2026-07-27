@@ -7,9 +7,18 @@ CM12="$REPO_ROOT/workspace/cm12"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
 
+# patch(1) backup files under res/ are treated as resources by aapt.
+find "$CM12" -path '*/res/*' -name '*.orig' -type f -delete
+
 for patch in "$REPO_ROOT"/workspace/patches/*.patch; do
   [[ -e "$patch" ]] || continue
   rel="${patch#$REPO_ROOT/}"
+  case "$(basename "$patch")" in
+    biscuit-kernel-*.patch)
+      echo "SKIP kernel-only patch $rel"
+      continue
+      ;;
+  esac
   if patch -d "$CM12" -p1 --forward --batch --dry-run --silent < "$patch"; then
     patch -d "$CM12" -p1 --forward --batch --silent < "$patch"
     echo "APPLIED $rel"

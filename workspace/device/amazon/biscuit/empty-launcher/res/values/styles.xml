@@ -3,6 +3,5 @@
         <item name="android:windowDisablePreview">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
-        <item name="android:windowBackground">#000000</item>
     </style>
 </resources>

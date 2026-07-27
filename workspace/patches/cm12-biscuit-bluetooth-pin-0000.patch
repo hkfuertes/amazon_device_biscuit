@@ -1,5 +1,5 @@
 diff --git a/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/RemoteDevices.java b/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/RemoteDevices.java
-@@ -464,17 +464,8 @@
+@@ -464,16 +464,8 @@
          }
          infoLog("pinRequestCallback: " + address + " name:" + name + " cod:" +
                  cod + "secure" + secure );
@@ -19,4 +19,3 @@ diff --git a/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/RemoteD
 +        mAdapterService.setPin(bdDevice, true, pin.length, pin);
          return;
      }
- 
