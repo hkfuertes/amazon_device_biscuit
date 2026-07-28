@@ -20,10 +20,11 @@ command -v 7z >/dev/null || { echo "ERROR: 7z required" >&2; exit 1; }
 rm -rf "$OUT"
 mkdir -p "$PROP"
 
-# Stock Biscuit headless/no-GPU set. Intentionally excludes libGLES_mali,
-# gralloc.mt8163.mali, libgpu_aux, and ro.hardware.gralloc=mt8163.mali.
-files=(
+# Format: src[:dst]. dst defaults to src. Sources come from the Biscuit OTA system.img.
+# No-GPU/headless set intentionally excludes Mali EGL/gralloc and GPU helper blobs.
+entries=(
   lib/egl/egl.cfg
+  lib/egl/libGLES_android.so
   lib/hw/gralloc.mt8163.so
   lib/hw/hwcomposer.mt8163.so
   lib/libGdmaScalerPipe.so
@@ -35,6 +36,7 @@ files=(
   lib/libm4u.so
   lib/libstlport.so
   lib/libui_ext.so
+  lib64/egl/libGLES_android.so
   lib64/hw/gralloc.mt8163.so
   lib64/hw/hwcomposer.mt8163.so
   lib64/libbwc.so
@@ -70,17 +72,60 @@ files=(
   lib/libnvram.so
   lib/libnvram_platform.so
   lib/libcustom_nvram.so
+
+  # Stock audio HAL and its direct/tuning deps. Wrapper loads *_amazon via hw_get_module_by_class().
+  lib/hw/audio.primary.mt8163.so:lib/hw/audio.primary_amazon.mt8163.so
+  lib64/hw/audio.primary.mt8163.so:lib64/hw/audio.primary_amazon.mt8163.so
+  lib/libasp.so
+  lib/libaudiocompensationfilter.so
+  lib/libaudiocomponentengine.so
+  lib/libaudiocustparam.so
+  lib/libaudiodcrflt.so
+  lib/libaudiosetting.so
+  lib/libbessound_hd_mtk.so
+  lib/libblisrc.so
+  lib/libblisrc32.so
+  lib/libcvsd_mtk.so
+  lib/libmsbc_mtk.so
+  lib/libmtk_drvb.so
+  lib/libmtklimiter.so
+  lib/libmtkshifter.so
+  lib/libspeech_enh_lib.so
+  lib/libtinycompress.so
+  lib/libtinyxml.so
+  lib64/libasp.so
+  lib64/libaudiocompensationfilter.so
+  lib64/libaudiocomponentengine.so
+  lib64/libaudiocustparam.so
+  lib64/libaudiodcrflt.so
+  lib64/libaudiosetting.so
+  lib64/libbessound_hd_mtk.so
+  lib64/libblisrc.so
+  lib64/libblisrc32.so
+  lib64/libcvsd_mtk.so
+  lib64/libmsbc_mtk.so
+  lib64/libmtk_drvb.so
+  lib64/libmtklimiter.so
+  lib64/libmtkshifter.so
+  lib64/libspeech_enh_lib.so
+  lib64/libtinycompress.so
+  lib64/libtinyxml.so
 )
 
-for f in "${files[@]}"; do
+copy_files=()
+for entry in "${entries[@]}"; do
+  src="${entry%%:*}"
+  if [[ "$entry" == *:* ]]; then dst="${entry#*:}"; else dst="$src"; fi
+
   rm -rf "$TMP"/*
   # 7z returns non-zero on this ext4 image after extracting some files; trust the output file.
-  7z x -y -o"$TMP" "$SYSTEM_IMG" "$f" >/dev/null 2>&1 || true
-  if [[ ! -f "$TMP/$f" ]]; then
-    echo "ERROR: missing in system.img: $f" >&2
+  7z x -y -o"$TMP" "$SYSTEM_IMG" "$src" >/dev/null 2>&1 || true
+  if [[ ! -f "$TMP/$src" ]]; then
+    echo "ERROR: missing in system.img: $src" >&2
     exit 1
   fi
-  install -D -m 0644 "$TMP/$f" "$PROP/$f"
+  install -D -m 0644 "$TMP/$src" "$PROP/$dst"
+  copy_files+=("vendor/amazon/biscuit/proprietary/$dst:system/$dst")
 done
 
 # Force software EGL. Stock has "0 1 mali" even though Biscuit is headless/no_gpu;
@@ -90,56 +135,14 @@ printf '0 0 android\n' > "$PROP/lib/egl/egl.cfg"
 cat > "$OUT/biscuit-vendor.mk" <<'MK'
 # Biscuit blobs extracted from stock Biscuit system.img.
 # No-GPU/headless path: intentionally no libGLES_mali, gralloc.mt8163.mali, or libgpu_aux.
+# Audio path: CM12 builds audio.primary.mt8163 wrapper; stock HAL is copied as audio.primary_amazon.mt8163.
 
 PRODUCT_COPY_FILES += \
-    vendor/amazon/biscuit/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
-    vendor/amazon/biscuit/proprietary/lib/hw/gralloc.mt8163.so:system/lib/hw/gralloc.mt8163.so \
-    vendor/amazon/biscuit/proprietary/lib/hw/hwcomposer.mt8163.so:system/lib/hw/hwcomposer.mt8163.so \
-    vendor/amazon/biscuit/proprietary/lib/libGdmaScalerPipe.so:system/lib/libGdmaScalerPipe.so \
-    vendor/amazon/biscuit/proprietary/lib/libbwc.so:system/lib/libbwc.so \
-    vendor/amazon/biscuit/proprietary/lib/libdpframework.so:system/lib/libdpframework.so \
-    vendor/amazon/biscuit/proprietary/lib/libgralloc_extra.so:system/lib/libgralloc_extra.so \
-    vendor/amazon/biscuit/proprietary/lib/libgui_ext.so:system/lib/libgui_ext.so \
-    vendor/amazon/biscuit/proprietary/lib/libion_mtk.so:system/lib/libion_mtk.so \
-    vendor/amazon/biscuit/proprietary/lib/libm4u.so:system/lib/libm4u.so \
-    vendor/amazon/biscuit/proprietary/lib/libstlport.so:system/lib/libstlport.so \
-    vendor/amazon/biscuit/proprietary/lib/libui_ext.so:system/lib/libui_ext.so \
-    vendor/amazon/biscuit/proprietary/lib64/hw/gralloc.mt8163.so:system/lib64/hw/gralloc.mt8163.so \
-    vendor/amazon/biscuit/proprietary/lib64/hw/hwcomposer.mt8163.so:system/lib64/hw/hwcomposer.mt8163.so \
-    vendor/amazon/biscuit/proprietary/lib64/libbwc.so:system/lib64/libbwc.so \
-    vendor/amazon/biscuit/proprietary/lib64/libdpframework.so:system/lib64/libdpframework.so \
-    vendor/amazon/biscuit/proprietary/lib64/libgralloc_extra.so:system/lib64/libgralloc_extra.so \
-    vendor/amazon/biscuit/proprietary/lib64/libion_mtk.so:system/lib64/libion_mtk.so \
-    vendor/amazon/biscuit/proprietary/lib64/libm4u.so:system/lib64/libm4u.so \
-    vendor/amazon/biscuit/proprietary/lib64/libstlport.so:system/lib64/libstlport.so \
-    vendor/amazon/biscuit/proprietary/bin/idme:system/bin/idme \
-    vendor/amazon/biscuit/proprietary/bin/devicetype_service:system/bin/devicetype_service \
-    vendor/amazon/biscuit/proprietary/lib/hw/keystore.mt8163.so:system/lib/hw/keystore.mt8163.so \
-    vendor/amazon/biscuit/proprietary/lib/libtz_uree.so:system/lib/libtz_uree.so \
-    vendor/amazon/biscuit/proprietary/lib64/hw/keystore.mt8163.so:system/lib64/hw/keystore.mt8163.so \
-    vendor/amazon/biscuit/proprietary/lib64/libtz_uree.so:system/lib64/libtz_uree.so \
-    vendor/amazon/biscuit/proprietary/bin/6620_launcher:system/bin/6620_launcher \
-    vendor/amazon/biscuit/proprietary/bin/wmt_loader:system/bin/wmt_loader \
-    vendor/amazon/biscuit/proprietary/etc/firmware/ROMv2_lm_patch_1_0_hdr.bin:system/etc/firmware/ROMv2_lm_patch_1_0_hdr.bin \
-    vendor/amazon/biscuit/proprietary/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin:system/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin \
-    vendor/amazon/biscuit/proprietary/etc/firmware/WIFI_RAM_CODE_8163:system/etc/firmware/WIFI_RAM_CODE_8163 \
-    vendor/amazon/biscuit/proprietary/etc/firmware/WMT_SOC.cfg:system/etc/firmware/WMT_SOC.cfg \
-    vendor/amazon/biscuit/proprietary/etc/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
-    vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
-    vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
-    vendor/amazon/biscuit/proprietary/bin/linker64:system/bin/linker64 \
-    vendor/amazon/biscuit/proprietary/lib64/libc.so:system/lib64/libc.so \
-    vendor/amazon/biscuit/proprietary/lib64/libcutils.so:system/lib64/libcutils.so \
-    vendor/amazon/biscuit/proprietary/lib64/liblog.so:system/lib64/liblog.so \
-    vendor/amazon/biscuit/proprietary/lib64/libm.so:system/lib64/libm.so \
-    vendor/amazon/biscuit/proprietary/lib64/libsigchain.so:system/lib64/libsigchain.so \
-    vendor/amazon/biscuit/proprietary/lib64/libstdc++.so:system/lib64/libstdc++.so \
-    vendor/amazon/biscuit/proprietary/lib/libbt-vendor.so:system/lib/libbt-vendor.so \
-    vendor/amazon/biscuit/proprietary/lib/libbluetooth_mtk.so:system/lib/libbluetooth_mtk.so \
-    vendor/amazon/biscuit/proprietary/lib/libnvram.so:system/lib/libnvram.so \
-    vendor/amazon/biscuit/proprietary/lib/libnvram_platform.so:system/lib/libnvram_platform.so \
-    vendor/amazon/biscuit/proprietary/lib/libcustom_nvram.so:system/lib/libcustom_nvram.so
 MK
+for ((i = 0; i < ${#copy_files[@]}; i++)); do
+  suffix=" \\"; [[ $i -eq $((${#copy_files[@]} - 1)) ]] && suffix=""
+  printf '    %s%s\n' "${copy_files[$i]}" "$suffix" >> "$OUT/biscuit-vendor.mk"
+done
 
 cat > "$OUT/blob-report.md" <<'MD'
 # Biscuit blob report
@@ -147,10 +150,11 @@ cat > "$OUT/blob-report.md" <<'MD'
 Generated by `workspace/scripts/extract-biscuit-stock-blobs.sh` from stock Biscuit `system.img`.
 
 Policy: no-GPU/headless. Excludes Mali EGL, Mali gralloc, and GPU helper blobs.
+Audio: stock OTA HAL is copied as `audio.primary_amazon.mt8163.so`; CM12 builds the wrapper `audio.primary.mt8163.so`.
 MD
 
 if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
   "$REPO_ROOT/workspace/scripts/stage-tree.sh"
 fi
 
-echo "Extracted stock Biscuit no-GPU blobs to $OUT"
+echo "Extracted stock Biscuit no-GPU/audio blobs to $OUT"

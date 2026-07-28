@@ -1,5 +1,6 @@
 # Biscuit blobs extracted from stock Biscuit system.img.
 # No-GPU/headless path: intentionally no libGLES_mali, gralloc.mt8163.mali, or libgpu_aux.
+# Audio path: CM12 builds audio.primary.mt8163 wrapper; stock HAL is copied as audio.primary_amazon.mt8163.
 
 PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
@@ -36,6 +37,7 @@ PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin:system/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin \
     vendor/amazon/biscuit/proprietary/etc/firmware/WIFI_RAM_CODE_8163:system/etc/firmware/WIFI_RAM_CODE_8163 \
     vendor/amazon/biscuit/proprietary/etc/firmware/WMT_SOC.cfg:system/etc/firmware/WMT_SOC.cfg \
+    vendor/amazon/biscuit/proprietary/etc/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
     vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
     vendor/amazon/biscuit/proprietary/bin/linker64:system/bin/linker64 \
@@ -49,4 +51,40 @@ PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/lib/libbluetooth_mtk.so:system/lib/libbluetooth_mtk.so \
     vendor/amazon/biscuit/proprietary/lib/libnvram.so:system/lib/libnvram.so \
     vendor/amazon/biscuit/proprietary/lib/libnvram_platform.so:system/lib/libnvram_platform.so \
-    vendor/amazon/biscuit/proprietary/lib/libcustom_nvram.so:system/lib/libcustom_nvram.so
+    vendor/amazon/biscuit/proprietary/lib/libcustom_nvram.so:system/lib/libcustom_nvram.so \
+    vendor/amazon/biscuit/proprietary/lib/hw/audio.primary_amazon.mt8163.so:system/lib/hw/audio.primary_amazon.mt8163.so \
+    vendor/amazon/biscuit/proprietary/lib64/hw/audio.primary_amazon.mt8163.so:system/lib64/hw/audio.primary_amazon.mt8163.so \
+    vendor/amazon/biscuit/proprietary/lib/libasp.so:system/lib/libasp.so \
+    vendor/amazon/biscuit/proprietary/lib/libaudiocompensationfilter.so:system/lib/libaudiocompensationfilter.so \
+    vendor/amazon/biscuit/proprietary/lib/libaudiocomponentengine.so:system/lib/libaudiocomponentengine.so \
+    vendor/amazon/biscuit/proprietary/lib/libaudiocustparam.so:system/lib/libaudiocustparam.so \
+    vendor/amazon/biscuit/proprietary/lib/libaudiodcrflt.so:system/lib/libaudiodcrflt.so \
+    vendor/amazon/biscuit/proprietary/lib/libaudiosetting.so:system/lib/libaudiosetting.so \
+    vendor/amazon/biscuit/proprietary/lib/libbessound_hd_mtk.so:system/lib/libbessound_hd_mtk.so \
+    vendor/amazon/biscuit/proprietary/lib/libblisrc.so:system/lib/libblisrc.so \
+    vendor/amazon/biscuit/proprietary/lib/libblisrc32.so:system/lib/libblisrc32.so \
+    vendor/amazon/biscuit/proprietary/lib/libcvsd_mtk.so:system/lib/libcvsd_mtk.so \
+    vendor/amazon/biscuit/proprietary/lib/libmsbc_mtk.so:system/lib/libmsbc_mtk.so \
+    vendor/amazon/biscuit/proprietary/lib/libmtk_drvb.so:system/lib/libmtk_drvb.so \
+    vendor/amazon/biscuit/proprietary/lib/libmtklimiter.so:system/lib/libmtklimiter.so \
+    vendor/amazon/biscuit/proprietary/lib/libmtkshifter.so:system/lib/libmtkshifter.so \
+    vendor/amazon/biscuit/proprietary/lib/libspeech_enh_lib.so:system/lib/libspeech_enh_lib.so \
+    vendor/amazon/biscuit/proprietary/lib/libtinycompress.so:system/lib/libtinycompress.so \
+    vendor/amazon/biscuit/proprietary/lib/libtinyxml.so:system/lib/libtinyxml.so \
+    vendor/amazon/biscuit/proprietary/lib64/libasp.so:system/lib64/libasp.so \
+    vendor/amazon/biscuit/proprietary/lib64/libaudiocompensationfilter.so:system/lib64/libaudiocompensationfilter.so \
+    vendor/amazon/biscuit/proprietary/lib64/libaudiocomponentengine.so:system/lib64/libaudiocomponentengine.so \
+    vendor/amazon/biscuit/proprietary/lib64/libaudiocustparam.so:system/lib64/libaudiocustparam.so \
+    vendor/amazon/biscuit/proprietary/lib64/libaudiodcrflt.so:system/lib64/libaudiodcrflt.so \
+    vendor/amazon/biscuit/proprietary/lib64/libaudiosetting.so:system/lib64/libaudiosetting.so \
+    vendor/amazon/biscuit/proprietary/lib64/libbessound_hd_mtk.so:system/lib64/libbessound_hd_mtk.so \
+    vendor/amazon/biscuit/proprietary/lib64/libblisrc.so:system/lib64/libblisrc.so \
+    vendor/amazon/biscuit/proprietary/lib64/libblisrc32.so:system/lib64/libblisrc32.so \
+    vendor/amazon/biscuit/proprietary/lib64/libcvsd_mtk.so:system/lib64/libcvsd_mtk.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmsbc_mtk.so:system/lib64/libmsbc_mtk.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmtk_drvb.so:system/lib64/libmtk_drvb.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmtklimiter.so:system/lib64/libmtklimiter.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmtkshifter.so:system/lib64/libmtkshifter.so \
+    vendor/amazon/biscuit/proprietary/lib64/libspeech_enh_lib.so:system/lib64/libspeech_enh_lib.so \
+    vendor/amazon/biscuit/proprietary/lib64/libtinycompress.so:system/lib64/libtinycompress.so \
+    vendor/amazon/biscuit/proprietary/lib64/libtinyxml.so:system/lib64/libtinyxml.so
