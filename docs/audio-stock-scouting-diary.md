@@ -301,6 +301,13 @@ ADC_[A-D] DIF1_L/R Input Gain Off
 SpiTimeStamps Off
 ```
 
+Nota runtime CM12 2026-07-28:
+
+- Copiar `audio_device.xml`, `audio_init.sh`, `audio_policy.conf` y `mtk_omx_core.cfg` desde `system.img` stock eliminó el fallo `mPcm == NULL`; el HAL cargó `audio_device.xml`, abrió `pcmindex = 23` para salida y `pcmindex = 24` para mic.
+- Ejecutar `/system/etc/audio_init.sh` aplicó mixers de mic/DAC (`HPL/HPR Output Mixer`, `ADC_[A-D] MICPGA 40 40`, rutas ADC). Después UXPlay sonó.
+- `audio_init.sh` intenta crear `/tmp/persistentLedState`; `audio.primary_amazon.mt8163.so` contiene `ledLoop/readLedFile` y monitoriza `/tmp/persistentLedState` con `inotify`. En CM12 `/tmp` no existe y `/` es read-only; queda como warning si audio funciona.
+- No crear fix para `/tmp` salvo que falle algo real; si hiciera falta, resolverlo en init/ramdisk y ejecutar `audio_init.sh` en boot.
+
 Comparación stock vivo vs OTA extraída:
 
 ```txt

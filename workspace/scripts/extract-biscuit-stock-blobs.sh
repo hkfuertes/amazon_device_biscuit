@@ -60,6 +60,15 @@ entries=(
   etc/wifi/p2p_supplicant_overlay.conf
   etc/wifi/wpa_supplicant.conf
   etc/wifi/wpa_supplicant_overlay.conf
+  etc/media_codecs.xml
+  etc/media_codecs_google_audio.xml
+  etc/media_codecs_google_telephony.xml
+  etc/media_codecs_google_video_le.xml
+  etc/media_profiles.xml
+  etc/audio_device.xml
+  etc/audio_init.sh
+  etc/audio_policy.conf
+  etc/mtk_omx_core.cfg
   bin/linker64
   lib64/libc.so
   lib64/libcutils.so
@@ -67,6 +76,30 @@ entries=(
   lib64/libm.so
   lib64/libsigchain.so
   lib64/libstdc++.so
+
+  # Stock MTK OMX/media codec blobs used by media_codecs.xml OMX.MTK.* entries.
+  lib/libMtkOmxCore.so
+  lib/libMtkOmxMp3Dec.so
+  lib/libMtkOmxVdecEx.so
+  lib/libMtkOmxVenc.so
+  lib/libstagefrighthw.so
+  lib/libvcodecdrv.so
+  lib/libvcodec_oal.so
+  lib/libvcodec_utility.so
+  lib/libmhalImageCodec.so
+  lib/libmediacodeclogger.so
+  lib/libmediacodeclogger_aidl.so
+  lib/libmediacodecloggerservice.so
+  lib/libSwJpgCodec.so
+  lib/libmtk_mmutils.so
+  lib/libmtkplayer.so
+  lib64/libMtkOmxCore.so
+  lib64/libstagefrighthw.so
+  lib64/libmediacodeclogger.so
+  lib64/libmediacodeclogger_aidl.so
+  lib64/libmtk_mmutils.so
+  lib64/libmtkplayer.so
+
   lib/libbt-vendor.so
   lib/libbluetooth_mtk.so
   lib/libnvram.so

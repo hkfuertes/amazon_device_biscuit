@@ -40,6 +40,36 @@ PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/etc/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
     vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf \
     vendor/amazon/biscuit/proprietary/etc/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
+    vendor/amazon/biscuit/proprietary/etc/media_codecs.xml:system/etc/media_codecs.xml \
+    vendor/amazon/biscuit/proprietary/etc/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
+    vendor/amazon/biscuit/proprietary/etc/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
+    vendor/amazon/biscuit/proprietary/etc/media_codecs_google_video_le.xml:system/etc/media_codecs_google_video_le.xml \
+    vendor/amazon/biscuit/proprietary/etc/media_profiles.xml:system/etc/media_profiles.xml \
+    vendor/amazon/biscuit/proprietary/etc/audio_device.xml:system/etc/audio_device.xml \
+    vendor/amazon/biscuit/proprietary/etc/audio_init.sh:system/etc/audio_init.sh \
+    vendor/amazon/biscuit/proprietary/etc/audio_policy.conf:system/etc/audio_policy.conf \
+    vendor/amazon/biscuit/proprietary/etc/mtk_omx_core.cfg:system/etc/mtk_omx_core.cfg \
+    vendor/amazon/biscuit/proprietary/lib/libMtkOmxCore.so:system/lib/libMtkOmxCore.so \
+    vendor/amazon/biscuit/proprietary/lib/libMtkOmxMp3Dec.so:system/lib/libMtkOmxMp3Dec.so \
+    vendor/amazon/biscuit/proprietary/lib/libMtkOmxVdecEx.so:system/lib/libMtkOmxVdecEx.so \
+    vendor/amazon/biscuit/proprietary/lib/libMtkOmxVenc.so:system/lib/libMtkOmxVenc.so \
+    vendor/amazon/biscuit/proprietary/lib/libstagefrighthw.so:system/lib/libstagefrighthw.so \
+    vendor/amazon/biscuit/proprietary/lib/libvcodecdrv.so:system/lib/libvcodecdrv.so \
+    vendor/amazon/biscuit/proprietary/lib/libvcodec_oal.so:system/lib/libvcodec_oal.so \
+    vendor/amazon/biscuit/proprietary/lib/libvcodec_utility.so:system/lib/libvcodec_utility.so \
+    vendor/amazon/biscuit/proprietary/lib/libmhalImageCodec.so:system/lib/libmhalImageCodec.so \
+    vendor/amazon/biscuit/proprietary/lib/libmediacodeclogger.so:system/lib/libmediacodeclogger.so \
+    vendor/amazon/biscuit/proprietary/lib/libmediacodeclogger_aidl.so:system/lib/libmediacodeclogger_aidl.so \
+    vendor/amazon/biscuit/proprietary/lib/libmediacodecloggerservice.so:system/lib/libmediacodecloggerservice.so \
+    vendor/amazon/biscuit/proprietary/lib/libSwJpgCodec.so:system/lib/libSwJpgCodec.so \
+    vendor/amazon/biscuit/proprietary/lib/libmtk_mmutils.so:system/lib/libmtk_mmutils.so \
+    vendor/amazon/biscuit/proprietary/lib/libmtkplayer.so:system/lib/libmtkplayer.so \
+    vendor/amazon/biscuit/proprietary/lib64/libMtkOmxCore.so:system/lib64/libMtkOmxCore.so \
+    vendor/amazon/biscuit/proprietary/lib64/libstagefrighthw.so:system/lib64/libstagefrighthw.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmediacodeclogger.so:system/lib64/libmediacodeclogger.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmediacodeclogger_aidl.so:system/lib64/libmediacodeclogger_aidl.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmtk_mmutils.so:system/lib64/libmtk_mmutils.so \
+    vendor/amazon/biscuit/proprietary/lib64/libmtkplayer.so:system/lib64/libmtkplayer.so \
     vendor/amazon/biscuit/proprietary/bin/linker64:system/bin/linker64 \
     vendor/amazon/biscuit/proprietary/lib64/libc.so:system/lib64/libc.so \
     vendor/amazon/biscuit/proprietary/lib64/libcutils.so:system/lib64/libcutils.so \

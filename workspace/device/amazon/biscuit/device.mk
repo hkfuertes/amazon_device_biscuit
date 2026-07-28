@@ -52,7 +52,9 @@ TARGET_BOOTLOADER_BOARD_NAME := biscuit
 # ── System properties ───────────────────────────────────────────────────────
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.carrier=wifi-only \
-    ro.config.low_ram=true
+    ro.config.low_ram=true \
+    debug.hwui.render_dirty_regions=false \
+    ro.hardware.gralloc=mt8163.mali
 
 # ── ADB over USB ─────────────────────────────────────────────────────────────
 # ponytail: USB debugging enabled by default for bring-up; restrict post-MVP.

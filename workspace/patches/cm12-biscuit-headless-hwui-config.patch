@@ -27,10 +27,68 @@ diff --git a/frameworks/base/core/java/android/content/pm/PackageParser.java b/f
  
          if (sa.getBoolean(
                  com.android.internal.R.styleable.AndroidManifestApplication_hasCode,
+@@ -3266,9 +3269,10 @@ public class PackageParser {
+ 
+         if (!receiver) {
+             if (sa.getBoolean(
+-                    com.android.internal.R.styleable.AndroidManifestActivity_hardwareAccelerated,
+-                    hardwareAccelerated)) {
++                    com.android.internal.R.styleable.AndroidManifestActivity_hardwareAccelerated,
++                    hardwareAccelerated)
++                    && !SystemProperties.getBoolean("ro.config.no_gpu", false)) {
+                 a.info.flags |= ActivityInfo.FLAG_HARDWARE_ACCELERATED;
+             }
+ 
+diff --git a/frameworks/base/core/java/android/view/HardwareRenderer.java b/frameworks/base/core/java/android/view/HardwareRenderer.java
+--- a/frameworks/base/core/java/android/view/HardwareRenderer.java
++++ b/frameworks/base/core/java/android/view/HardwareRenderer.java
+@@ -18,6 +18,7 @@ package android.view;
+ import android.content.Context;
+ import android.graphics.Bitmap;
+ import android.graphics.Rect;
++import android.os.SystemProperties;
+ import android.util.DisplayMetrics;
+ import android.view.Surface.OutOfResourcesException;
+ 
+@@ -206,7 +207,9 @@ public abstract class HardwareRenderer {
+      *         false otherwise
+      */
+     public static boolean isAvailable() {
+-        return GLES20Canvas.isAvailable();
++        // ponytail: stock Biscuit is headless/no-GPU; HWUI must not touch EGL.
++        return !SystemProperties.getBoolean("ro.config.no_gpu", false)
++                && GLES20Canvas.isAvailable();
+     }
+ 
+     /**
+@@ -424,7 +427,7 @@ public abstract class HardwareRenderer {
+      */
+     static HardwareRenderer create(Context context, boolean translucent) {
+         HardwareRenderer renderer = null;
+-        if (GLES20Canvas.isAvailable()) {
++        if (isAvailable()) {
+             renderer = new ThreadedRenderer(context, translucent);
+         }
+         return renderer;
+
+diff --git a/frameworks/base/core/java/android/view/ViewRootImpl.java b/frameworks/base/core/java/android/view/ViewRootImpl.java
+--- a/frameworks/base/core/java/android/view/ViewRootImpl.java
++++ b/frameworks/base/core/java/android/view/ViewRootImpl.java
+@@ -698,6 +698,9 @@ public final class ViewRootImpl implements ViewParent,
+         // Don't enable hardware acceleration when the application is in compatibility mode
+         if (mTranslator != null) return;
+ 
++        // ponytail: Biscuit is headless/no-GPU; never create RenderThread/HWUI EGL contexts.
++        if (SystemProperties.getBoolean("ro.config.no_gpu", false)) return;
++
+         // Try to enable hardware acceleration if requested
+         final boolean hardwareAccelerated =
+                 (attrs.flags & WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED) != 0;
+
 diff --git a/frameworks/base/libs/hwui/renderthread/EglManager.cpp b/frameworks/base/libs/hwui/renderthread/EglManager.cpp
 --- a/frameworks/base/libs/hwui/renderthread/EglManager.cpp
 +++ b/frameworks/base/libs/hwui/renderthread/EglManager.cpp
-@@ -141,7 +141,16 @@ void EglManager::loadConfig() {
+@@ -141,7 +141,17 @@ void EglManager::loadConfig() {
              mCanSetPreserveBuffer = false;
              loadConfig();
          } else {
@@ -41,8 +99,9 @@ diff --git a/frameworks/base/libs/hwui/renderthread/EglManager.cpp b/frameworks/
 +                    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 +                    EGL_NONE
 +            };
-+            if (!eglChooseConfig(mEglDisplay, fallbackAttribs, &mEglConfig, num_configs, &num_configs)
-+                    || num_configs != 1) {
++            EGLint fallbackConfigs = 0;
++            if (!eglChooseConfig(mEglDisplay, fallbackAttribs, &mEglConfig, 1, &fallbackConfigs)
++                    || fallbackConfigs < 1) {
 +                LOG_ALWAYS_FATAL("Failed to choose config, error = %s", egl_error_str());
 +            }
          }
