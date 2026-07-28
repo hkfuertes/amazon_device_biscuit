@@ -3,6 +3,7 @@
 
 # Display/headless
 lib/egl/egl.cfg
+lib/egl/libGLES_android.so
 lib/hw/gralloc.mt8163.so
 lib/hw/hwcomposer.mt8163.so
 lib/libGdmaScalerPipe.so
@@ -14,6 +15,7 @@ lib/libion_mtk.so
 lib/libm4u.so
 lib/libstlport.so
 lib/libui_ext.so
+lib64/egl/libGLES_android.so
 lib64/hw/gralloc.mt8163.so
 lib64/hw/hwcomposer.mt8163.so
 lib64/libbwc.so

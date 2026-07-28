@@ -20,11 +20,6 @@ PRODUCT_PACKAGES += BiscuitEmptyLauncher
 # ── Overlays ────────────────────────────────────────────────────────────────
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
-# ── Graphics ────────────────────────────────────────────────────────────────
-# ponytail: headless still needs SurfaceFlinger alive; software GLES is enough.
-PRODUCT_PACKAGES += \
-    libGLES_android
-
 # ── Audio ───────────────────────────────────────────────────────────────────
 # ponytail: source-only speaker HAL; mic/input/routes later if needed.
 PRODUCT_PACKAGES += \

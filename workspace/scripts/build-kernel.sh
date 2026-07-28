@@ -2,8 +2,7 @@
 # build-kernel.sh — Build the Biscuit kernel from the Amazon Echo Dot 5.5.5.4 source.
 #
 # Prerequisites:
-#   1. workspace/scripts/preflight.sh must have run (upstream/ populated).
-#   2. Docker image biscuit-kernel-builder:latest must exist.
+#   1. Docker image biscuit-kernel-builder:latest must exist.
 #      Build it once with:
 #        docker build -f workspace/docker/biscuit-kernel-builder.Dockerfile \
 #                     -t biscuit-kernel-builder:latest \
@@ -19,8 +18,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-UPSTREAM="$REPO_ROOT/workspace/upstream"
-DOWNLOADS="$REPO_ROOT/workspace/downloads"
+KERNEL_SOURCE="$REPO_ROOT/workspace/kernel/amazon/biscuit"
 PREBUILT_DIR="$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt"
 CM12_PREBUILT_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit/prebuilt"
 KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out}"
@@ -41,18 +39,10 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# ── 1. Guard: preflight must have run ───────────────────────────────────────
-SENTINEL="$UPSTREAM/.extracted"
-if [[ ! -f "$SENTINEL" ]]; then
-  echo "ERROR: workspace/upstream/ not populated. Run workspace/scripts/preflight.sh first."
-  exit 1
-fi
-
-PLATFORM_TAR="$UPSTREAM/platform.tar"
-BUILD_KERNEL_TAR="$UPSTREAM/build_kernel.tar.gz"
-for f in "$PLATFORM_TAR" "$BUILD_KERNEL_TAR"; do
+# ── 1. Guard: kernel source is vendored ─────────────────────────────────────
+for f in "$KERNEL_SOURCE/Makefile" "$KERNEL_SOURCE/arch/arm64/configs/biscuit_defconfig"; do
   if [[ ! -f "$f" ]]; then
-    echo "ERROR: Missing $f — re-run preflight.sh"
+    echo "ERROR: Missing kernel source file: $f" >&2
     exit 1
   fi
 done
@@ -75,13 +65,8 @@ mkdir -p "$KERNEL_OUT"
 
 # ── 4. Run kernel build inside Docker ────────────────────────────────────────
 # Mount:
-#   /upstream  — read-only Amazon source (platform.tar + build_kernel.tar.gz)
+#   /kernel-src — read-only vendored Amazon kernel source
 #   /kernel-out — writable output directory
-#
-# Inside the container we:
-#   a. Extract build_kernel.tar.gz to get Amazon's build scripts
-#   b. Invoke build_kernel.sh with the pre-baked toolchain (skip git clone)
-#   c. Copy arch/arm64/boot/ output to /kernel-out
 
 if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
   echo "Removing stale container '$CONTAINER'..."
@@ -91,7 +76,7 @@ fi
 echo "Starting kernel build in container '$CONTAINER' (jobs=$JOBS) ..."
 docker run \
   --name "$CONTAINER" \
-  -v "$UPSTREAM:/upstream:ro" \
+  -v "$KERNEL_SOURCE:/kernel-src:ro" \
   -v "$REPO_ROOT/workspace/patches:/patches:ro" \
   -v "$KERNEL_OUT:/kernel-out" \
   "$DOCKER_IMAGE" \
@@ -101,48 +86,36 @@ set -euo pipefail
 TMPDIR=\$(mktemp -d)
 trap 'rm -rf \$TMPDIR' EXIT
 
-# Extract Amazon build scripts
-echo '==> Extracting build_kernel.tar.gz ...'
-tar -xzf /upstream/build_kernel.tar.gz -C \"\$TMPDIR\"
+DEFCONFIG_NAME=\"biscuit_defconfig\"
+TARGET_ARCH=\"arm64\"
 
-BUILD_SCRIPT=\"\$TMPDIR/build_kernel.sh\"
-CONFIG_SCRIPT=\"\$TMPDIR/build_kernel_config.sh\"
-
-# Source the config to get kernel metadata
-source \"\$CONFIG_SCRIPT\"
-echo \"==> KERNEL_SUBPATH=\$KERNEL_SUBPATH\"
-echo \"==> DEFCONFIG_NAME=\$DEFCONFIG_NAME\"
-echo \"==> TARGET_ARCH=\$TARGET_ARCH\"
-
-# Extract kernel source from platform.tar
 SRC_DIR=\"\$TMPDIR/src\"
+echo '==> Copying vendored kernel source ...'
 mkdir -p \"\$SRC_DIR\"
-echo '==> Extracting platform.tar (kernel source only, this may take a while) ...'
-tar -xf /upstream/platform.tar -C \"\$SRC_DIR\" \"\$KERNEL_SUBPATH\"
+cp -a /kernel-src/. \"\$SRC_DIR/\"
 
 # Fix 32-bit iptables on arm64 kernel: Amazon/MTK compat netfilter clears
 # xt_alloc_table_info() per-CPU entry pointers, then panics in memcpy().
 for f in \
-  \"\$SRC_DIR/\$KERNEL_SUBPATH/net/ipv4/netfilter/ip_tables.c\" \
-  \"\$SRC_DIR/\$KERNEL_SUBPATH/net/ipv6/netfilter/ip6_tables.c\"; do
+  \"\$SRC_DIR/net/ipv4/netfilter/ip_tables.c\" \
+  \"\$SRC_DIR/net/ipv6/netfilter/ip6_tables.c\"; do
   perl -0pi -e 's/\n\tmemset\(newinfo->entries, 0, size\);/\n\t\/* biscuit: removed bogus memset; xt_alloc_table_info already sets per-cpu entry pointers. *\//g' \"\$f\"
 done
 
 echo '==> Applying Biscuit kernel patches ...'
-patch -d "\$SRC_DIR" -p0 < /patches/biscuit-kernel-tsl2583-calibrated-lux-kfree.patch
+patch -d "\$SRC_DIR" -p4 < /patches/biscuit-kernel-tsl2583-calibrated-lux-kfree.patch
 
 OUT_DIR=\"\$TMPDIR/out\"
 mkdir -p \"\$OUT_DIR\"
 
 TOOLCHAIN_PREFIX=\"/toolchain/aarch64-linux-android-4.9/bin/aarch64-linux-android-\"
-MAKE_ARGS=\"-C \$KERNEL_SUBPATH O=\$OUT_DIR ARCH=\$TARGET_ARCH CROSS_COMPILE=\$TOOLCHAIN_PREFIX\"
+MAKE_ARGS=\"-C \$SRC_DIR O=\$OUT_DIR ARCH=\$TARGET_ARCH CROSS_COMPILE=\$TOOLCHAIN_PREFIX\"
 
 echo '==> make defconfig ...'
-pushd \"\$SRC_DIR\" >/dev/null
 make \$MAKE_ARGS \$DEFCONFIG_NAME
 
 # Apply trapz.config if present
-TRAPZ=\"\$SRC_DIR/\$KERNEL_SUBPATH/arch/\$TARGET_ARCH/configs/trapz.config\"
+TRAPZ=\"\$SRC_DIR/arch/\$TARGET_ARCH/configs/trapz.config\"
 if [[ -f \"\$TRAPZ\" ]]; then
   echo '==> Appending trapz.config ...'
   cat \"\$TRAPZ\" >> \"\$OUT_DIR/.config\"
@@ -155,16 +128,14 @@ make \$MAKE_ARGS oldconfig </dev/null
 echo '==> make headers_install ...'
 make \$MAKE_ARGS headers_install
 
-# Copy prebuilt headers from build_kernel.tar.gz
-if [[ -d \"\$TMPDIR/prebuilt\" ]]; then
+# Copy prebuilt headers from Amazon's build_kernel.tar.gz
+if [[ -d \"\$SRC_DIR/amazon-build/prebuilt\" ]]; then
   echo '==> Copying Amazon prebuilt headers ...'
-  cp -av \"\$TMPDIR/prebuilt/\"* \"\$OUT_DIR/\"
+  cp -av \"\$SRC_DIR/amazon-build/prebuilt/\"* \"\$OUT_DIR/\"
 fi
 
 echo '==> make -j$JOBS ...'
 make \$MAKE_ARGS -j$JOBS
-
-popd >/dev/null
 
 # Copy kernel image(s) to output
 echo '==> Copying boot artifacts to /kernel-out ...'
@@ -205,13 +176,13 @@ cp "$KERNEL_IMAGE" "$CM12_PREBUILT_DIR/kernel"
 sha256sum "$PREBUILT_DIR/kernel" | tee "$PREBUILT_DIR/kernel.sha256"
 sha256sum "$CM12_PREBUILT_DIR/kernel" > "$CM12_PREBUILT_DIR/kernel.sha256"
 cat > "$PREBUILT_DIR/kernel-selection.txt" <<EOF
-source=amazon-source
+source=workspace/kernel/amazon/biscuit
 kernel=${KERNEL_IMAGE#$REPO_ROOT/}
-tarball=workspace/downloads/$(cat "$SENTINEL")
-sha256=$(awk '{print $1}' "$DOWNLOADS/$(cat "$SENTINEL").sha256" 2>/dev/null || true)
+upstream_url=https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
+upstream_sha256=dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd
 container=$CONTAINER
 log=docker logs $CONTAINER
-reason=official Amazon Echo Dot 5.5.5.4 platform.tar kernel, biscuit_defconfig, CM12/netfilter fix, Image.gz-dtb
+reason=official Amazon Echo Dot 5.5.5.4 kernel source, biscuit_defconfig, CM12/netfilter fix, Image.gz-dtb
 EOF
 cp "$PREBUILT_DIR/kernel-selection.txt" "$CM12_PREBUILT_DIR/kernel-selection.txt"
 

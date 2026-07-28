@@ -40,12 +40,10 @@ build:ota:
   script:
     - |
       set -euo pipefail
-      : "${AMAZON_SOURCE_URL:?Set AMAZON_SOURCE_URL to the Echo Dot 5.5.5.4 source tarball URL}"
       : "${BISCUIT_SYSTEM_IMG_URL:?Set BISCUIT_SYSTEM_IMG_URL to a downloadable stock Biscuit system.img}"
       : "${CM12_TARBALL_URL:?Set CM12_TARBALL_URL to a tar archive of a synced/patched CM12 checkout}"
 
       mkdir -p workspace/downloads workspace/extracted/biscuit-ota workspace/cm12
-      printf '%s\n' "$AMAZON_SOURCE_URL" > workspace/downloads/amazon-source.url
 
       echo "==> Download stock Biscuit system.img"
       curl -L --fail --retry 3 -o workspace/extracted/biscuit-ota/system.img "$BISCUIT_SYSTEM_IMG_URL"
@@ -58,10 +56,8 @@ build:ota:
       docker build -f workspace/docker/biscuit-kernel-builder.Dockerfile -t biscuit-kernel-builder:latest workspace/docker/
       docker build -f workspace/docker/cm12-ubuntu14.Dockerfile -t cm12-ubuntu14:latest workspace/docker/
 
-      echo "==> Prepare Amazon source/device/vendor"
-      workspace/scripts/preflight.sh
+      echo "==> Prepare stock blobs/vendor"
       workspace/scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
-      workspace/scripts/preflight.sh
 
       echo "==> Build kernel"
       workspace/scripts/build-kernel.sh

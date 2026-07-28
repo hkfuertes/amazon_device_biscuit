@@ -3,6 +3,7 @@
 
 PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/lib/egl/egl.cfg:system/lib/egl/egl.cfg \
+    vendor/amazon/biscuit/proprietary/lib/egl/libGLES_android.so:system/lib/egl/libGLES_android.so \
     vendor/amazon/biscuit/proprietary/lib/hw/gralloc.mt8163.so:system/lib/hw/gralloc.mt8163.so \
     vendor/amazon/biscuit/proprietary/lib/hw/hwcomposer.mt8163.so:system/lib/hw/hwcomposer.mt8163.so \
     vendor/amazon/biscuit/proprietary/lib/libGdmaScalerPipe.so:system/lib/libGdmaScalerPipe.so \
@@ -14,6 +15,7 @@ PRODUCT_COPY_FILES += \
     vendor/amazon/biscuit/proprietary/lib/libm4u.so:system/lib/libm4u.so \
     vendor/amazon/biscuit/proprietary/lib/libstlport.so:system/lib/libstlport.so \
     vendor/amazon/biscuit/proprietary/lib/libui_ext.so:system/lib/libui_ext.so \
+    vendor/amazon/biscuit/proprietary/lib64/egl/libGLES_android.so:system/lib64/egl/libGLES_android.so \
     vendor/amazon/biscuit/proprietary/lib64/hw/gralloc.mt8163.so:system/lib64/hw/gralloc.mt8163.so \
     vendor/amazon/biscuit/proprietary/lib64/hw/hwcomposer.mt8163.so:system/lib64/hw/hwcomposer.mt8163.so \
     vendor/amazon/biscuit/proprietary/lib64/libbwc.so:system/lib64/libbwc.so \

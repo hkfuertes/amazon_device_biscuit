@@ -46,9 +46,8 @@ if [[ ! -f "$RAMDISK" ]]; then
   echo "  BLOCKER: CM12 source not synced. Steps to unblock:"
   echo "    1. cd workspace/cm12 && repo init -u https://github.com/CyanogenMod/android -b cm-12.1"
   echo "    2. repo sync -j4"
-  echo "    3. Re-run workspace/scripts/preflight.sh   (creates device tree symlink)"
-  echo "    4. workspace/scripts/build.sh              (produces ramdisk.img in out-docker/)"
-  echo "    5. Re-run this script."
+  echo "    3. workspace/scripts/build.sh              (stages tree, patches, produces ramdisk.img)"
+  echo "    4. Re-run this script."
   echo ""
   echo "  Or set: RAMDISK_IMG=<path/to/ramdisk.img> $0"
   exit 1
