@@ -27,9 +27,8 @@ INIT_ARGS=(-u https://github.com/CyanogenMod/android.git -b cm-12.1)
 if [[ -n "${CM12_REFERENCE:-}" ]]; then
   INIT_ARGS+=(--reference "$CM12_REFERENCE")
 fi
-if [[ -n "${CM12_DEPTH:-}" ]]; then
-  INIT_ARGS+=(--depth "$CM12_DEPTH")
-fi
+CM12_DEPTH="${CM12_DEPTH:-1}"
+INIT_ARGS+=(--depth "$CM12_DEPTH")
 "$REPO_BIN" init "${INIT_ARGS[@]}"
 cp "$LOCK" .repo/manifests/cm12.lock.xml
 "$REPO_BIN" init -m cm12.lock.xml

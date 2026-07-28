@@ -12,11 +12,11 @@ Echo Dot 5.5.5.4 como fuente de verdad.
 
 ```
 workspace/
-├── downloads/    # Archivos descargados (ignorados por git): tarballs, ZIPs, checksums
-├── upstream/     # Extracción intacta del source Amazon — no modificar nunca (ignorado)
+├── downloads/    # Archivos descargados (ignorados por git): ZIPs, checksums, temporales
+├── kernel/       # Source kernel Amazon trackeado (kernel/amazon/biscuit)
 ├── cm12/         # Árbol CM12: repo sync destino + patches aplicados
 ├── docker/       # Dockerfile y contexto del contenedor de build (Ubuntu 14)
-├── scripts/      # preflight.sh, build.sh y utilidades reproducibles
+├── scripts/      # build.sh y utilidades reproducibles
 ├── patches/      # Parches explícitos sobre copias de trabajo (no sobre upstream)
 ├── device/       # Device tree CM12 para biscuit (device/amazon/biscuit)
 └── vendor/       # Blobs propietarios (ignorados por git)
@@ -30,7 +30,6 @@ workspace/
 
 Inputs ignorados por git que debes aportar:
 
-- Amazon Echo Dot 5.5.5.4 source tarball URL (`AMAZON_SOURCE_URL` o `workspace/downloads/amazon-source.url`)
 - Biscuit OTA stock extraída hasta `workspace/extracted/biscuit-ota/system.img`
 - checkout CM12 en `workspace/cm12/`
 - imágenes Docker `biscuit-kernel-builder:latest` y `cm12-ubuntu14:latest`
@@ -38,16 +37,14 @@ Inputs ignorados por git que debes aportar:
 Orden mínimo:
 
 ```sh
-workspace/scripts/preflight.sh
 workspace/scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
-workspace/scripts/preflight.sh   # re-sincroniza device/common/vendor dentro de workspace/cm12
 workspace/scripts/build-kernel.sh
 workspace/scripts/build.sh
 ```
 
-El kernel sale de `workspace/upstream/platform.tar` + `build_kernel.tar.gz` usando
-`biscuit_defconfig`. El sistema usa blobs stock Biscuit no-GPU/headless; el extractor
-excluye `libGLES_mali`, `gralloc.mt8163.mali` y `libgpu_aux`, y fuerza `egl.cfg = 0 0 android`.
+El kernel sale de `workspace/kernel/amazon/biscuit` usando `biscuit_defconfig`.
+La URL/checksum del tar original quedan documentados en `workspace/kernel/amazon/biscuit/README.md`.
+El sistema usa blobs stock Biscuit no-GPU/headless; el extractor excluye blobs Mali no usados.
 
 ## CI GitLab on-demand
 
@@ -55,25 +52,15 @@ La pipeline solo se crea manualmente desde **Run pipeline** (`workflow: web`). R
 
 Variables necesarias:
 
-- `AMAZON_SOURCE_URL`: tarball Amazon Echo Dot 5.5.5.4.
 - `BISCUIT_SYSTEM_IMG_URL`: URL descargable a `system.img` stock Biscuit ya convertido a ext4.
 - `CM12_TARBALL_URL`: tar de un checkout CM12 preparado; por defecto se extrae con `--strip-components=1`.
 - `CM12_STRIP_COMPONENTS`: opcional, cambia el strip del tar CM12.
-- `AMAZON_SOURCE_SHA256`: opcional, verificación estricta del tarball Amazon.
 
 Artefactos CI: OTA zip, `boot.img`, `system.img`, kernel-selection y logs Docker.
 
-## Flujo preflight → build
+## Flujo build
 
-### 1. Preflight (`workspace/scripts/preflight.sh`)
-
-*No compila nada.* Responsable de:
-
-1. Descargar el source release de Amazon (checksum verificado) → `workspace/downloads/`
-2. Extraer en `workspace/upstream/` sin modificar nada
-3. Generar symlinks/copias hacia `workspace/cm12/` y `workspace/vendor/` según necesite el build de Android
-
-### 2. Build (`workspace/scripts/build.sh`)
+### 1. Build (`workspace/scripts/build.sh`)
 
 Levanta el contenedor Docker estable (`cm12-biscuit-build`) y ejecuta:
 

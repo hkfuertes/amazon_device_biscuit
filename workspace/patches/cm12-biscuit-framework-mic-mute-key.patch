@@ -1,6 +1,8 @@
+diff --git a/frameworks/base/data/keyboards/Generic.kl b/frameworks/base/data/keyboards/Generic.kl
+index f10ba968..e99c4520 100644
 --- a/frameworks/base/data/keyboards/Generic.kl
 +++ b/frameworks/base/data/keyboards/Generic.kl
-@@ -132,7 +132,7 @@
+@@ -132,7 +132,7 @@ key 109   PAGE_DOWN
  key 110   INSERT
  key 111   FORWARD_DEL
  # key 112 "KEY_MACRO"
@@ -9,12 +11,14 @@
  key 114   VOLUME_DOWN
  key 115   VOLUME_UP
  key 116   POWER
+diff --git a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java b/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
+index 1ef905fb..1f1f9274 100644
 --- a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
 +++ b/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
-@@ -5457,6 +5457,19 @@
+@@ -5456,6 +5456,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+                         cancelPendingScreenshotChordAction();
                      }
                  }
- 
 +                if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
 +                        || keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
 +                    result &= ~ACTION_PASS_TO_USER;
@@ -28,10 +32,11 @@
 +                    }
 +                    break;
 +                }
- 
++
                  if (down) {
                      TelecomManager telecomManager = getTelecommService();
-@@ -5545,6 +5558,16 @@
+                     if (telecomManager != null) {
+@@ -5543,6 +5557,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                  break;
              }
  
@@ -48,7 +53,7 @@
              case KeyEvent.KEYCODE_HOME:
                  if (down && !interactive && mHomeWakeScreen) {
                      isWakeKey = true;
-@@ -5662,7 +5685,6 @@
+@@ -5660,7 +5684,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
              case KeyEvent.KEYCODE_MEDIA_PAUSE:
              case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
              case KeyEvent.KEYCODE_HEADSETHOOK:
