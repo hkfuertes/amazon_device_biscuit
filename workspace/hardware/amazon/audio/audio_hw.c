@@ -109,6 +109,19 @@ static int route_value(struct mixer *mixer, const char *name, int v0, int v1)
     return ret;
 }
 
+static void set_speaker_amp(bool enabled)
+{
+    struct mixer *mixer = mixer_open(CARD);
+
+    if (!mixer) {
+        ALOGE("mixer_open(%d) failed", CARD);
+        return;
+    }
+
+    route_enum_or_value(mixer, "Ext_Speaker_Amp_Switch", enabled ? "On" : "Off", enabled ? 1 : 0);
+    mixer_close(mixer);
+}
+
 static void apply_speaker_route(void)
 {
     struct mixer *mixer = mixer_open(CARD);
@@ -125,7 +138,6 @@ static void apply_speaker_route(void)
     route_enum_or_value(mixer, "Right Channel Only", "On", 1);
     route_value(mixer, "HP Driver Gain Volume", 6, 6);
     route_enum_or_value(mixer, "MFP Gpio Mute", "Off", 0);
-    route_enum_or_value(mixer, "Ext_Speaker_Amp_Switch", "On", 1);
 
     mixer_close(mixer);
 }
@@ -189,6 +201,7 @@ static int out_standby(struct audio_stream *stream)
 
     pthread_mutex_lock(&out->lock);
     if (out->pcm) {
+        set_speaker_amp(false);
         pcm_close(out->pcm);
         out->pcm = NULL;
     }
@@ -203,8 +216,9 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer, si
 
     pthread_mutex_lock(&out->lock);
     if (!out->pcm) {
-        apply_speaker_route();
+        char silence[OUT_PERIOD_SIZE * OUT_CHANNELS * sizeof(int16_t)] = {0};
         struct pcm_config config = out_config;
+        apply_speaker_route();
         out->pcm = pcm_open(CARD, OUT_DEVICE, PCM_OUT, &config);
         if (!out->pcm || !pcm_is_ready(out->pcm)) {
             ALOGE("pcm_open(%d,%d) failed: %s", CARD, OUT_DEVICE, out->pcm ? pcm_get_error(out->pcm) : "NULL");
@@ -212,10 +226,13 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer, si
                 pcm_close(out->pcm);
                 out->pcm = NULL;
             }
+            set_speaker_amp(false);
             pthread_mutex_unlock(&out->lock);
             usleep((bytes * 1000000ULL) / (OUT_RATE * OUT_CHANNELS * sizeof(int16_t)));
             return -ENODEV;
         }
+        pcm_write(out->pcm, silence, sizeof(silence));
+        set_speaker_amp(true);
     }
 
     ret = pcm_write(out->pcm, buffer, bytes);

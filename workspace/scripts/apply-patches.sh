@@ -7,8 +7,12 @@ CM12="$REPO_ROOT/workspace/cm12"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
 
-# patch(1) backup files under res/ are treated as resources by aapt.
-find "$CM12" -path '*/res/*' -name '*.orig' -type f -delete
+delete_patch_backups() {
+  # patch(1) backup files under res/ are treated as resources by aapt.
+  find "$CM12" -path '*/res/*' -name '*.orig' -type f -delete
+}
+
+delete_patch_backups
 
 for patch in "$REPO_ROOT"/workspace/patches/*.patch; do
   [[ -e "$patch" ]] || continue
@@ -30,3 +34,5 @@ for patch in "$REPO_ROOT"/workspace/patches/*.patch; do
     exit 1
   fi
 done
+
+delete_patch_backups

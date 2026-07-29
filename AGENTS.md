@@ -8,13 +8,6 @@ Reglas para agentes en este repo.
 - Source Amazon Echo Dot 5.5.5.4: https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
 - Amazon OSS MT8163 common: https://github.com/amazon-oss/android_device_amazon_mt8163-common
 - Amazon OSS hardware helpers: https://github.com/amazon-oss/android_hardware_amazon/tree/cm-12.1
-- Vendor Amazon MT8163 common CM14.1: https://github.com/mt8163-dev/android_vendor_amazon_mt8163-common/tree/cm-14.1/
-  - Útil para comparar blobs/configs audio MTK/Amazon: `audio.primary.mt8163.so`, `libaudio*`, `libbessound_hd_mtk.so`, `vendor/etc/audio-algorithms/*`, `vendor/lib/soundfx/libswdap.so`.
-- Rook LineageOS aprobado/referencia audio:
-  - Device: https://github.com/amazon-oss/android_device_amazon_rook
-  - Vendor: https://github.com/amazon-oss/android_vendor_amazon_rook
-  - Hardware wrapper: https://github.com/amazon-oss/android_hardware_amazon/tree/lineage-18.1/audio/hal
-  - Patrón útil: compilar `audio.primary.amazon_wrapper` y cargar blob vendor `audio.primary_amazon.mt8163.so` con deps/tuning en `/vendor`.
 - MTK hardware helper referencia: https://github.com/lbule/android_hardware_mediatek
   - Usar solo para comparar/extraer ideas puntuales de `wlan/wpa_supplicant_8_lib/mediatek_driver_cmd_nl80211.c` (`lib_driver_cmd_mt66xx`): `COUNTRY`, `GET_STA_STATISTICS`, start/stop/AP si hace falta.
   - No sustituir wholesale nuestro helper Amazon/CM12: su `DRIVER MACADDR` también dereferencia `priv` antes de responder y no arregla el SIGSEGV as-is.
@@ -26,9 +19,16 @@ Reglas para agentes en este repo.
 ## Workflow del agente
 
 - Antes de cada acción operativa, decir explícitamente qué voy a hacer, qué no voy a hacer y por qué.
+- Si una operación requiere `sudo` o permisos root, no ejecutarla: mostrar el comando exacto para que el usuario lo ejecute manualmente.
 - En este dispositivo `adb wait-for-device` puede quedarse colgado o no ser buena señal de progreso. Preferir chequeos explícitos con `adb devices -l`, estado visual del LED/TWRP, y timeouts cortos; si ADB no aparece, parar y reportar.
 - Salvo petición explícita del usuario, no hacer polling ni esperas largas. Los builds/flash/reboots largos deben lanzarse detached o como una acción concreta, reportar cómo mirarlos, y devolver control para que el usuario pueda preguntar entre pasos.
 - Cualquier cambio dentro de `workspace/cm12` debe tener una forma reproducible desde el repo trackeado: preferir `workspace/patches/*.patch`, `workspace/scripts/stage-tree.sh`, `workspace/scripts/apply-patches.sh` o scripts equivalentes. No dejar cambios manuales solo en `workspace/cm12`.
+
+## TODOs
+
+- Actualizar CA certificates del sistema (`workspace/cm12/libcore/luni/src/main/files/cacerts` -> `/system/etc/security/cacerts`) con una forma reproducible desde el repo; validar HTTPS moderno desde el dispositivo. No mezclarlo con PRs de audio/kernel.
+- Reestructurar kernel para volver al sistema de tarball upstream + patches reproducibles, en vez de trackear/clonar todo `workspace/kernel/amazon/biscuit` en el repo.
+- PR futuro de tuning de audio: añadir algo más de cuerpo/graves con filtro software suave en el HAL (p. ej. low-shelf moderado 150–250 Hz con preamp anti-clipping). No mezclar con fixes de ruta/ampli.
 
 ## Seguridad del dispositivo
 
@@ -112,13 +112,13 @@ Notas:
 
 ## Flasheo recomendado
 
-Preferir ZIP desde TWRP. Confirmar primero que ADB ve `recovery` y que existe `/sbin/twrp`; no depender solo de `adb wait-for-device`.
+Preferir siempre sideload desde TWRP. Confirmar primero que ADB ve `recovery` y que existe `/sbin/twrp`; no depender solo de `adb wait-for-device`.
 
 ```sh
 adb devices -l
 adb shell 'command -v twrp; getprop ro.twrp.version'
-adb push update.zip /sdcard/
-adb shell twrp install /sdcard/update.zip
+adb shell twrp sideload
+adb sideload update.zip
 ```
 
 O hacked fastboot confirmado:

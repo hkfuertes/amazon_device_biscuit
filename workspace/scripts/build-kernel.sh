@@ -94,16 +94,11 @@ echo '==> Copying vendored kernel source ...'
 mkdir -p \"\$SRC_DIR\"
 cp -a /kernel-src/. \"\$SRC_DIR/\"
 
-# Fix 32-bit iptables on arm64 kernel: Amazon/MTK compat netfilter clears
-# xt_alloc_table_info() per-CPU entry pointers, then panics in memcpy().
-for f in \
-  \"\$SRC_DIR/net/ipv4/netfilter/ip_tables.c\" \
-  \"\$SRC_DIR/net/ipv6/netfilter/ip6_tables.c\"; do
-  perl -0pi -e 's/\n\tmemset\(newinfo->entries, 0, size\);/\n\t\/* biscuit: removed bogus memset; xt_alloc_table_info already sets per-cpu entry pointers. *\//g' \"\$f\"
-done
-
 echo '==> Applying Biscuit kernel patches ...'
-patch -d "\$SRC_DIR" -p4 < /patches/biscuit-kernel-tsl2583-calibrated-lux-kfree.patch
+for p in /patches/biscuit-kernel-*.patch; do
+  echo "==> Applying $(basename \"\$p\") ..."
+  patch -d "\$SRC_DIR" -p4 < "\$p"
+done
 
 OUT_DIR=\"\$TMPDIR/out\"
 mkdir -p \"\$OUT_DIR\"

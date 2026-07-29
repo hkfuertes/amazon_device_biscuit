@@ -21,10 +21,9 @@ PRODUCT_PACKAGES += BiscuitEmptyLauncher
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
 # ── Audio ───────────────────────────────────────────────────────────────────
-# ponytail: tiny compiled wrapper; stock OTA HAL below does real audio/routing/tuning.
+# ponytail: source-only speaker HAL; mic/input/routes later if needed.
 PRODUCT_PACKAGES += \
     audio.primary.mt8163 \
-    biscuit_audio_echo_test \
     biscuit_audiotrack_test \
     biscuit_audiorecord_test \
     biscuit_mic_test \
