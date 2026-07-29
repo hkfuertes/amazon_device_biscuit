@@ -1,0 +1,22 @@
+--- kernel/mediatek/mt8163/3.18/net/ipv4/netfilter/ip_tables.c
++++ kernel/mediatek/mt8163/3.18/net/ipv4/netfilter/ip_tables.c
+@@ -1712,7 +1712,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		goto out_unlock;
+ 
+ 	newinfo->number = number;
+-	memset(newinfo->entries, 0, size);
++	/* biscuit: xt_alloc_table_info already sets per-cpu entry pointers. */
+ 
+ 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+ 		newinfo->hook_entry[i] = info->hook_entry[i];
+--- kernel/mediatek/mt8163/3.18/net/ipv6/netfilter/ip6_tables.c
++++ kernel/mediatek/mt8163/3.18/net/ipv6/netfilter/ip6_tables.c
+@@ -1722,7 +1722,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 		goto out_unlock;
+ 
+ 	newinfo->number = number;
+-	memset(newinfo->entries, 0, size);
++	/* biscuit: xt_alloc_table_info already sets per-cpu entry pointers. */
+ 
+ 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+ 		newinfo->hook_entry[i] = info->hook_entry[i];
