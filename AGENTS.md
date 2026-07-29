@@ -27,6 +27,7 @@ Reglas para agentes en este repo.
 ## TODOs
 
 - Actualizar CA certificates del sistema (`workspace/cm12/libcore/luni/src/main/files/cacerts` -> `/system/etc/security/cacerts`) con una forma reproducible desde el repo; validar HTTPS moderno desde el dispositivo. No mezclarlo con PRs de audio/kernel.
+- Reestructurar kernel para volver al sistema de tarball upstream + patches reproducibles, en vez de trackear/clonar todo `workspace/kernel/amazon/biscuit` en el repo.
 
 ## Seguridad del dispositivo
 
