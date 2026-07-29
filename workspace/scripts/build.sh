@@ -40,6 +40,12 @@ docker run -d \
   -w "$CM12_DIR" \
   "$IMAGE" \
   bash -lc "
+    rm -rf \
+      '$OUT_DIR/target/product/biscuit/system' \
+      '$OUT_DIR/target/product/biscuit/symbols/system/lib/hw/audio.primary.mt8163.so' \
+      '$OUT_DIR/target/product/biscuit/obj/PACKAGING' \
+      '$OUT_DIR/target/product/biscuit/obj/lib/audio.primary.mt8163.so' \
+      '$OUT_DIR/target/product/biscuit/obj/SHARED_LIBRARIES/audio.primary.mt8163_intermediates'
     source build/envsetup.sh >/dev/null
     lunch cm_biscuit-userdebug >/tmp/lunch.log
     export OUT_DIR='$OUT_DIR'

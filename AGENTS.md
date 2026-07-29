@@ -8,13 +8,6 @@ Reglas para agentes en este repo.
 - Source Amazon Echo Dot 5.5.5.4: https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
 - Amazon OSS MT8163 common: https://github.com/amazon-oss/android_device_amazon_mt8163-common
 - Amazon OSS hardware helpers: https://github.com/amazon-oss/android_hardware_amazon/tree/cm-12.1
-- Vendor Amazon MT8163 common CM14.1: https://github.com/mt8163-dev/android_vendor_amazon_mt8163-common/tree/cm-14.1/
-  - Útil para comparar blobs/configs audio MTK/Amazon: `audio.primary.mt8163.so`, `libaudio*`, `libbessound_hd_mtk.so`, `vendor/etc/audio-algorithms/*`, `vendor/lib/soundfx/libswdap.so`.
-- Rook LineageOS aprobado/referencia audio:
-  - Device: https://github.com/amazon-oss/android_device_amazon_rook
-  - Vendor: https://github.com/amazon-oss/android_vendor_amazon_rook
-  - Hardware wrapper: https://github.com/amazon-oss/android_hardware_amazon/tree/lineage-18.1/audio/hal
-  - Patrón útil: compilar `audio.primary.amazon_wrapper` y cargar blob vendor `audio.primary_amazon.mt8163.so` con deps/tuning en `/vendor`.
 - MTK hardware helper referencia: https://github.com/lbule/android_hardware_mediatek
   - Usar solo para comparar/extraer ideas puntuales de `wlan/wpa_supplicant_8_lib/mediatek_driver_cmd_nl80211.c` (`lib_driver_cmd_mt66xx`): `COUNTRY`, `GET_STA_STATISTICS`, start/stop/AP si hace falta.
   - No sustituir wholesale nuestro helper Amazon/CM12: su `DRIVER MACADDR` también dereferencia `priv` antes de responder y no arregla el SIGSEGV as-is.
@@ -112,13 +105,13 @@ Notas:
 
 ## Flasheo recomendado
 
-Preferir ZIP desde TWRP. Confirmar primero que ADB ve `recovery` y que existe `/sbin/twrp`; no depender solo de `adb wait-for-device`.
+Preferir siempre sideload desde TWRP. Confirmar primero que ADB ve `recovery` y que existe `/sbin/twrp`; no depender solo de `adb wait-for-device`.
 
 ```sh
 adb devices -l
 adb shell 'command -v twrp; getprop ro.twrp.version'
-adb push update.zip /sdcard/
-adb shell twrp install /sdcard/update.zip
+adb shell twrp sideload
+adb sideload update.zip
 ```
 
 O hacked fastboot confirmado:
