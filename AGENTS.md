@@ -24,6 +24,10 @@ Reglas para agentes en este repo.
 - Salvo petición explícita del usuario, no hacer polling ni esperas largas. Los builds/flash/reboots largos deben lanzarse detached o como una acción concreta, reportar cómo mirarlos, y devolver control para que el usuario pueda preguntar entre pasos.
 - Cualquier cambio dentro de `workspace/cm12` debe tener una forma reproducible desde el repo trackeado: preferir `workspace/patches/*.patch`, `workspace/scripts/stage-tree.sh`, `workspace/scripts/apply-patches.sh` o scripts equivalentes. No dejar cambios manuales solo en `workspace/cm12`.
 
+## TODOs
+
+- Actualizar CA certificates del sistema (`workspace/cm12/libcore/luni/src/main/files/cacerts` -> `/system/etc/security/cacerts`) con una forma reproducible desde el repo; validar HTTPS moderno desde el dispositivo. No mezclarlo con PRs de audio/kernel.
+
 ## Seguridad del dispositivo
 
 - Nunca escribas particiones con `dd` desde Android/ADB. Nada de:
