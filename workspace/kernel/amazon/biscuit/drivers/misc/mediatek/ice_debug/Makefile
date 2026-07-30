@@ -1,1 +1,0 @@
-obj-$(CONFIG_MTK_ICE_DEUBG) += ice_debug.o

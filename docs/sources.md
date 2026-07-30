@@ -1,0 +1,38 @@
+# Fuentes reproducibles
+
+## CM12
+
+- Manifest: `manifest/cm12.lock.xml`
+- Sync: `scripts/sync-cm12.sh`
+- Destino ignorado: `workspace/cm12/`
+
+## Kernel
+
+- Source: Amazon Echo Dot 5.5.5.4
+- URL: `https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2`
+- SHA256: `dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd`
+- Script: `scripts/prepare-kernel-source.sh`
+- Destino ignorado: `workspace/kernel/amazon/biscuit/`
+- Patches: `patches/biscuit-kernel-*.patch`
+
+## Blobs propietarios Biscuit
+
+- Source: OTA stock Biscuit full 272.6.4.1
+- URL: `https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin`
+- Input generado: `workspace/extracted/biscuit-stock-272.6.4.1/system.img` from `system.new.dat` + `system.transfer.list`
+- Script: `scripts/extract-biscuit-stock-blobs.sh`
+- Destino ignorado: `workspace/vendor/amazon/biscuit/`
+
+Política: no versionar blobs; extraerlos de OTA. El extractor excluye Mali/GPU y genera `biscuit-vendor.mk`.
+
+## Trabajo nuestro trackeado
+
+```txt
+sources/device_amazon_biscuit/
+sources/device_amazon_mt8163_common/
+sources/hardware_amazon/
+sources/hardware_mediatek/
+patches/
+scripts/
+docker/
+```

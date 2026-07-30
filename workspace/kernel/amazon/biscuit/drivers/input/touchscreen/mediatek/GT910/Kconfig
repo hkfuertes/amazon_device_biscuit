@@ -1,6 +1,0 @@
-#
-# Touchscreen driver configuration
-#
-if TOUCHSCREEN_MTK_GT910
-
-endif
