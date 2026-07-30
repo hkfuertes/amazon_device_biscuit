@@ -17,6 +17,10 @@ PRODUCT_CHARACTERISTICS := nosdcard
 PRODUCT_PACKAGES := $(filter-out CyanogenSetupWizard SetupWizard Trebuchet Launcher2 Launcher3,$(PRODUCT_PACKAGES))
 PRODUCT_PACKAGES += BiscuitEmptyLauncher
 
+# ── HTTPS tools ─────────────────────────────────────────────────────────────
+PRODUCT_PACKAGES += \
+    curl
+
 # ── Overlays ────────────────────────────────────────────────────────────────
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
@@ -65,6 +69,7 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
 
 # ── Ramdisk init ─────────────────────────────────────────────────────────────
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/cacerts.pem:system/etc/security/cacerts.pem \
     $(LOCAL_PATH)/rootdir/fstab.mt8163:root/fstab.mt8163 \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc:root/init.mt8163.rc \
     $(LOCAL_PATH)/rootdir/init.device.rc:root/init.device.rc \

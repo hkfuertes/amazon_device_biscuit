@@ -17,6 +17,36 @@ copy_dir() {
   echo "STAGED $label -> ${dst#$REPO_ROOT/}"
 }
 
+copy_files_from_dir() {
+  local src="$1" dst="$2" label="$3"
+  [[ -d "$src" ]] || { echo "SKIP $label: missing $src"; return 0; }
+  mkdir -p "$dst"
+  find "$dst" -maxdepth 1 -type f -delete
+  find "$src" -maxdepth 1 -type f -name '*.[0-9]' -exec cp -a {} "$dst"/ \;
+  echo "STAGED $label -> ${dst#$REPO_ROOT/}"
+}
+
+copy_file() {
+  local src="$1" dst="$2" label="$3"
+  [[ -f "$src" ]] || { echo "SKIP $label: missing $src"; return 0; }
+  mkdir -p "$(dirname "$dst")"
+  cp -a "$src" "$dst"
+  echo "STAGED $label -> ${dst#$REPO_ROOT/}"
+}
+
+clean_cacerts_outputs() {
+  # ponytail: incremental builds don't remove vanished CA files from system/.
+  local out product
+  for out in "$CM12"/out "$CM12"/out-*; do
+    [[ -d "$out/target/product" ]] || continue
+    for product in "$out"/target/product/*; do
+      [[ -d "$product" ]] || continue
+      rm -rf "$product/system/etc/security/cacerts" "$product/system/etc/security/cacerts.pem"
+      rm -rf "$product"/obj/ETC/target-cacert-*_intermediates "$product"/obj/ETC/cacerts.pem_intermediates
+    done
+  done
+}
+
 copy_dir "$REPO_ROOT/workspace/device/amazon/biscuit" \
          "$CM12/device/amazon/biscuit" \
          "device/amazon/biscuit"
@@ -32,3 +62,10 @@ copy_dir "$REPO_ROOT/workspace/hardware/mediatek" \
 copy_dir "$REPO_ROOT/workspace/vendor/amazon" \
          "$CM12/vendor/amazon" \
          "vendor/amazon"
+copy_files_from_dir "$REPO_ROOT/workspace/cacerts" \
+                    "$CM12/libcore/luni/src/main/files/cacerts" \
+                    "libcore cacerts"
+copy_file "$REPO_ROOT/workspace/cacerts.pem" \
+          "$CM12/device/amazon/biscuit/cacerts.pem" \
+          "curl cacerts.pem"
+clean_cacerts_outputs

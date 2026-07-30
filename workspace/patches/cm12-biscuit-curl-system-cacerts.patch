@@ -1,0 +1,34 @@
+diff --git a/external/curl/lib/curl_config.h b/external/curl/lib/curl_config.h
+--- a/external/curl/lib/curl_config.h
++++ b/external/curl/lib/curl_config.h
+@@ -5,10 +5,10 @@
+ /* when building libcurl itself */
+ /* #undef BUILDING_LIBCURL */
+ 
+ /* Location of default ca bundle */
+-/* #undef CURL_CA_BUNDLE */
++#define CURL_CA_BUNDLE "/system/etc/security/cacerts.pem"
+ 
+ /* Location of default ca path */
+-#define CURL_CA_PATH "/etc/ssl/certs/"
++/* #undef CURL_CA_PATH */
+ 
+ /* to disable cookies support */
+ #define CURL_DISABLE_COOKIES 1
+diff --git a/external/curl/src/curl_config.h b/external/curl/src/curl_config.h
+--- a/external/curl/src/curl_config.h
++++ b/external/curl/src/curl_config.h
+@@ -5,10 +5,10 @@
+ /* when building libcurl itself */
+ /* #undef BUILDING_LIBCURL */
+ 
+ /* Location of default ca bundle */
+-/* #undef CURL_CA_BUNDLE */
++#define CURL_CA_BUNDLE "/system/etc/security/cacerts.pem"
+ 
+ /* Location of default ca path */
+-#define CURL_CA_PATH "/etc/ssl/certs/"
++/* #undef CURL_CA_PATH */
+ 
+ /* to disable cookies support */
+ #define CURL_DISABLE_COOKIES 1
