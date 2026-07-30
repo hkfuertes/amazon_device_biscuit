@@ -1,19 +1,5 @@
 issues/
-workspace/downloads/
-workspace/tools/
-workspace/upstream/
-workspace/extracted/
-workspace/kernel-out/
-workspace/kernel-out-netfilter/
-workspace/out/
-workspace/bin/
-workspace/cm12/*
-!workspace/cm12/.gitkeep
-workspace/device/amazon/biscuit/prebuilt/kernel
-workspace/device/amazon/biscuit/prebuilt/kernel.sha256
-workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt
-workspace/device/amazon/biscuit/prebuilt/system/
-
-
-# Local test credentials
-workspace/secrets/
+workspace/
+# Saved local OTA snapshots
+biscuit-cm12-last-generated-ota.zip
+biscuit-cm12-last-generated-ota.zip.sha256

@@ -30,7 +30,7 @@ validate:device-tree:
   before_script:
     - apk add --no-cache bash grep
   script:
-    - workspace/scripts/validate_device_tree.sh
+    - scripts/validate_device_tree.sh
 
 build:ota:
   extends: .default_docker
@@ -53,17 +53,17 @@ build:ota:
       tar -xf /tmp/cm12.tar -C workspace/cm12 --strip-components="${CM12_STRIP_COMPONENTS}"
 
       echo "==> Build Docker images"
-      docker build -f workspace/docker/biscuit-kernel-builder.Dockerfile -t biscuit-kernel-builder:latest workspace/docker/
-      docker build -f workspace/docker/cm12-ubuntu14.Dockerfile -t cm12-ubuntu14:latest workspace/docker/
+      docker build -f docker/biscuit-kernel-builder.Dockerfile -t biscuit-kernel-builder:latest docker/
+      docker build -f docker/cm12-ubuntu14.Dockerfile -t cm12-ubuntu14:latest docker/
 
       echo "==> Prepare stock blobs/vendor"
-      workspace/scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
+      scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
 
       echo "==> Build kernel"
-      workspace/scripts/build-kernel.sh
+      scripts/build-kernel.sh
 
       echo "==> Build OTA"
-      workspace/scripts/build.sh
+      scripts/build.sh
   after_script:
     - mkdir -p ci-logs
     - docker logs biscuit-kernel-build > ci-logs/biscuit-kernel-build.log 2>&1 || true

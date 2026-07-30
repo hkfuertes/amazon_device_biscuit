@@ -1,88 +1,76 @@
-# CM12 para Amazon Biscuit (Echo Dot 2nd gen)
+# CM12 for Amazon Biscuit (Echo Dot 2nd gen)
 
-Port de CyanogenMod 12 para el Amazon Fire HD 6 (Biscuit) usando el source release de Amazon
-Echo Dot 5.5.5.4 como fuente de verdad.
+CyanogenMod 12 port for Amazon Biscuit with reproducible inputs and a disposable `workspace/`.
 
-> **No se flashea nada todavía.** Los scripts de build producen imágenes; el flasheo
-> es un paso manual explícito documentado en `docs/amonet-biscuit-unlock.md`.
+> Nothing here flashes the device. Scripts only produce build artifacts. Flashing notes live in `docs/amonet-biscuit-unlock.md`.
 
----
+## Layout
 
-## Estructura del workspace
-
-```
-workspace/
-├── downloads/    # Archivos descargados (ignorados por git): ZIPs, checksums, temporales
-├── kernel/       # Source kernel Amazon trackeado (kernel/amazon/biscuit)
-├── cm12/         # Árbol CM12: repo sync destino + patches aplicados
-├── docker/       # Dockerfile y contexto del contenedor de build (Ubuntu 14)
-├── scripts/      # build.sh y utilidades reproducibles
-├── patches/      # Parches explícitos sobre copias de trabajo (no sobre upstream)
-├── device/       # Device tree CM12 para biscuit (device/amazon/biscuit)
-└── vendor/       # Blobs propietarios (ignorados por git)
+```txt
+manifest/   # pinned CM12/AOSP repo manifest
+sources/    # tracked device/hardware work
+patches/    # reproducible CM12/kernel patches
+docker/     # build images
+scripts/    # bootstrap, preflight, build, extract helpers
+docs/       # notes, source list, useful logs
+workspace/  # ignored: downloads, cm12 checkout, kernel, blobs, outputs
 ```
 
-`workspace/tools/` — herramientas de unlock (amonet, ignoradas por git).
+## Reproducible inputs
 
----
+```txt
+workspace/cm12
+  <- scripts/sync-cm12.sh
+  <- manifest/cm12.lock.xml
 
-## Reproducir en otro ordenador
+workspace/kernel/amazon/biscuit
+  <- scripts/prepare-kernel-source.sh
+  <- Amazon Echo Dot 5.5.5.4 source tarball
+  <- sha256 dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd
 
-Inputs ignorados por git que debes aportar:
+workspace/vendor/amazon/biscuit
+  <- scripts/extract-biscuit-stock-blobs.sh <system.img>
+  <- stock Biscuit OTA `system.new.dat` + `system.transfer.list` converted to `system.img`
+```
 
-- Biscuit OTA stock extraída hasta `workspace/extracted/biscuit-ota/system.img`
-- checkout CM12 en `workspace/cm12/`
-- imágenes Docker `biscuit-kernel-builder:latest` y `cm12-ubuntu14:latest`
+See `docs/sources.md` for URLs and exact source policy.
 
-Orden mínimo:
+## Minimal flow
 
 ```sh
-workspace/scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
-workspace/scripts/build-kernel.sh
-workspace/scripts/build.sh
+scripts/bootstrap-workspace.sh
+scripts/preflight.sh
+scripts/build-kernel.sh
+scripts/build.sh
 ```
 
-El kernel sale de `workspace/kernel/amazon/biscuit` usando `biscuit_defconfig`.
-La URL/checksum del tar original quedan documentados en `workspace/kernel/amazon/biscuit/README.md`.
-El sistema usa blobs stock Biscuit no-GPU/headless; el extractor excluye blobs Mali no usados.
-
-## CI GitLab on-demand
-
-La pipeline solo se crea manualmente desde **Run pipeline** (`workflow: web`). Requiere runner Docker privilegiado.
-
-Variables necesarias:
-
-- `BISCUIT_SYSTEM_IMG_URL`: URL descargable a `system.img` stock Biscuit ya convertido a ext4.
-- `CM12_TARBALL_URL`: tar de un checkout CM12 preparado; por defecto se extrae con `--strip-components=1`.
-- `CM12_STRIP_COMPONENTS`: opcional, cambia el strip del tar CM12.
-
-Artefactos CI: OTA zip, `boot.img`, `system.img`, kernel-selection y logs Docker.
-
-## Flujo build
-
-### 1. Build (`workspace/scripts/build.sh`)
-
-Levanta el contenedor Docker estable (`cm12-biscuit-build`) y ejecuta:
+`build.sh` keeps `workspace/cm12/out-docker/` by default for incremental builds. Partial cleanups are opt-in:
 
 ```sh
-source build/envsetup.sh
-lunch cm_biscuit-userdebug
-make -j$(nproc) otapackage
+CLEAN_BISCUIT_OUT=1 scripts/build.sh
+CLEAN_KERNEL_OUT=1 scripts/build-kernel.sh
 ```
 
-El output va a `workspace/cm12/out-docker/` (ruta absoluta, ignorada por git).
-El contenedor **no** se elimina al terminar para preservar logs.
+## Proprietary blobs
 
-### 3. Flasheo (manual, fase futura)
+Blobs are not committed. Extract them from the stock OTA into `workspace/vendor/amazon/biscuit/`; `scripts/stage-tree.sh` copies them into the CM12 checkout.
 
-Ver `docs/amonet-biscuit-unlock.md`. Se flashea desde TWRP o hacked fastboot — nunca
-con `dd` desde Android ni con stock fastboot.
+## Credits and upstreams
 
----
+This project stands on:
 
-## Reglas de seguridad del dispositivo
+- CyanogenMod/LineageOS CM12.1 and AOSP trees, synced through `manifest/cm12.lock.xml`.
+- Amazon OSS `android_device_amazon_mt8163-common`: base MT8163 device-common tree.
+- Amazon OSS `android_hardware_amazon`: Amazon hardware helpers.
+- Amazon Echo Dot 5.5.5.4 kernel source tarball from Amazon's Fire OS source release.
+- Amazon Biscuit stock OTA `272.6.4.1` for proprietary blobs.
+- MTK helper references from `lbule/android_hardware_mediatek`, used only for comparison of driver-command behavior.
+- The amonet Biscuit unlock/recovery work documented in `docs/amonet-biscuit-unlock.md`.
 
-- No `adb shell dd of=/dev/block/...` bajo ningún concepto.
-- No stock fastboot para ROMs.
-- No tocar GPT/preloader/LK/TZ/recovery/userdata salvo petición explícita.
-- Para entrar en TWRP o hacked fastboot, ver `AGENTS.md`.
+Tracked changes in this repo are the Biscuit-specific glue, patches, scripts, and documentation needed to rebuild the workspace.
+
+## Safety
+
+- Never run `adb shell dd of=/dev/block/...`.
+- Do not use stock fastboot for ROM images.
+- Do not touch GPT/preloader/LK/TZ/recovery/userdata/cache/persist/misc unless explicitly requested.

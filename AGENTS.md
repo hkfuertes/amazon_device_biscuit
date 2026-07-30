@@ -22,7 +22,7 @@ Reglas para agentes en este repo.
 - Si una operación requiere `sudo` o permisos root, no ejecutarla: mostrar el comando exacto para que el usuario lo ejecute manualmente.
 - En este dispositivo `adb wait-for-device` puede quedarse colgado o no ser buena señal de progreso. Preferir chequeos explícitos con `adb devices -l`, estado visual del LED/TWRP, y timeouts cortos; si ADB no aparece, parar y reportar.
 - Salvo petición explícita del usuario, no hacer polling ni esperas largas. Los builds/flash/reboots largos deben lanzarse detached o como una acción concreta, reportar cómo mirarlos, y devolver control para que el usuario pueda preguntar entre pasos.
-- Cualquier cambio dentro de `workspace/cm12` debe tener una forma reproducible desde el repo trackeado: preferir `workspace/patches/*.patch`, `workspace/scripts/stage-tree.sh`, `workspace/scripts/apply-patches.sh` o scripts equivalentes. No dejar cambios manuales solo en `workspace/cm12`.
+- Cualquier cambio dentro de `workspace/cm12` debe tener una forma reproducible desde el repo trackeado: preferir `patches/*.patch`, `scripts/stage-tree.sh`, `scripts/apply-patches.sh` o scripts equivalentes. No dejar cambios manuales solo en `workspace/cm12`.
 
 ## TODOs
 
@@ -30,6 +30,8 @@ Reglas para agentes en este repo.
 - Limpiar apps CM12 que no vamos a usar en Biscuit headless (Email, calendarios, wallpapers, providers/UI sobrantes, etc.) y validar contra `installed-files.txt`/`system/app` que las apps ya desactivadas realmente no se instalan.
 - Habilitar gadgets USB en el kernel (idealmente todos los necesarios), concretamente USB audio out/in, para una APK futura que convierta Biscuit en speaker/micrófono de conferencias.
 - PR futuro de tuning de audio: añadir algo más de cuerpo/graves con filtro software suave en el HAL (p. ej. low-shelf moderado 150–250 Hz con preamp anti-clipping). No mezclar con fixes de ruta/ampli.
+- Mega-TODO futuro: investigar salto a Android 7 / CM14.1 con kernel 6.5.x para Biscuit. Tratar como línea de trabajo separada, no mezclar con estabilización CM12 actual.
+- TODO audio/TTS HA: Home Assistant responde y manda TTS, pero no suena. Logcat visto: `VOICE_ASSISTANT_INTENT_END speech=Luces apagadas`, `VOICE_ASSISTANT_TTS_START text=Luces apagadas`, `VOICE_ASSISTANT_TTS_END url=http://192.168.77.254:8123/api/tts_proxy/...mp3`, `TTS_END: playing url=...`, `TtsPlayer: playTts called`; fallo Android/ExoPlayer: `MediaCodecAudioRenderer error`, `MediaCodecUtil$DecoderQueryException: Failed to query underlying media codecs`, `RuntimeException: cannot get MediaCodecList`, `AudioPlayer: Player error`. También aparece `format=audio/flac ... wake_word_triggered.flac`. Investigar codecs/MediaCodecList en CM12 headless, MP3 TTS y FLAC wake word; no mezclar con tuning del HAL.
 
 ## Seguridad del dispositivo
 
