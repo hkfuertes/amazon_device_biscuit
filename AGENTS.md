@@ -26,8 +26,9 @@ Reglas para agentes en este repo.
 
 ## TODOs
 
-- Actualizar CA certificates del sistema (`workspace/cm12/libcore/luni/src/main/files/cacerts` -> `/system/etc/security/cacerts`) con una forma reproducible desde el repo; validar HTTPS moderno desde el dispositivo. No mezclarlo con PRs de audio/kernel.
 - Reestructurar kernel para volver al sistema de tarball upstream + patches reproducibles, en vez de trackear/clonar todo `workspace/kernel/amazon/biscuit` en el repo.
+- Limpiar apps CM12 que no vamos a usar en Biscuit headless (Email, calendarios, wallpapers, providers/UI sobrantes, etc.) y validar contra `installed-files.txt`/`system/app` que las apps ya desactivadas realmente no se instalan.
+- Habilitar gadgets USB en el kernel (idealmente todos los necesarios), concretamente USB audio out/in, para una APK futura que convierta Biscuit en speaker/micrófono de conferencias.
 - PR futuro de tuning de audio: añadir algo más de cuerpo/graves con filtro software suave en el HAL (p. ej. low-shelf moderado 150–250 Hz con preamp anti-clipping). No mezclar con fixes de ruta/ampli.
 
 ## Seguridad del dispositivo
