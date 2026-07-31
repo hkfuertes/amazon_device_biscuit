@@ -1,0 +1,1449 @@
+diff --git a/frameworks/av/media/libstagefright/codecs/flac/dec/Android.mk b/frameworks/av/media/libstagefright/codecs/flac/dec/Android.mk
+new file mode 100644
+index 0000000..ee9f498
+--- /dev/null
++++ b/frameworks/av/media/libstagefright/codecs/flac/dec/Android.mk
+@@ -0,0 +1,23 @@
++LOCAL_PATH := $(call my-dir)
++include $(CLEAR_VARS)
++
++LOCAL_SRC_FILES := \
++    SoftFlacDecoder.cpp \
++    ../../../flac/dec/FLACDecoder.cpp
++
++LOCAL_C_INCLUDES := \
++    external/flac/include \
++    frameworks/av/media/libstagefright/flac/dec \
++    frameworks/av/media/libstagefright/include \
++    frameworks/native/include/media/openmax
++
++LOCAL_SHARED_LIBRARIES := \
++    libstagefright \
++    libstagefright_omx \
++    libstagefright_foundation \
++    libutils \
++    liblog
++
++LOCAL_STATIC_LIBRARIES := libFLAC
++
++LOCAL_CPPFLAGS := -std=gnu++11
++
++LOCAL_MODULE := libstagefright_soft_flacdec
++LOCAL_MODULE_TAGS := optional
++
++include $(BUILD_SHARED_LIBRARY)
+diff --git a/frameworks/av/media/libstagefright/codecs/flac/dec/MODULE_LICENSE_APACHE2 b/frameworks/av/media/libstagefright/codecs/flac/dec/MODULE_LICENSE_APACHE2
+new file mode 100644
+index 0000000..e69de29
+diff --git a/frameworks/av/media/libstagefright/codecs/flac/dec/NOTICE b/frameworks/av/media/libstagefright/codecs/flac/dec/NOTICE
+new file mode 100644
+index 0000000..c5b1efa
+--- /dev/null
++++ b/frameworks/av/media/libstagefright/codecs/flac/dec/NOTICE
+@@ -0,0 +1,190 @@
++
++   Copyright (c) 2005-2008, The Android Open Source Project
++
++   Licensed under the Apache License, Version 2.0 (the "License");
++   you may not use this file except in compliance with the License.
++
++   Unless required by applicable law or agreed to in writing, software
++   distributed under the License is distributed on an "AS IS" BASIS,
++   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++   See the License for the specific language governing permissions and
++   limitations under the License.
++
++
++                                 Apache License
++                           Version 2.0, January 2004
++                        http://www.apache.org/licenses/
++
++   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
++
++   1. Definitions.
++
++      "License" shall mean the terms and conditions for use, reproduction,
++      and distribution as defined by Sections 1 through 9 of this document.
++
++      "Licensor" shall mean the copyright owner or entity authorized by
++      the copyright owner that is granting the License.
++
++      "Legal Entity" shall mean the union of the acting entity and all
++      other entities that control, are controlled by, or are under common
++      control with that entity. For the purposes of this definition,
++      "control" means (i) the power, direct or indirect, to cause the
++      direction or management of such entity, whether by contract or
++      otherwise, or (ii) ownership of fifty percent (50%) or more of the
++      outstanding shares, or (iii) beneficial ownership of such entity.
++
++      "You" (or "Your") shall mean an individual or Legal Entity
++      exercising permissions granted by this License.
++
++      "Source" form shall mean the preferred form for making modifications,
++      including but not limited to software source code, documentation
++      source, and configuration files.
++
++      "Object" form shall mean any form resulting from mechanical
++      transformation or translation of a Source form, including but
++      not limited to compiled object code, generated documentation,
++      and conversions to other media types.
++
++      "Work" shall mean the work of authorship, whether in Source or
++      Object form, made available under the License, as indicated by a
++      copyright notice that is included in or attached to the work
++      (an example is provided in the Appendix below).
++
++      "Derivative Works" shall mean any work, whether in Source or Object
++      form, that is based on (or derived from) the Work and for which the
++      editorial revisions, annotations, elaborations, or other modifications
++      represent, as a whole, an original work of authorship. For the purposes
++      of this License, Derivative Works shall not include works that remain
++      separable from, or merely link (or bind by name) to the interfaces of,
++      the Work and Derivative Works thereof.
++
++      "Contribution" shall mean any work of authorship, including
++      the original version of the Work and any modifications or additions
++      to that Work or Derivative Works thereof, that is intentionally
++      submitted to Licensor for inclusion in the Work by the copyright owner
++      or by an individual or Legal Entity authorized to submit on behalf of
++      the copyright owner. For the purposes of this definition, "submitted"
++      means any form of electronic, verbal, or written communication sent
++      to the Licensor or its representatives, including but not limited to
++      communication on electronic mailing lists, source code control systems,
++      and issue tracking systems that are managed by, or on behalf of, the
++      Licensor for the purpose of discussing and improving the Work, but
++      excluding communication that is conspicuously marked or otherwise
++      designated in writing by the copyright owner as "Not a Contribution."
++
++      "Contributor" shall mean Licensor and any individual or Legal Entity
++      on behalf of whom a Contribution has been received by Licensor and
++      subsequently incorporated within the Work.
++
++   2. Grant of Copyright License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      copyright license to reproduce, prepare Derivative Works of,
++      publicly display, publicly perform, sublicense, and distribute the
++      Work and such Derivative Works in Source or Object form.
++
++   3. Grant of Patent License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      (except as stated in this section) patent license to make, have made,
++      use, offer to sell, sell, import, and otherwise transfer the Work,
++      where such license applies only to those patent claims licensable
++      by such Contributor that are necessarily infringed by their
++      Contribution(s) alone or by combination of their Contribution(s)
++      with the Work to which such Contribution(s) was submitted. If You
++      institute patent litigation against any entity (including a
++      cross-claim or counterclaim in a lawsuit) alleging that the Work
++      or a Contribution incorporated within the Work constitutes direct
++      or contributory patent infringement, then any patent licenses
++      granted to You under this License for that Work shall terminate
++      as of the date such litigation is filed.
++
++   4. Redistribution. You may reproduce and distribute copies of the
++      Work or Derivative Works thereof in any medium, with or without
++      modifications, and in Source or Object form, provided that You
++      meet the following conditions:
++
++      (a) You must give any other recipients of the Work or
++          Derivative Works a copy of this License; and
++
++      (b) You must cause any modified files to carry prominent notices
++          stating that You changed the files; and
++
++      (c) You must retain, in the Source form of any Derivative Works
++          that You distribute, all copyright, patent, trademark, and
++          attribution notices from the Source form of the Work,
++          excluding those notices that do not pertain to any part of
++          the Derivative Works; and
++
++      (d) If the Work includes a "NOTICE" text file as part of its
++          distribution, then any Derivative Works that You distribute must
++          include a readable copy of the attribution notices contained
++          within such NOTICE file, excluding those notices that do not
++          pertain to any part of the Derivative Works, in at least one
++          of the following places: within a NOTICE text file distributed
++          as part of the Derivative Works; within the Source form or
++          documentation, if provided along with the Derivative Works; or,
++          within a display generated by the Derivative Works, if and
++          wherever such third-party notices normally appear. The contents
++          of the NOTICE file are for informational purposes only and
++          do not modify the License. You may add Your own attribution
++          notices within Derivative Works that You distribute, alongside
++          or as an addendum to the NOTICE text from the Work, provided
++          that such additional attribution notices cannot be construed
++          as modifying the License.
++
++      You may add Your own copyright statement to Your modifications and
++      may provide additional or different license terms and conditions
++      for use, reproduction, or distribution of Your modifications, or
++      for any such Derivative Works as a whole, provided Your use,
++      reproduction, and distribution of the Work otherwise complies with
++      the conditions stated in this License.
++
++   5. Submission of Contributions. Unless You explicitly state otherwise,
++      any Contribution intentionally submitted for inclusion in the Work
++      by You to the Licensor shall be under the terms and conditions of
++      this License, without any additional terms or conditions.
++      Notwithstanding the above, nothing herein shall supersede or modify
++      the terms of any separate license agreement you may have executed
++      with Licensor regarding such Contributions.
++
++   6. Trademarks. This License does not grant permission to use the trade
++      names, trademarks, service marks, or product names of the Licensor,
++      except as required for reasonable and customary use in describing the
++      origin of the Work and reproducing the content of the NOTICE file.
++
++   7. Disclaimer of Warranty. Unless required by applicable law or
++      agreed to in writing, Licensor provides the Work (and each
++      Contributor provides its Contributions) on an "AS IS" BASIS,
++      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++      implied, including, without limitation, any warranties or conditions
++      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
++      PARTICULAR PURPOSE. You are solely responsible for determining the
++      appropriateness of using or redistributing the Work and assume any
++      risks associated with Your exercise of permissions under this License.
++
++   8. Limitation of Liability. In no event and under no legal theory,
++      whether in tort (including negligence), contract, or otherwise,
++      unless required by applicable law (such as deliberate and grossly
++      negligent acts) or agreed to in writing, shall any Contributor be
++      liable to You for damages, including any direct, indirect, special,
++      incidental, or consequential damages of any character arising as a
++      result of this License or out of the use or inability to use the
++      Work (including but not limited to damages for loss of goodwill,
++      work stoppage, computer failure or malfunction, or any and all
++      other commercial damages or losses), even if such Contributor
++      has been advised of the possibility of such damages.
++
++   9. Accepting Warranty or Additional Liability. While redistributing
++      the Work or Derivative Works thereof, You may choose to offer,
++      and charge a fee for, acceptance of support, warranty, indemnity,
++      or other liability obligations and/or rights consistent with this
++      License. However, in accepting such obligations, You may act only
++      on Your own behalf and on Your sole responsibility, not on behalf
++      of any other Contributor, and only if You agree to indemnify,
++      defend, and hold each Contributor harmless for any liability
++      incurred by, or claims asserted against, such Contributor by reason
++      of your accepting any such warranty or additional liability.
++
++   END OF TERMS AND CONDITIONS
++
+diff --git a/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.cpp b/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.cpp
+new file mode 100644
+index 0000000..4ab1ab2
+--- /dev/null
++++ b/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.cpp
+@@ -0,0 +1,458 @@
++/*
++ * Copyright (C) 2017 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++//#define LOG_NDEBUG 0
++#define LOG_TAG "SoftFlacDecoder"
++#include <utils/Log.h>
++
++#include "SoftFlacDecoder.h"
++#include <OMX_AudioExt.h>
++#include <OMX_IndexExt.h>
++
++#include <cutils/properties.h>
++#include <media/stagefright/foundation/ADebug.h>
++#include <media/stagefright/MediaErrors.h>
++#include <utils/misc.h>
++
++namespace android {
++
++template<class T>
++static void InitOMXParams(T *params) {
++    params->nSize = sizeof(T);
++    params->nVersion.s.nVersionMajor = 1;
++    params->nVersion.s.nVersionMinor = 0;
++    params->nVersion.s.nRevision = 0;
++    params->nVersion.s.nStep = 0;
++}
++
++SoftFlacDecoder::SoftFlacDecoder(
++        const char *name,
++        const OMX_CALLBACKTYPE *callbacks,
++        OMX_PTR appData,
++        OMX_COMPONENTTYPE **component)
++    : SimpleSoftOMXComponent(name, callbacks, appData, component),
++      mFLACDecoder(NULL),
++      mHasStreamInfo(false),
++      mInputBufferCount(0),
++      mSignalledError(false),
++      mOutputPortSettingsChange(NONE) {
++    ALOGV("ctor:");
++    memset(&mStreamInfo, 0, sizeof(mStreamInfo));
++    initPorts();
++    initDecoder();
++}
++
++SoftFlacDecoder::~SoftFlacDecoder() {
++    ALOGV("dtor:");
++}
++
++void SoftFlacDecoder::initPorts() {
++    ALOGV("initPorts:");
++    OMX_PARAM_PORTDEFINITIONTYPE def;
++    InitOMXParams(&def);
++
++    def.nPortIndex = 0;
++    def.eDir = OMX_DirInput;
++    def.nBufferCountMin = kNumInputBuffers;
++    def.nBufferCountActual = def.nBufferCountMin;
++    def.nBufferSize = 32768;
++    def.bEnabled = OMX_TRUE;
++    def.bPopulated = OMX_FALSE;
++    def.eDomain = OMX_PortDomainAudio;
++    def.bBuffersContiguous = OMX_FALSE;
++    def.nBufferAlignment = 1;
++
++    def.format.audio.cMIMEType = const_cast<char *>("audio/flac");
++    def.format.audio.pNativeRender = NULL;
++    def.format.audio.bFlagErrorConcealment = OMX_FALSE;
++    def.format.audio.eEncoding = OMX_AUDIO_CodingFLAC;
++
++    addPort(def);
++
++    def.nPortIndex = 1;
++    def.eDir = OMX_DirOutput;
++    def.nBufferCountMin = kNumOutputBuffers;
++    def.nBufferCountActual = def.nBufferCountMin;
++    def.nBufferSize = 4096 * FLACDecoder::kMaxChannels;
++    def.bEnabled = OMX_TRUE;
++    def.bPopulated = OMX_FALSE;
++    def.eDomain = OMX_PortDomainAudio;
++    def.bBuffersContiguous = OMX_FALSE;
++    def.nBufferAlignment = 2;
++
++    def.format.audio.cMIMEType = const_cast<char *>("audio/raw");
++    def.format.audio.pNativeRender = NULL;
++    def.format.audio.bFlagErrorConcealment = OMX_FALSE;
++    def.format.audio.eEncoding = OMX_AUDIO_CodingPCM;
++
++    addPort(def);
++}
++
++void SoftFlacDecoder::initDecoder() {
++    ALOGV("initDecoder:");
++    mFLACDecoder = FLACDecoder::Create();
++    if (mFLACDecoder == NULL) {
++        ALOGE("initDecoder: failed to create FLACDecoder");
++        mSignalledError = true;
++    }
++}
++
++OMX_ERRORTYPE SoftFlacDecoder::initCheck() const {
++    if (mSignalledError) {
++        if (mFLACDecoder == NULL) {
++            ALOGE("initCheck: failed due to NULL encoder");
++            return OMX_ErrorDynamicResourcesUnavailable;
++        }
++        return OMX_ErrorUndefined;
++    }
++
++    return SimpleSoftOMXComponent::initCheck();
++}
++
++OMX_ERRORTYPE SoftFlacDecoder::internalGetParameter(
++        OMX_INDEXTYPE index, OMX_PTR params) {
++    ALOGV("internalGetParameter: index(%x)", index);
++    switch ((OMX_U32)index) {
++        case OMX_IndexParamAudioPortFormat:
++        {
++            OMX_AUDIO_PARAM_PORTFORMATTYPE *formatParams =
++                (OMX_AUDIO_PARAM_PORTFORMATTYPE *)params;
++
++            if (!isValidOMXParam(formatParams)) {
++                return OMX_ErrorBadParameter;
++            }
++
++            if (formatParams->nPortIndex > 1) {
++                return OMX_ErrorUndefined;
++            }
++
++            if (formatParams->nIndex > 0) {
++                return OMX_ErrorNoMore;
++            }
++
++            formatParams->eEncoding =
++                (formatParams->nPortIndex == 0)
++                    ? OMX_AUDIO_CodingFLAC : OMX_AUDIO_CodingPCM;
++
++            return OMX_ErrorNone;
++        }
++        case OMX_IndexParamAudioFlac:
++        {
++            OMX_AUDIO_PARAM_FLACTYPE *flacParams =
++                (OMX_AUDIO_PARAM_FLACTYPE *)params;
++
++            if (!isValidOMXParam(flacParams)) {
++                ALOGE("internalGetParameter(OMX_IndexParamAudioFlac): invalid omx params");
++                return OMX_ErrorBadParameter;
++            }
++
++            if (flacParams->nPortIndex != 0) {
++                ALOGE("internalGetParameter(OMX_IndexParamAudioFlac): bad port index");
++                return OMX_ErrorBadPortIndex;
++            }
++
++            flacParams->nCompressionLevel = 0;
++
++            if (isConfigured()) {
++                flacParams->nChannels = mStreamInfo.channels;
++                flacParams->nSampleRate = mStreamInfo.sample_rate;
++            } else {
++                flacParams->nChannels = 1;
++                flacParams->nSampleRate = 44100;
++            }
++
++            return OMX_ErrorNone;
++        }
++
++        case OMX_IndexParamAudioPcm:
++        {
++            OMX_AUDIO_PARAM_PCMMODETYPE *pcmParams =
++                (OMX_AUDIO_PARAM_PCMMODETYPE *)params;
++
++            if (!isValidOMXParam(pcmParams)) {
++                ALOGE("internalGetParameter(OMX_IndexParamAudioPcm): invalid omx params");
++                return OMX_ErrorBadParameter;
++            }
++
++            if (pcmParams->nPortIndex != 1) {
++                ALOGE("internalGetParameter(OMX_IndexParamAudioPcm): bad port index");
++                return OMX_ErrorBadPortIndex;
++            }
++
++            pcmParams->eNumData = OMX_NumericalDataSigned;
++            pcmParams->eEndian = OMX_EndianBig;
++            pcmParams->bInterleaved = OMX_TRUE;
++            pcmParams->nBitPerSample = 16;
++            pcmParams->ePCMMode = OMX_AUDIO_PCMModeLinear;
++            pcmParams->eChannelMapping[0] = OMX_AUDIO_ChannelLF;
++            pcmParams->eChannelMapping[1] = OMX_AUDIO_ChannelRF;
++            pcmParams->eChannelMapping[2] = OMX_AUDIO_ChannelCF;
++            pcmParams->eChannelMapping[3] = OMX_AUDIO_ChannelLFE;
++            pcmParams->eChannelMapping[4] = OMX_AUDIO_ChannelLS;
++            pcmParams->eChannelMapping[5] = OMX_AUDIO_ChannelRS;
++
++            if (isConfigured()) {
++                pcmParams->nChannels = mStreamInfo.channels;
++                pcmParams->nSamplingRate = mStreamInfo.sample_rate;
++            } else {
++                pcmParams->nChannels = 1;
++                pcmParams->nSamplingRate = 44100;
++            }
++
++            return OMX_ErrorNone;
++        }
++
++        default:
++            return SimpleSoftOMXComponent::internalGetParameter(index, params);
++    }
++}
++
++OMX_ERRORTYPE SoftFlacDecoder::internalSetParameter(
++        OMX_INDEXTYPE index, const OMX_PTR params) {
++    ALOGV("internalSetParameter: index(%x)", (int)index);
++    switch ((int)index) {
++        case OMX_IndexParamStandardComponentRole:
++        {
++            const OMX_PARAM_COMPONENTROLETYPE *roleParams =
++                (const OMX_PARAM_COMPONENTROLETYPE *)params;
++
++            if (!isValidOMXParam(roleParams)) {
++                return OMX_ErrorBadParameter;
++            }
++
++            if (strncmp((const char *)roleParams->cRole,
++                        "audio_decoder.flac",
++                        OMX_MAX_STRINGNAME_SIZE - 1) != 0) {
++                return OMX_ErrorInvalidComponentName;
++            }
++
++            return OMX_ErrorNone;
++        }
++
++        case OMX_IndexParamAudioPortFormat:
++        {
++            const OMX_AUDIO_PARAM_PORTFORMATTYPE *formatParams =
++                (const OMX_AUDIO_PARAM_PORTFORMATTYPE *)params;
++
++            if (!isValidOMXParam(formatParams)) {
++                return OMX_ErrorBadParameter;
++            }
++
++            if (formatParams->nPortIndex > 1) {
++                return OMX_ErrorUndefined;
++            }
++
++            if ((formatParams->nPortIndex == 0
++                        && formatParams->eEncoding != OMX_AUDIO_CodingFLAC)
++                || (formatParams->nPortIndex == 1
++                        && formatParams->eEncoding != OMX_AUDIO_CodingPCM)) {
++                return OMX_ErrorUndefined;
++            }
++
++            return OMX_ErrorNone;
++        }
++
++        case OMX_IndexParamAudioPcm:
++        {
++            const OMX_AUDIO_PARAM_PCMMODETYPE *pcmParams =
++                (OMX_AUDIO_PARAM_PCMMODETYPE *)params;
++
++            if (!isValidOMXParam(pcmParams)) {
++                return OMX_ErrorBadParameter;
++            }
++
++            if (pcmParams->nPortIndex != 1) {
++                return OMX_ErrorBadPortIndex;
++            }
++
++            return OMX_ErrorNone;
++        }
++
++        default:
++            return SimpleSoftOMXComponent::internalSetParameter(index, params);
++    }
++}
++
++bool SoftFlacDecoder::isConfigured() const {
++    return mHasStreamInfo;
++}
++
++void SoftFlacDecoder::onQueueFilled(OMX_U32 /* portIndex */) {
++    ALOGV("onQueueFilled:");
++    if (mSignalledError || mOutputPortSettingsChange != NONE) {
++        return;
++    }
++
++    List<BufferInfo *> &inQueue = getPortQueue(0);
++    List<BufferInfo *> &outQueue = getPortQueue(1);
++
++    while (!inQueue.empty() && !outQueue.empty()) {
++        BufferInfo *inInfo = *inQueue.begin();
++        OMX_BUFFERHEADERTYPE *inHeader = inInfo->mHeader;
++        BufferInfo *outInfo = *outQueue.begin();
++        OMX_BUFFERHEADERTYPE *outHeader = outInfo->mHeader;
++        uint8_t* inBuffer = inHeader->pBuffer + inHeader->nOffset;
++        uint32_t inBufferLength = inHeader->nFilledLen;
++        bool endOfInput = (inHeader->nFlags & OMX_BUFFERFLAG_EOS) != 0;
++
++        if (inHeader->nFilledLen == 0) {
++            if (endOfInput) {
++                outHeader->nFilledLen = 0;
++                outHeader->nFlags = OMX_BUFFERFLAG_EOS;
++                outInfo->mOwnedByUs = false;
++                outQueue.erase(outQueue.begin());
++                notifyFillBufferDone(outHeader);
++            } else {
++                ALOGE("onQueueFilled: emptyInputBuffer received");
++            }
++            inInfo->mOwnedByUs = false;
++            inQueue.erase(inQueue.begin());
++            notifyEmptyBufferDone(inHeader);
++            return;
++        }
++        if (mInputBufferCount == 0 && !(inHeader->nFlags & OMX_BUFFERFLAG_CODECCONFIG)) {
++            ALOGE("onQueueFilled: first buffer should have OMX_BUFFERFLAG_CODECCONFIG set");
++            inHeader->nFlags |= OMX_BUFFERFLAG_CODECCONFIG;
++        }
++        if ((inHeader->nFlags & OMX_BUFFERFLAG_CODECCONFIG) != 0) {
++            status_t decoderErr = mFLACDecoder->parseMetadata(inBuffer, inBufferLength);
++            mInputBufferCount++;
++
++            if (decoderErr != OK && decoderErr != WOULD_BLOCK) {
++                ALOGE("onQueueFilled: FLACDecoder parseMetaData returns error %d", decoderErr);
++                mSignalledError = true;
++                notify(OMX_EventError, OMX_ErrorStreamCorrupt, decoderErr, NULL);
++                return;
++            }
++
++            inInfo->mOwnedByUs = false;
++            inQueue.erase(inQueue.begin());
++            notifyEmptyBufferDone(inHeader);
++
++            if (decoderErr == WOULD_BLOCK) {
++                continue;
++            }
++            mStreamInfo = mFLACDecoder->getStreamInfo();
++            mHasStreamInfo = true;
++
++            // Only send out port settings changed event if both sample rate
++            // and numChannels are valid.
++            if (mStreamInfo.sample_rate && mStreamInfo.channels) {
++                ALOGD("onQueueFilled: initially configuring decoder: %d Hz, %d channels",
++                    mStreamInfo.sample_rate, mStreamInfo.channels);
++
++                notify(OMX_EventPortSettingsChanged, 1, 0, NULL);
++                mOutputPortSettingsChange = AWAITING_DISABLED;
++            }
++            return;
++        }
++
++        short *outBuffer =
++                reinterpret_cast<short *>(outHeader->pBuffer + outHeader->nOffset);
++        size_t outBufferSize = outHeader->nAllocLen - outHeader->nOffset;
++
++        status_t decoderErr = mFLACDecoder->decodeOneFrame(
++                inBuffer, inBufferLength, outBuffer, &outBufferSize);
++        if (decoderErr != OK) {
++            ALOGE("onQueueFilled: FLACDecoder decodeOneFrame returns error %d", decoderErr);
++            mSignalledError = true;
++            notify(OMX_EventError, OMX_ErrorStreamCorrupt, decoderErr, NULL);
++            return;
++        }
++
++        mInputBufferCount++;
++        int64_t ts = inHeader->nTimeStamp;
++        inInfo->mOwnedByUs = false;
++        inQueue.erase(inQueue.begin());
++        notifyEmptyBufferDone(inHeader);
++
++        if (endOfInput) {
++            outHeader->nFlags = OMX_BUFFERFLAG_EOS;
++        } else if (outBufferSize == 0) {
++            continue;
++        } else {
++            outHeader->nFlags = 0;
++        }
++
++        outHeader->nFilledLen = outBufferSize;
++        outHeader->nTimeStamp = ts;
++
++        outInfo->mOwnedByUs = false;
++        outQueue.erase(outQueue.begin());
++        notifyFillBufferDone(outHeader);
++    }
++}
++
++void SoftFlacDecoder::onPortFlushCompleted(OMX_U32 portIndex) {
++    ALOGV("onPortFlushCompleted: portIndex(%u)", portIndex);
++    if (portIndex == 0) {
++        drainDecoder();
++    }
++}
++
++void SoftFlacDecoder::drainDecoder() {
++    mFLACDecoder->flush();
++}
++
++void SoftFlacDecoder::onReset() {
++    drainDecoder();
++
++    memset(&mStreamInfo, 0, sizeof(mStreamInfo));
++    mHasStreamInfo = false;
++    mInputBufferCount = 0;
++    mSignalledError = false;
++    mOutputPortSettingsChange = NONE;
++}
++
++void SoftFlacDecoder::onPortEnableCompleted(OMX_U32 portIndex, bool enabled) {
++    ALOGV("onPortEnableCompleted: portIndex(%u), enabled(%d)", portIndex, enabled);
++    if (portIndex != 1) {
++        return;
++    }
++
++    switch (mOutputPortSettingsChange) {
++        case NONE:
++            break;
++
++        case AWAITING_DISABLED:
++        {
++            CHECK(!enabled);
++            mOutputPortSettingsChange = AWAITING_ENABLED;
++            PortInfo *info = editPortInfo(1 /* portIndex */);
++            if (!info->mDef.bEnabled) {
++                info->mDef.nBufferSize = mStreamInfo.max_blocksize * mStreamInfo.channels * 2;
++            }
++            break;
++        }
++
++        default:
++        {
++            CHECK_EQ((int)mOutputPortSettingsChange, (int)AWAITING_ENABLED);
++            CHECK(enabled);
++            mOutputPortSettingsChange = NONE;
++            break;
++        }
++    }
++}
++
++}  // namespace android
++
++android::SoftOMXComponent *createSoftOMXComponent(
++        const char *name, const OMX_CALLBACKTYPE *callbacks,
++        OMX_PTR appData, OMX_COMPONENTTYPE **component) {
++    ALOGV("createSoftOMXComponent: flac decoder");
++    return new android::SoftFlacDecoder(name, callbacks, appData, component);
++}
+diff --git a/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.h b/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.h
+new file mode 100644
+index 0000000..4a21c34
+--- /dev/null
++++ b/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.h
+@@ -0,0 +1,75 @@
++/*
++ * Copyright (C) 2017 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef SOFT_FLAC_DECODER_H
++#define SOFT_FLAC_DECODER_H
++
++#include "FLACDecoder.h"
++#include <SimpleSoftOMXComponent.h>
++
++namespace android {
++
++struct SoftFlacDecoder : public SimpleSoftOMXComponent {
++    SoftFlacDecoder(const char *name,
++            const OMX_CALLBACKTYPE *callbacks,
++            OMX_PTR appData,
++            OMX_COMPONENTTYPE **component);
++
++    virtual OMX_ERRORTYPE initCheck() const override;
++
++protected:
++    virtual ~SoftFlacDecoder();
++
++    virtual OMX_ERRORTYPE internalGetParameter(
++            OMX_INDEXTYPE index, OMX_PTR params) override;
++
++    virtual OMX_ERRORTYPE internalSetParameter(
++            OMX_INDEXTYPE index, const OMX_PTR params) override;
++
++    virtual void onQueueFilled(OMX_U32 portIndex);
++    virtual void onPortFlushCompleted(OMX_U32 portIndex) override;
++    virtual void onPortEnableCompleted(OMX_U32 portIndex, bool enabled) override;
++    virtual void onReset() override;
++
++private:
++    enum {
++        kNumInputBuffers   = 4,
++        kNumOutputBuffers  = 4,
++    };
++
++    sp<FLACDecoder> mFLACDecoder;
++    FLAC__StreamMetadata_StreamInfo mStreamInfo;
++    bool mHasStreamInfo;
++    size_t mInputBufferCount;
++    bool mSignalledError;
++
++    enum {
++        NONE,
++        AWAITING_DISABLED,
++        AWAITING_ENABLED
++    } mOutputPortSettingsChange;
++
++    void initPorts();
++    void initDecoder();
++    bool isConfigured() const;
++    void drainDecoder();
++
++    DISALLOW_EVIL_CONSTRUCTORS(SoftFlacDecoder);
++};
++
++}  // namespace android
++
++#endif  // SOFT_FLAC_DECODER_H
+diff --git a/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml b/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml
+index a06684b..cb1bddc 100644
+--- a/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml
++++ b/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml
+@@ -61,6 +61,8 @@
+             <Limit name="sample-rate" ranges="8000-96000" />
+             <Limit name="bitrate" range="1-10000000" />
+         </MediaCodec>
++        <MediaCodec name="OMX.google.flac.decoder" type="audio/flac">
++        </MediaCodec>
+     </Decoders>
+     <Encoders>
+         <MediaCodec name="OMX.google.aac.encoder" type="audio/mp4a-latm">
+diff --git a/frameworks/av/media/libstagefright/flac/dec/FLACDecoder.cpp b/frameworks/av/media/libstagefright/flac/dec/FLACDecoder.cpp
+new file mode 100644
+index 0000000..8c7137c
+--- /dev/null
++++ b/frameworks/av/media/libstagefright/flac/dec/FLACDecoder.cpp
+@@ -0,0 +1,526 @@
++/*
++ * Copyright (C) 2017 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++//#define LOG_NDEBUG 0
++#define LOG_TAG "FLACDecoder"
++#include <utils/Log.h>
++
++#include "FLACDecoder.h"
++
++#include <media/stagefright/foundation/ADebug.h>
++#include <media/stagefright/foundation/hexdump.h>
++#include <media/stagefright/MediaDefs.h>
++#include <media/stagefright/MediaErrors.h>
++#include <media/stagefright/MetaData.h>
++
++namespace android {
++
++// These are the corresponding callbacks with C++ calling conventions
++FLAC__StreamDecoderReadStatus FLACDecoder::readCallback(
++        FLAC__byte buffer[], size_t *bytes) {
++    if (mBuffer == nullptr || mBufferLen == 0) {
++        *bytes = 0;
++        return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
++    }
++
++    size_t actual = *bytes;
++    if (actual > mBufferDataSize - mBufferPos) {
++        actual = mBufferDataSize - mBufferPos;
++    }
++    memcpy(buffer, mBuffer + mBufferPos, actual);
++    mBufferPos += actual;
++    *bytes = actual;
++    return (actual == 0 ? FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM
++                        : FLAC__STREAM_DECODER_READ_STATUS_CONTINUE);
++}
++
++FLAC__StreamDecoderWriteStatus FLACDecoder::writeCallback(
++        const FLAC__Frame *frame, const FLAC__int32 * const buffer[])
++{
++    if (!mWriteRequested) {
++        ALOGE("writeCallback: unexpected");
++        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
++    }
++
++    mWriteRequested = false;
++    // FLAC decoder doesn't free or realloc buffer until next frame or finish
++    mWriteHeader = frame->header;
++    memmove(mWriteBuffer, buffer, sizeof(const FLAC__int32 * const) * getChannels());
++    mWriteCompleted = true;
++    return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
++}
++
++void FLACDecoder::metadataCallback(const FLAC__StreamMetadata *metadata)
++{
++    switch (metadata->type) {
++        case FLAC__METADATA_TYPE_STREAMINFO:
++        {
++            if (mStreamInfoValid) {
++                ALOGE("metadataCallback: unexpected STREAMINFO");
++            } else {
++                mStreamInfo = metadata->data.stream_info;
++                mStreamInfoValid = true;
++            }
++            break;
++        }
++
++        /* TODO: enable metadata parsing below.
++        case FLAC__METADATA_TYPE_VORBIS_COMMENT:
++        {
++            const FLAC__StreamMetadata_VorbisComment *vc;
++            vc = &metadata->data.vorbis_comment;
++            for (FLAC__uint32 i = 0; i < vc->num_comments; ++i) {
++                FLAC__StreamMetadata_VorbisComment_Entry *vce;
++                vce = &vc->comments[i];
++                if (mFileMetadata != 0 && vce->entry != NULL) {
++                    parseVorbisComment(mFileMetadata, (const char *) vce->entry,
++                            vce->length);
++                }
++            }
++            break;
++        }
++
++        case FLAC__METADATA_TYPE_PICTURE:
++        {
++            if (mFileMetadata != 0) {
++                const FLAC__StreamMetadata_Picture *p = &metadata->data.picture;
++                mFileMetadata->setData(kKeyAlbumArt,
++                        MetaData::TYPE_NONE, p->data, p->data_length);
++                mFileMetadata->setCString(kKeyAlbumArtMIME, p->mime_type);
++            }
++            break;
++        }
++        */
++
++        default:
++            ALOGW("metadataCallback: unexpected type %u", metadata->type);
++            break;
++    }
++}
++
++void FLACDecoder::errorCallback(FLAC__StreamDecoderErrorStatus status)
++{
++    ALOGE("errorCallback: status=%d", status);
++    mErrorStatus = status;
++}
++
++// Copy samples from FLAC native 32-bit non-interleaved to 16-bit interleaved.
++// These are candidates for optimization if needed.
++static void copyMono8(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned /* nChannels */) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        *dst++ = src[0][i] << 8;
++    }
++}
++
++static void copyStereo8(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned /* nChannels */) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        *dst++ = src[0][i] << 8;
++        *dst++ = src[1][i] << 8;
++    }
++}
++
++static void copyMultiCh8(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned nChannels) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        for (unsigned c = 0; c < nChannels; ++c) {
++            *dst++ = src[c][i] << 8;
++        }
++    }
++}
++
++static void copyMono16(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned /* nChannels */) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        *dst++ = src[0][i];
++    }
++}
++
++static void copyStereo16(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned /* nChannels */) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        *dst++ = src[0][i];
++        *dst++ = src[1][i];
++    }
++}
++
++static void copyMultiCh16(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned nChannels) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        for (unsigned c = 0; c < nChannels; ++c) {
++            *dst++ = src[c][i];
++        }
++    }
++}
++
++// TODO: 24-bit versions should do dithering or noise-shaping, here or in AudioFlinger
++static void copyMono24(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned /* nChannels */) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        *dst++ = src[0][i] >> 8;
++    }
++}
++
++static void copyStereo24(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned /* nChannels */) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        *dst++ = src[0][i] >> 8;
++        *dst++ = src[1][i] >> 8;
++    }
++}
++
++static void copyMultiCh24(
++        short *dst,
++        const int * src[FLACDecoder::kMaxChannels],
++        unsigned nSamples,
++        unsigned nChannels) {
++    for (unsigned i = 0; i < nSamples; ++i) {
++        for (unsigned c = 0; c < nChannels; ++c) {
++            *dst++ = src[c][i] >> 8;
++        }
++    }
++}
++
++// static
++sp<FLACDecoder> FLACDecoder::Create() {
++    sp<FLACDecoder> decoder = new FLACDecoder();
++    if (decoder->init() != OK) {
++        return NULL;
++    }
++    return decoder;
++}
++
++FLACDecoder::FLACDecoder()
++    : mDecoder(NULL),
++      mBuffer(NULL),
++      mBufferLen(0),
++      mBufferPos(0),
++      mBufferDataSize(0),
++      mStreamInfoValid(false),
++      mWriteRequested(false),
++      mWriteCompleted(false),
++      mErrorStatus((FLAC__StreamDecoderErrorStatus) -1),
++      mCopy(nullptr) {
++    ALOGV("ctor:");
++    memset(&mStreamInfo, 0, sizeof(mStreamInfo));
++    memset(&mWriteHeader, 0, sizeof(mWriteHeader));
++    memset(&mWriteBuffer, 0, sizeof(mWriteBuffer));
++}
++
++FLACDecoder::~FLACDecoder() {
++    ALOGV("dtor:");
++    if (mDecoder != NULL) {
++        FLAC__stream_decoder_delete(mDecoder);
++        mDecoder = NULL;
++    }
++    if (mBuffer != NULL) {
++        free(mBuffer);
++    }
++}
++
++status_t FLACDecoder::init() {
++    ALOGV("init:");
++    // setup libFLAC stream decoder
++    mDecoder = FLAC__stream_decoder_new();
++    if (mDecoder == NULL) {
++        ALOGE("init: failed to create libFLAC stream decoder");
++        return NO_INIT;
++    }
++    FLAC__stream_decoder_set_md5_checking(mDecoder, false);
++    FLAC__stream_decoder_set_metadata_ignore_all(mDecoder);
++    FLAC__stream_decoder_set_metadata_respond(
++            mDecoder, FLAC__METADATA_TYPE_STREAMINFO);
++    /*
++    FLAC__stream_decoder_set_metadata_respond(
++            mDecoder, FLAC__METADATA_TYPE_PICTURE);
++    FLAC__stream_decoder_set_metadata_respond(
++            mDecoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
++    */
++    static auto read_callback =
++        [] (const FLAC__StreamDecoder * /* decoder */,
++            FLAC__byte buffer[],
++            size_t *bytes,
++            void *client_data) -> FLAC__StreamDecoderReadStatus {
++            return ((FLACDecoder *) client_data)->readCallback(buffer, bytes); };
++
++    static auto write_callback =
++        [] (const FLAC__StreamDecoder * /* decoder */,
++            const FLAC__Frame *frame,
++            const FLAC__int32 * const buffer[],
++            void *client_data) -> FLAC__StreamDecoderWriteStatus {
++            return ((FLACDecoder *) client_data)->writeCallback(frame, buffer); };
++
++    static auto metadata_callback =
++        [] (const FLAC__StreamDecoder * /* decoder */,
++            const FLAC__StreamMetadata *metadata,
++            void *client_data) {
++            ((FLACDecoder *) client_data)->metadataCallback(metadata); };
++
++    static auto error_callback =
++        [] (const FLAC__StreamDecoder * /* decoder */,
++            FLAC__StreamDecoderErrorStatus status,
++            void *client_data) {
++            ((FLACDecoder *) client_data)->errorCallback(status); };
++
++    FLAC__StreamDecoderInitStatus initStatus =
++        FLAC__stream_decoder_init_stream(
++                mDecoder,
++                read_callback,
++                NULL /* seek_callback */,
++                NULL /* tell_callback */,
++                NULL /* length_callback */,
++                NULL /* eof_callback */,
++                write_callback,
++                metadata_callback,
++                error_callback,
++                (void *)this);
++    if (initStatus != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
++        ALOGE("init: init_stream failed, returned %d", initStatus);
++        return NO_INIT;
++    }
++    return OK;
++}
++
++void FLACDecoder::flush() {
++    ALOGV("flush:");
++    mBufferPos = 0;
++    mBufferDataSize = 0;
++    mStreamInfoValid = false;
++    if (!FLAC__stream_decoder_reset(mDecoder)) {
++        ALOGE("flush: failed to reset FLAC stream decoder");
++    }
++}
++
++status_t FLACDecoder::parseMetadata(const uint8_t *inBuffer, size_t inBufferLen) {
++    ALOGV("parseMetadata: input size(%zu)", inBufferLen);
++    //hexdump(inBuffer, inBufferLen);
++
++    if (mStreamInfoValid) {
++        ALOGE("parseMetadata: already have full metadata blocks");
++        return ERROR_MALFORMED;
++    }
++
++    status_t err = addDataToBuffer(inBuffer, inBufferLen);
++    if (err != OK) {
++        ALOGE("parseMetadata: addDataToBuffer returns error %d", err);
++        return err;
++    }
++
++    if (!FLAC__stream_decoder_process_until_end_of_metadata(mDecoder)) {
++        if (!FLAC__stream_decoder_reset(mDecoder)) {
++            ALOGE("parseMetadata: failed to reset FLAC stream decoder");
++            return FAILED_TRANSACTION;
++        }
++        mBufferPos = 0;
++        ALOGV("parseMetadata: do not have full metadata blocks yet");
++        return WOULD_BLOCK;
++    }
++
++    if (!mStreamInfoValid) {
++        ALOGE("parseMetadata: missing STREAMINFO");
++        return ERROR_MALFORMED;
++    }
++
++    // check block size
++    if (getMaxBlockSize() == 0) {
++        ALOGE("wrong max blocksize %u", getMaxBlockSize());
++        mStreamInfoValid = false;
++        return ERROR_MALFORMED;
++    }
++
++    // check channel count
++    if (getChannels() == 0 || getChannels() > kMaxChannels) {
++        ALOGE("unsupported channel count %u", getChannels());
++        mStreamInfoValid = false;
++        return ERROR_MALFORMED;
++    }
++
++    // check bit depth
++    switch (getBitsPerSample()) {
++        case 8:
++        case 16:
++        case 24:
++            break;
++
++        default:
++            ALOGE("parseMetadata: unsupported bits per sample %u", getBitsPerSample());
++            mStreamInfoValid = false;
++            return ERROR_MALFORMED;
++    }
++
++    // configure the appropriate copy function, defaulting to trespass
++    static const struct {
++        unsigned mChannels;
++        unsigned mBitsPerSample;
++        void (*mCopy)(short *dst, const int * src[kMaxChannels],
++                unsigned nSamples, unsigned nChannels);
++    } table[] = {
++        { 1,  8, copyMono8     },
++        { 2,  8, copyStereo8   },
++        { 8,  8, copyMultiCh8  },
++        { 1, 16, copyMono16    },
++        { 2, 16, copyStereo16  },
++        { 8, 16, copyMultiCh16 },
++        { 1, 24, copyMono24    },
++        { 2, 24, copyStereo24  },
++        { 8, 24, copyMultiCh24 },
++    };
++    for (const auto &entry : table) {
++        if (entry.mChannels >= getChannels() &&
++                entry.mBitsPerSample == getBitsPerSample()) {
++            mCopy = entry.mCopy;
++            break;
++        }
++    }
++
++    // Now we have all metadata blocks.
++    mBufferPos = 0;
++    mBufferDataSize = 0;
++
++    return OK;
++}
++
++status_t FLACDecoder::decodeOneFrame(const uint8_t *inBuffer, size_t inBufferLen,
++        short *outBuffer, size_t *outBufferLen) {
++    ALOGV("decodeOneFrame: input size(%zu)", inBufferLen);
++
++    if (inBufferLen == 0) {
++        ALOGV("decodeOneFrame: no input data");
++        if (outBufferLen) {
++            *outBufferLen = 0;
++        }
++        return OK;
++    }
++
++    if (!mStreamInfoValid) {
++        ALOGW("decodeOneFrame: no streaminfo metadata block");
++    }
++
++    status_t err = addDataToBuffer(inBuffer, inBufferLen);
++    if (err != OK) {
++        ALOGW("decodeOneFrame: addDataToBuffer returns error %d", err);
++        return err;
++    }
++
++    mWriteRequested = true;
++    mWriteCompleted = false;
++    if (!FLAC__stream_decoder_process_single(mDecoder)) {
++        ALOGE("decodeOneFrame: process_single failed");
++        return ERROR_MALFORMED;
++    }
++    if (!mWriteCompleted) {
++        ALOGV("decodeOneFrame: write did not complete");
++        if (outBufferLen) {
++            *outBufferLen = 0;
++        }
++        return OK;
++    }
++
++    // frame header should be consistent with STREAMINFO
++    unsigned blocksize = mWriteHeader.blocksize;
++    if (blocksize == 0 || blocksize > getMaxBlockSize()) {
++        ALOGE("decodeOneFrame: write invalid blocksize %u", blocksize);
++        return ERROR_MALFORMED;
++    }
++    if (mWriteHeader.sample_rate != getSampleRate() ||
++        mWriteHeader.channels != getChannels() ||
++        mWriteHeader.bits_per_sample != getBitsPerSample()) {
++        ALOGE("decodeOneFrame: parameters are changed mid-stream: %d/%d/%d -> %d/%d/%d",
++                getSampleRate(), getChannels(), getBitsPerSample(),
++                mWriteHeader.sample_rate, mWriteHeader.channels, mWriteHeader.bits_per_sample);
++        return ERROR_MALFORMED;
++    }
++    if (mWriteHeader.number_type != FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER) {
++        ALOGE("decodeOneFrame: number type is %d, expected %d",
++                mWriteHeader.number_type, FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
++        return ERROR_MALFORMED;
++    }
++
++    size_t bufferSize = blocksize * getChannels() * sizeof(short);
++    if (bufferSize > *outBufferLen) {
++        ALOGW("decodeOneFrame: output buffer holds only partial frame %zu:%zu",
++                *outBufferLen, bufferSize);
++        blocksize = *outBufferLen / (getChannels() * sizeof(short));
++        bufferSize = blocksize * getChannels() * sizeof(short);
++    }
++
++    if (mCopy == nullptr) {
++        ALOGE("decodeOneFrame: format is not supported: channels(%d), BitsPerSample(%d)",
++                getChannels(), getBitsPerSample());
++        return ERROR_UNSUPPORTED;
++    }
++    // copy PCM from FLAC write buffer to output buffer, with interleaving
++    (*mCopy)(outBuffer, mWriteBuffer, blocksize, getChannels());
++    *outBufferLen = bufferSize;
++    return OK;
++}
++
++status_t FLACDecoder::addDataToBuffer(const uint8_t *inBuffer, size_t inBufferLen) {
++    // mBufferPos should be no larger than mBufferDataSize
++    if (inBufferLen > SIZE_MAX - (mBufferDataSize - mBufferPos)) {
++        ALOGE("addDataToBuffer: input buffer is too large");
++        return ERROR_MALFORMED;
++    }
++
++    if (inBufferLen > mBufferLen - mBufferDataSize) {
++        if (mBufferPos > 0) {
++            memmove(mBuffer, mBuffer + mBufferPos, mBufferDataSize - mBufferPos);
++            mBufferDataSize -= mBufferPos;
++            mBufferPos = 0;
++        }
++        if (inBufferLen > mBufferLen - mBufferDataSize) {
++            mBuffer = (uint8_t*)realloc(mBuffer, mBufferDataSize + inBufferLen);
++            if (mBuffer == nullptr) {
++                mBufferDataSize = 0;
++                mBufferLen = 0;
++                ALOGE("decodeOneFrame: failed to allocate memory for input buffer");
++                return NO_MEMORY;
++            }
++            mBufferLen = mBufferDataSize + inBufferLen;
++        }
++    }
++
++    memcpy(mBuffer + mBufferDataSize, inBuffer, inBufferLen);
++    mBufferDataSize += inBufferLen;
++    return OK;
++}
++
++}  // namespace android
+diff --git a/frameworks/av/media/libstagefright/flac/dec/FLACDecoder.h b/frameworks/av/media/libstagefright/flac/dec/FLACDecoder.h
+new file mode 100644
+index 0000000..36282a8
+--- /dev/null
++++ b/frameworks/av/media/libstagefright/flac/dec/FLACDecoder.h
+@@ -0,0 +1,108 @@
++/*
++ * Copyright (C) 2017 The Android Open Source Project
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *      http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef FLAC_DECODER_H_
++#define FLAC_DECODER_H_
++
++#include <media/stagefright/foundation/ABase.h>
++#include <utils/RefBase.h>
++#include <utils/String8.h>
++
++#include "FLAC/stream_decoder.h"
++
++namespace android {
++
++// packet based FLAC decoder, wrapps libFLAC stream decoder.
++class FLACDecoder : public RefBase {
++
++public:
++    enum {
++        kMaxChannels = 8,
++    };
++
++    static sp<FLACDecoder> Create();
++
++    FLAC__StreamMetadata_StreamInfo getStreamInfo() const {
++        return mStreamInfo;
++    }
++
++    status_t parseMetadata(const uint8_t *inBuffer, size_t inBufferLen);
++    status_t decodeOneFrame(const uint8_t *inBuffer, size_t inBufferLen,
++            short *outBuffer, size_t *outBufferLen);
++    void flush();
++
++protected:
++    FLACDecoder();
++    virtual ~FLACDecoder() override;
++
++private:
++    // stream properties
++    unsigned getMaxBlockSize() const {
++        return mStreamInfo.max_blocksize;
++    }
++    unsigned getSampleRate() const {
++        return mStreamInfo.sample_rate;
++    }
++    unsigned getChannels() const {
++        return mStreamInfo.channels;
++    }
++    unsigned getBitsPerSample() const {
++        return mStreamInfo.bits_per_sample;
++    }
++    FLAC__uint64 getTotalSamples() const {
++        return mStreamInfo.total_samples;
++    }
++
++    status_t addDataToBuffer(const uint8_t *inBuffer, size_t inBufferLen);
++
++    FLAC__StreamDecoder *mDecoder;
++
++    uint8_t *mBuffer;  // cache input bit stream data
++    size_t mBufferLen;  // the memory size of |mBuffer|
++    size_t mBufferPos;  // next byte to read in |mBuffer|
++    // size of input data stored in |mBuffer|, always started at offset 0
++    size_t mBufferDataSize;
++
++    // cached when the STREAMINFO metadata is parsed by libFLAC
++    FLAC__StreamMetadata_StreamInfo mStreamInfo;
++    bool mStreamInfoValid;
++
++    // cached when a decoded PCM block is "written" by libFLAC decoder
++    bool mWriteRequested;
++    bool mWriteCompleted;
++    FLAC__FrameHeader mWriteHeader;
++    FLAC__int32 const * mWriteBuffer[kMaxChannels];
++
++    // most recent error reported by libFLAC decoder
++    FLAC__StreamDecoderErrorStatus mErrorStatus;
++
++    void (*mCopy)(short *dst, const int *src[kMaxChannels], unsigned nSamples, unsigned nChannels);
++
++    status_t init();
++
++    // FLAC stream decoder callbacks as C++ instance methods
++    FLAC__StreamDecoderReadStatus readCallback(FLAC__byte buffer[], size_t *bytes);
++    FLAC__StreamDecoderWriteStatus writeCallback(
++            const FLAC__Frame *frame, const FLAC__int32 * const buffer[]);
++    void metadataCallback(const FLAC__StreamMetadata *metadata);
++    void errorCallback(FLAC__StreamDecoderErrorStatus status);
++
++    DISALLOW_EVIL_CONSTRUCTORS(FLACDecoder);
++};
++
++}  // namespace android
++
++#endif  // FLAC_DECODER_H_
+diff --git a/frameworks/av/media/libstagefright/omx/SoftOMXPlugin.cpp b/frameworks/av/media/libstagefright/omx/SoftOMXPlugin.cpp
+index f620190..7dcc5e4 100644
+--- a/frameworks/av/media/libstagefright/omx/SoftOMXPlugin.cpp
++++ b/frameworks/av/media/libstagefright/omx/SoftOMXPlugin.cpp
+@@ -93,6 +93,7 @@ static const struct {
+     { "OMX.google.vp9.decoder", "vpxdec", "video_decoder.vp9" },
+     { "OMX.google.vp8.encoder", "vpxenc", "video_encoder.vp8" },
+     { "OMX.google.raw.decoder", "rawdec", "audio_decoder.raw" },
++    { "OMX.google.flac.decoder", "flacdec", "audio_decoder.flac" },
+     { "OMX.google.flac.encoder", "flacenc", "audio_encoder.flac" },
+     { "OMX.google.gsm.decoder", "gsmdec", "audio_decoder.gsm" },
+ #ifdef DOLBY_UDC

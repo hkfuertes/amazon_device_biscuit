@@ -36,6 +36,10 @@ PRODUCT_PACKAGES += \
     init.mt8163.usb.rc \
     ueventd.mt8163.rc
 
+# Software FLAC decoder for MediaCodec/ExoPlayer.
+PRODUCT_PACKAGES += \
+    libstagefright_soft_flacdec
+
 ifneq ($(filter eng userdebug,$(TARGET_BUILD_VARIANT)),)
 ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.adb.secure=0 \
