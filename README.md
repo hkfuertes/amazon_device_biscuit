@@ -64,6 +64,7 @@ This project stands on:
 - Amazon OSS `android_hardware_amazon`: Amazon hardware helpers.
 - Amazon Echo Dot 5.5.5.4 kernel source tarball from Amazon's Fire OS source release.
 - Amazon Biscuit stock OTA `272.6.4.1` for proprietary blobs.
+- `mt8173-dev/android_device_amazon_sloane` MT8163 `frameworks/av` patch used as the reference for the software FLAC decoder / OMX work: https://github.com/mt8173-dev/android_device_amazon_sloane/raw/7a41e2f9314b0b20f49538718e5e515824c2f97d/patches/frameworks/av/0001-mt8163-frameworks-av-add-required-changes-for-mt8163.patch
 - MTK helper references from `lbule/android_hardware_mediatek`, used only for comparison of driver-command behavior.
 - The amonet Biscuit unlock/recovery work documented in `docs/amonet-biscuit-unlock.md`.
 
