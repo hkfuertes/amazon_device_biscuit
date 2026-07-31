@@ -504,6 +504,22 @@ index 0000000..4ab1ab2
 +            return OMX_ErrorNone;
 +        }
 +
++        case OMX_IndexParamAudioFlac:
++        {
++            const OMX_AUDIO_PARAM_FLACTYPE *flacParams =
++                (OMX_AUDIO_PARAM_FLACTYPE *)params;
++
++            if (!isValidOMXParam(flacParams)) {
++                return OMX_ErrorBadParameter;
++            }
++
++            if (flacParams->nPortIndex != 0) {
++                return OMX_ErrorBadPortIndex;
++            }
++
++            return OMX_ErrorNone;
++        }
++
 +        case OMX_IndexParamAudioPcm:
 +        {
 +            const OMX_AUDIO_PARAM_PCMMODETYPE *pcmParams =
