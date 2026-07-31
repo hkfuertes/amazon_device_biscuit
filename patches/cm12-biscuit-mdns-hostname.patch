@@ -1,0 +1,24 @@
+diff --git a/frameworks/base/services/core/java/com/android/server/NsdService.java b/frameworks/base/services/core/java/com/android/server/NsdService.java
+--- a/frameworks/base/services/core/java/com/android/server/NsdService.java
++++ b/frameworks/base/services/core/java/com/android/server/NsdService.java
+@@ -29,7 +29,9 @@
+ import android.os.Message;
+ import android.os.Messenger;
+ import android.os.UserHandle;
++import android.os.SystemProperties;
+ import android.provider.Settings;
++import android.text.TextUtils;
+ import android.util.Slog;
+ import android.util.SparseArray;
+ 
+@@ -687,6 +689,10 @@
+         if (DBG) Slog.d(TAG, "startMDnsDaemon");
+         try {
+             mNativeConnector.execute("mdnssd", "start-service");
++            String hostname = SystemProperties.get("net.hostname", "");
++            if (!TextUtils.isEmpty(hostname)) {
++                mNativeConnector.execute("mdnssd", "sethostname", getUniqueId(), hostname);
++            }
+         } catch(NativeDaemonConnectorException e) {
+             Slog.e(TAG, "Failed to start daemon" + e);
+             return false;
