@@ -39,17 +39,6 @@ Esperado:
 
 ## Fallos conocidos que NO invalidan baseline
 
-### MediaCodec/OMX
-
-```txt
-unable to open media codecs configuration xml file: /etc/media_codecs.xml
-Fatal signal 11 ... NPDecoder ... /system/bin/mediaserver
-AudioFlinger server died
-AudioPolicyService server died
-```
-
-Track: PR audio/codecs MTK.
-
 ### Trebuchet/headless UI
 
 ```txt

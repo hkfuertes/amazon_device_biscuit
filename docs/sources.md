@@ -25,6 +25,13 @@
 
 Política: no versionar blobs; extraerlos de OTA. El extractor excluye Mali/GPU y genera `biscuit-vendor.mk`.
 
+## Referencias externas usadas
+
+- Amazon OSS MT8163 common: `https://github.com/amazon-oss/android_device_amazon_mt8163-common`
+- Amazon OSS hardware helpers: `https://github.com/amazon-oss/android_hardware_amazon/tree/cm-12.1`
+- MT8163 `frameworks/av` FLAC/OMX reference patch: `https://github.com/mt8173-dev/android_device_amazon_sloane/raw/7a41e2f9314b0b20f49538718e5e515824c2f97d/patches/frameworks/av/0001-mt8163-frameworks-av-add-required-changes-for-mt8163.patch`
+- MTK helper comparison reference: `https://github.com/lbule/android_hardware_mediatek`
+
 ## Trabajo nuestro trackeado
 
 ```txt
