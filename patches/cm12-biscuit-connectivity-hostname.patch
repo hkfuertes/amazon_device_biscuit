@@ -1,0 +1,76 @@
+diff --git a/frameworks/base/services/core/java/com/android/server/ConnectivityService.java b/frameworks/base/services/core/java/com/android/server/ConnectivityService.java
+--- a/frameworks/base/services/core/java/com/android/server/ConnectivityService.java
++++ b/frameworks/base/services/core/java/com/android/server/ConnectivityService.java
+@@ -624,12 +624,8 @@
+                 Settings.Secure.DEVICE_HOSTNAME);
+         if (TextUtils.isEmpty(hostname) &&
+                 TextUtils.isEmpty(SystemProperties.get("net.hostname"))) {
+-            String id = Settings.Secure.getString(context.getContentResolver(),
+-                    Settings.Secure.ANDROID_ID);
+-            if (id != null && id.length() > 0) {
+-                String name = new String("android-").concat(id);
+-                SystemProperties.set("net.hostname", name);
+-            }
++            String name = makeBiscuitHostname(context);
++            if (!TextUtils.isEmpty(name)) SystemProperties.set("net.hostname", name);
+         } else {
+             SystemProperties.set("net.hostname", hostname);
+         }
+@@ -783,6 +779,57 @@
+         mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+     }
+ 
++    private static String makeBiscuitHostname(Context context) {
++        String id = SystemProperties.get("ro.serialno", "");
++        if (!usableHostnameId(id)) id = SystemProperties.get("ro.boot.serialno", "");
++        if (!usableHostnameId(id)) {
++            id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
++        }
++        String suffix = hostnameSuffix(id);
++        String model = hostnameToken(SystemProperties.get("ro.product.model", "biscuit"));
++        return TextUtils.isEmpty(suffix) ? null : model + "-" + suffix;
++    }
++
++    private static String hostnameToken(String value) {
++        if (value == null) return "biscuit";
++        StringBuilder out = new StringBuilder();
++        boolean dash = false;
++        for (int i = 0; i < value.length(); i++) {
++            char c = value.charAt(i);
++            if (c >= '0' && c <= '9') {
++                out.append(c);
++                dash = false;
++            } else if (c >= 'a' && c <= 'z') {
++                out.append(c);
++                dash = false;
++            } else if (c >= 'A' && c <= 'Z') {
++                out.append((char) (c - 'A' + 'a'));
++                dash = false;
++            } else if (out.length() > 0 && !dash) {
++                out.append('-');
++                dash = true;
++            }
++        }
++        if (dash) out.setLength(out.length() - 1);
++        return out.length() == 0 ? "biscuit" : out.toString();
++    }
++
++    private static boolean usableHostnameId(String value) {
++        return !TextUtils.isEmpty(value) && !"unknown".equals(value.toLowerCase());
++    }
++
++    private static String hostnameSuffix(String value) {
++        if (value == null) return null;
++        StringBuilder out = new StringBuilder();
++        for (int i = 0; i < value.length(); i++) {
++            char c = value.charAt(i);
++            if (c >= '0' && c <= '9') out.append(c);
++            else if (c >= 'a' && c <= 'z') out.append(c);
++            else if (c >= 'A' && c <= 'Z') out.append((char) (c - 'A' + 'a'));
++        }
++        if (out.length() == 0) return null;
++        return out.substring(Math.max(0, out.length() - 6));
++    }
+ 
+     private synchronized int nextNetworkRequestId() {
+         return mNextNetworkRequestId++;
