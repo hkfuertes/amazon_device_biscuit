@@ -34,19 +34,6 @@ copy_file() {
   echo "STAGED $label -> ${dst#$REPO_ROOT/}"
 }
 
-clean_cacerts_outputs() {
-  # ponytail: incremental builds don't remove vanished CA files from system/.
-  local out product
-  for out in "$CM12"/out "$CM12"/out-*; do
-    [[ -d "$out/target/product" ]] || continue
-    for product in "$out"/target/product/*; do
-      [[ -d "$product" ]] || continue
-      rm -rf "$product/system/etc/security/cacerts" "$product/system/etc/security/cacerts.pem"
-      rm -rf "$product"/obj/ETC/target-cacert-*_intermediates "$product"/obj/ETC/cacerts.pem_intermediates
-    done
-  done
-}
-
 copy_dir "$REPO_ROOT/sources/device_amazon_biscuit" \
          "$CM12/device/amazon/biscuit" \
          "device/amazon/biscuit"
@@ -62,6 +49,7 @@ copy_dir "$REPO_ROOT/sources/hardware_mediatek" \
 copy_dir "$REPO_ROOT/workspace/vendor/amazon" \
          "$CM12/vendor/amazon" \
          "vendor/amazon"
+"$REPO_ROOT/scripts/disable-mtk-omx-codecs.sh"
 copy_files_from_dir "$REPO_ROOT/workspace/cacerts" \
                     "$CM12/libcore/luni/src/main/files/cacerts" \
                     "libcore cacerts"
@@ -77,4 +65,3 @@ copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel.sha256" \
 copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt" \
           "$CM12/device/amazon/biscuit/prebuilt/kernel-selection.txt" \
           "prebuilt kernel selection"
-clean_cacerts_outputs
