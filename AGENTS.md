@@ -26,12 +26,12 @@ Reglas para agentes en este repo.
 
 ## TODOs
 
-- Reestructurar kernel para volver al sistema de tarball upstream + patches reproducibles, en vez de trackear/clonar todo `workspace/kernel/amazon/biscuit` en el repo.
-- Limpiar apps CM12 que no vamos a usar en Biscuit headless (Email, calendarios, wallpapers, providers/UI sobrantes, etc.) y validar contra `installed-files.txt`/`system/app` que las apps ya desactivadas realmente no se instalan.
+- DONE: Reestructurar kernel para volver al sistema de tarball upstream + patches reproducibles, en vez de trackear/clonar todo `workspace/kernel/amazon/biscuit` en el repo.
+- DONE: Limpiar apps CM12 que no vamos a usar en Biscuit headless (Email, calendarios, wallpapers, providers/UI sobrantes, etc.) y validar contra `installed-files.txt`/`system/app` que las apps ya desactivadas realmente no se instalan.
 - Habilitar gadgets USB en el kernel (idealmente todos los necesarios), concretamente USB audio out/in, para una APK futura que convierta Biscuit en speaker/micrófono de conferencias.
-- PR futuro de tuning de audio: añadir algo más de cuerpo/graves con filtro software suave en el HAL (p. ej. low-shelf moderado 150–250 Hz con preamp anti-clipping). No mezclar con fixes de ruta/ampli.
+- DONE: PR futuro de tuning de audio: añadir algo más de cuerpo/graves con filtro software suave en el HAL (p. ej. low-shelf moderado 150–250 Hz con preamp anti-clipping). No mezclar con fixes de ruta/ampli.
 - Mega-TODO futuro: investigar salto a Android 7 / CM14.1 con kernel 6.5.x para Biscuit. Tratar como línea de trabajo separada, no mezclar con estabilización CM12 actual.
-- TODO audio/TTS HA: Home Assistant responde y manda TTS, pero no suena. Logcat visto: `VOICE_ASSISTANT_INTENT_END speech=Luces apagadas`, `VOICE_ASSISTANT_TTS_START text=Luces apagadas`, `VOICE_ASSISTANT_TTS_END url=http://192.168.77.254:8123/api/tts_proxy/...mp3`, `TTS_END: playing url=...`, `TtsPlayer: playTts called`; fallo Android/ExoPlayer: `MediaCodecAudioRenderer error`, `MediaCodecUtil$DecoderQueryException: Failed to query underlying media codecs`, `RuntimeException: cannot get MediaCodecList`, `AudioPlayer: Player error`. También aparece `format=audio/flac ... wake_word_triggered.flac`. Investigar codecs/MediaCodecList en CM12 headless, MP3 TTS y FLAC wake word; no mezclar con tuning del HAL.
+- DONE: TODO audio/TTS HA: Home Assistant responde y manda TTS, pero no suena. Logcat visto: `VOICE_ASSISTANT_INTENT_END speech=Luces apagadas`, `VOICE_ASSISTANT_TTS_START text=Luces apagadas`, `VOICE_ASSISTANT_TTS_END url=http://192.168.77.254:8123/api/tts_proxy/...mp3`, `TTS_END: playing url=...`, `TtsPlayer: playTts called`; fallo Android/ExoPlayer: `MediaCodecAudioRenderer error`, `MediaCodecUtil$DecoderQueryException: Failed to query underlying media codecs`, `RuntimeException: cannot get MediaCodecList`, `AudioPlayer: Player error`. También aparece `format=audio/flac ... wake_word_triggered.flac`. Investigar codecs/MediaCodecList en CM12 headless, MP3 TTS y FLAC wake word; no mezclar con tuning del HAL.
 
 ## Seguridad del dispositivo
 

@@ -14,7 +14,6 @@ PRODUCT_CHARACTERISTICS := nosdcard
 
 # ── Headless HOME / setup ───────────────────────────────────────────────────
 # ponytail: no screen/account flow or Trebuchet DB on Echo; one black HOME is enough.
-PRODUCT_PACKAGES := $(filter-out CyanogenSetupWizard SetupWizard Trebuchet Launcher2 Launcher3,$(PRODUCT_PACKAGES))
 PRODUCT_PACKAGES += BiscuitEmptyLauncher
 
 # ── HTTPS tools ─────────────────────────────────────────────────────────────
