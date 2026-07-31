@@ -69,7 +69,7 @@ diff --git a/frameworks/base/services/core/java/com/android/server/ConnectivityS
 +            else if (c >= 'A' && c <= 'Z') out.append((char) (c - 'A' + 'a'));
 +        }
 +        if (out.length() == 0) return null;
-+        return out.substring(Math.max(0, out.length() - 6));
++        return out.substring(Math.max(0, out.length() - 3));
 +    }
  
      private synchronized int nextNetworkRequestId() {
