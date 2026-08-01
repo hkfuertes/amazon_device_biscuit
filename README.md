@@ -57,7 +57,7 @@ Current builds expose these system intents for APKs and shell helpers.
 
 ### Button broadcasts
 
-`PhoneWindowManager` broadcasts the physical function/action button globally:
+`PhoneWindowManager` broadcasts key presses/releases globally for keys that do not already have dedicated system handling. Volume and mute keys are excluded because they already drive the existing volume/microphone intents below.
 
 ```txt
 com.amazon.device.intent.action.BUTTON_PRESSED
@@ -67,9 +67,9 @@ com.amazon.device.intent.action.BUTTON_RELEASED
 Extras:
 
 ```txt
-com.amazon.device.intent.extra.BUTTON_NAME   "function"
-com.amazon.device.intent.extra.KEY_CODE      Android key code, currently KEYCODE_FUNCTION
-com.amazon.device.intent.extra.SCAN_CODE     Linux scan code, currently 138 / KEY_HELP
+com.amazon.device.intent.extra.BUTTON_NAME   Android KeyEvent.keyCodeToString(keyCode)
+com.amazon.device.intent.extra.KEY_CODE      Android key code
+com.amazon.device.intent.extra.SCAN_CODE     Linux scan code
 com.amazon.device.intent.extra.DEVICE_ID     Android input device id
 ```
 
