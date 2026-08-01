@@ -65,16 +65,21 @@ build:ota:
       chown -R 1000:1000 workspace
 
       echo "==> Build OTA"
+      mkdir -p ci-logs
       scripts/build.sh
-      docker logs -f cm12-biscuit-build &
+      docker logs -f cm12-biscuit-build > ci-logs/cm12-biscuit-build.log 2>&1 &
       LOG_PID="$!"
       BUILD_STATUS="$(docker wait cm12-biscuit-build)"
       wait "$LOG_PID" || true
+      if [ "$BUILD_STATUS" != 0 ]; then
+        echo "==> OTA build failed; last log lines"
+        tail -n 300 ci-logs/cm12-biscuit-build.log || true
+      fi
       exit "$BUILD_STATUS"
   after_script:
     - mkdir -p ci-logs
     - docker logs biscuit-kernel-build > ci-logs/biscuit-kernel-build.log 2>&1 || true
-    - docker logs cm12-biscuit-build > ci-logs/cm12-biscuit-build.log 2>&1 || true
+    - if [ ! -s ci-logs/cm12-biscuit-build.log ]; then docker logs cm12-biscuit-build > ci-logs/cm12-biscuit-build.log 2>&1 || true; fi
   artifacts:
     when: always
     expire_in: 7 days
