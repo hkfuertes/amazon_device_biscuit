@@ -57,7 +57,7 @@ Current builds expose these system intents for APKs and shell helpers.
 
 ### Button broadcasts
 
-`PhoneWindowManager` broadcasts key presses/releases globally for keys that do not already have dedicated system handling. Volume and mute keys are excluded because they already drive the existing volume/microphone intents below.
+`PhoneWindowManager` broadcasts Android key press/release events globally for keys that do not already have dedicated system handling. Key repeats are ignored. Volume and mute keys are excluded because they already drive the existing volume/microphone intents below.
 
 ```txt
 com.amazon.device.intent.action.BUTTON_PRESSED
