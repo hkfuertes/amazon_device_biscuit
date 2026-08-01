@@ -64,6 +64,11 @@ build:ota:
 
       echo "==> Build OTA"
       scripts/build.sh
+      docker logs -f cm12-biscuit-build &
+      LOG_PID="$!"
+      BUILD_STATUS="$(docker wait cm12-biscuit-build)"
+      wait "$LOG_PID" || true
+      exit "$BUILD_STATUS"
   after_script:
     - mkdir -p ci-logs
     - docker logs biscuit-kernel-build > ci-logs/biscuit-kernel-build.log 2>&1 || true
