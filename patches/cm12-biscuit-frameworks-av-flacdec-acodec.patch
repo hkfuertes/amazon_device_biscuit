@@ -1,8 +1,7 @@
 diff --git a/frameworks/av/media/libstagefright/ACodec.cpp b/frameworks/av/media/libstagefright/ACodec.cpp
-index 34f7f42..4fd27bb 100644
 --- a/frameworks/av/media/libstagefright/ACodec.cpp
 +++ b/frameworks/av/media/libstagefright/ACodec.cpp
-@@ -1375,8 +1375,16 @@ status_t ACodec::configureCodec(
+@@ -1377,7 +1377,13 @@
      status_t err = setComponentRole(encoder /* isEncoder */, mime);
  
      if (err != OK) {
@@ -17,7 +16,7 @@ index 34f7f42..4fd27bb 100644
      }
  
      int32_t bitRate = 0;
-@@ -1854,12 +1862,12 @@ status_t ACodec::configureCodec(
+@@ -1854,11 +1860,11 @@
          } else {
              err = setupG711Codec(encoder, numChannels);
          }
