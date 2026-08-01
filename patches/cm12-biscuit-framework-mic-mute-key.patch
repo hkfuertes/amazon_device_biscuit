@@ -11,6 +11,15 @@ index f10ba968..e99c4520 100644
  key 114   VOLUME_DOWN
  key 115   VOLUME_UP
  key 116   POWER
+@@ -157,7 +157,7 @@ key 134   OPEN
+ key 135   PASTE
+ key 136   FIND
+ key 137   CUT
+-# key 138 "KEY_HELP"
++key 138   SEARCH
+ key 139   MENU
+ key 140   CALCULATOR
+ # key 141 "KEY_SETUP"
 diff --git a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java b/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
 index 1ef905fb..1f1f9274 100644
 --- a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
