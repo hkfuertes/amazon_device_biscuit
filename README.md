@@ -73,6 +73,8 @@ com.amazon.device.intent.extra.SCAN_CODE     Linux scan code
 com.amazon.device.intent.extra.DEVICE_ID     Android input device id
 ```
 
+The physical action/circle button is reported as `KEYCODE_HELP` with scan code `138`.
+
 ### Biscuit service actions
 
 `BiscuitService` listens for:
