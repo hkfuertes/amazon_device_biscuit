@@ -16,7 +16,7 @@ diff --git a/frameworks/base/services/core/java/com/android/server/ConnectivityS
          } else {
              SystemProperties.set("net.hostname", hostname);
          }
-@@ -783,6 +779,57 @@
+@@ -783,6 +779,58 @@
          mUserManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
      }
  
@@ -71,6 +71,7 @@ diff --git a/frameworks/base/services/core/java/com/android/server/ConnectivityS
 +        if (out.length() == 0) return null;
 +        return out.substring(Math.max(0, out.length() - 3));
 +    }
- 
++
      private synchronized int nextNetworkRequestId() {
          return mNextNetworkRequestId++;
+     }
