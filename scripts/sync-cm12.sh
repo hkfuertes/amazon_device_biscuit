@@ -32,4 +32,11 @@ INIT_ARGS+=(--depth "$CM12_DEPTH")
 "$REPO_BIN" init "${INIT_ARGS[@]}"
 cp "$LOCK" .repo/manifests/cm12.lock.xml
 "$REPO_BIN" init -m cm12.lock.xml
-"$REPO_BIN" sync -c --no-tags --fail-fast -j"${SYNC_JOBS:-4}"
+for attempt in 1 2 3; do
+  if "$REPO_BIN" sync -c --no-tags --fail-fast -j"${SYNC_JOBS:-4}"; then
+    exit 0
+  fi
+  echo "repo sync failed (attempt $attempt/3)" >&2
+  sleep $((attempt * 10))
+done
+exit 1

@@ -15,7 +15,7 @@ variables:
   DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   GIT_DEPTH: "1"
   CM12_DEPTH: "1"
-  SYNC_JOBS: "4"
+  SYNC_JOBS: "2"
 
 .default_docker:
   image: docker:27-cli
