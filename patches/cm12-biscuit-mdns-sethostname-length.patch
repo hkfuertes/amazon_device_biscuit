@@ -1,0 +1,13 @@
+diff --git a/external/mdnsresponder/mDNSShared/uds_daemon.c b/external/mdnsresponder/mDNSShared/uds_daemon.c
+index 4c1e24b..e43f6f1 100644
+--- a/external/mdnsresponder/mDNSShared/uds_daemon.c
++++ b/external/mdnsresponder/mDNSShared/uds_daemon.c
+@@ -2139,7 +2139,7 @@ mDNSlocal mStatus handle_sethost_request(request_state *request)
+ 
+ 	if(hostName[0] == 0) return mStatus_BadParamErr;
+ 
+-        while (len < MAX_DOMAIN_LABEL && hostName[len+1] && hostName[len+1] != '.') len++;
++        while (len < MAX_DOMAIN_LABEL && hostName[len] && hostName[len] != '.') len++;
+ 
+ 	strncpy(&(mDNSStorage.nicelabel.c[1]), hostName, len);
+ 	mDNSStorage.nicelabel.c[0] = len;
