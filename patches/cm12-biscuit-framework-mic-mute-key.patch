@@ -11,12 +11,12 @@ index f10ba968..e99c4520 100644
  key 114   VOLUME_DOWN
  key 115   VOLUME_UP
  key 116   POWER
-@@ -157,7 +157,7 @@ key 134   OPEN
- key 135   PASTE
- key 136   FIND
- key 137   CUT
+@@ -157,7 +157,7 @@ # key 134 "KEY_OPEN"
+ # key 135 "KEY_PASTE"
+ # key 136 "KEY_FIND"
+ # key 137 "KEY_CUT"
 -# key 138 "KEY_HELP"
-+key 138   SEARCH
++key 138   FUNCTION
  key 139   MENU
  key 140   CALCULATOR
  # key 141 "KEY_SETUP"
@@ -45,7 +45,7 @@ index 1ef905fb..1f1f9274 100644
                  if (down) {
                      TelecomManager telecomManager = getTelecommService();
                      if (telecomManager != null) {
-@@ -5543,6 +5557,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -5543,6 +5557,31 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                  break;
              }
  
@@ -59,10 +59,25 @@ index 1ef905fb..1f1f9274 100644
 +                break;
 +            }
 +
++            case KeyEvent.KEYCODE_FUNCTION: {
++                result &= ~ACTION_PASS_TO_USER;
++                if (event.getRepeatCount() == 0) {
++                    Intent intent = new Intent(down
++                            ? "com.amazon.device.intent.action.BUTTON_PRESSED"
++                            : "com.amazon.device.intent.action.BUTTON_RELEASED");
++                    intent.putExtra("com.amazon.device.intent.extra.BUTTON_NAME", "function");
++                    intent.putExtra("com.amazon.device.intent.extra.KEY_CODE", keyCode);
++                    intent.putExtra("com.amazon.device.intent.extra.SCAN_CODE", event.getScanCode());
++                    intent.putExtra("com.amazon.device.intent.extra.DEVICE_ID", event.getDeviceId());
++                    mContext.sendBroadcast(intent);
++                }
++                break;
++            }
++
              case KeyEvent.KEYCODE_HOME:
                  if (down && !interactive && mHomeWakeScreen) {
                      isWakeKey = true;
-@@ -5660,7 +5684,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -5660,7 +5699,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
              case KeyEvent.KEYCODE_MEDIA_PAUSE:
              case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
              case KeyEvent.KEYCODE_HEADSETHOOK:

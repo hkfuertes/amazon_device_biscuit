@@ -51,6 +51,60 @@ CLEAN_BISCUIT_OUT=1 scripts/build.sh
 CLEAN_KERNEL_OUT=1 scripts/build-kernel.sh
 ```
 
+## Biscuit intents
+
+Current builds expose these system intents for APKs and shell helpers.
+
+### Button broadcasts
+
+`PhoneWindowManager` broadcasts the physical function/action button globally:
+
+```txt
+com.amazon.device.intent.action.BUTTON_PRESSED
+com.amazon.device.intent.action.BUTTON_RELEASED
+```
+
+Extras:
+
+```txt
+com.amazon.device.intent.extra.BUTTON_NAME   "function"
+com.amazon.device.intent.extra.KEY_CODE      Android key code, currently KEYCODE_FUNCTION
+com.amazon.device.intent.extra.SCAN_CODE     Linux scan code, currently 138 / KEY_HELP
+com.amazon.device.intent.extra.DEVICE_ID     Android input device id
+```
+
+### Biscuit service actions
+
+`BiscuitService` listens for:
+
+```txt
+com.amazon.biscuit.service.BLUETOOTH_PAIRING_MODE
+com.amazon.biscuit.service.BLUETOOTH_OFF
+com.amazon.biscuit.service.WIFI_ON
+com.amazon.biscuit.service.WIFI_OFF
+com.amazon.biscuit.service.WIFI_CONNECT      extras: ssid, psk
+com.amazon.biscuit.service.VOLUME_UP
+com.amazon.biscuit.service.VOLUME_DOWN
+com.amazon.biscuit.service.VOLUME_SET        extra: volume
+com.amazon.biscuit.service.MICROPHONE_MUTE_ON
+com.amazon.biscuit.service.MICROPHONE_MUTE_OFF
+com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE
+```
+
+Microphone mute changes are broadcast as sticky system broadcasts:
+
+```txt
+com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED
+com.amazon.biscuit.service.EXTRA_MICROPHONE_MUTED   boolean
+```
+
+Android/platform intents consumed by `BiscuitService`:
+
+```txt
+android.intent.action.BOOT_COMPLETED
+android.media.VOLUME_CHANGED_ACTION
+```
+
 ## Proprietary blobs
 
 Blobs are not committed. Extract them from the stock OTA into `workspace/vendor/amazon/biscuit/`; `scripts/stage-tree.sh` copies them into the CM12 checkout.
