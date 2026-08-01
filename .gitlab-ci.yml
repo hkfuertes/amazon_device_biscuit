@@ -14,7 +14,8 @@ variables:
   DOCKER_TLS_VERIFY: "1"
   DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
   GIT_DEPTH: "1"
-  CM12_STRIP_COMPONENTS: "1"
+  CM12_DEPTH: "1"
+  SYNC_JOBS: "4"
 
 .default_docker:
   image: docker:27-cli
@@ -22,7 +23,7 @@ variables:
     - name: docker:27-dind
       alias: docker
   before_script:
-    - apk add --no-cache bash curl git coreutils findutils tar bzip2 xz p7zip
+    - apk add --no-cache bash curl git coreutils findutils tar bzip2 xz p7zip unzip python3
     - docker version
 
 validate:device-tree:
@@ -41,24 +42,12 @@ build:ota:
   script:
     - |
       set -euo pipefail
-      : "${BISCUIT_SYSTEM_IMG_URL:?Set BISCUIT_SYSTEM_IMG_URL to a downloadable stock Biscuit system.img}"
-      : "${CM12_TARBALL_URL:?Set CM12_TARBALL_URL to a tar archive of a synced/patched CM12 checkout}"
-
-      mkdir -p workspace/downloads workspace/extracted/biscuit-ota workspace/cm12
-
-      echo "==> Download stock Biscuit system.img"
-      curl -L --fail --retry 3 -o workspace/extracted/biscuit-ota/system.img "$BISCUIT_SYSTEM_IMG_URL"
-
-      echo "==> Download CM12 checkout archive"
-      curl -L --fail --retry 3 -o /tmp/cm12.tar "$CM12_TARBALL_URL"
-      tar -xf /tmp/cm12.tar -C workspace/cm12 --strip-components="${CM12_STRIP_COMPONENTS}"
+      echo "==> Bootstrap workspace"
+      scripts/bootstrap-workspace.sh
 
       echo "==> Build Docker images"
       docker build -f docker/biscuit-kernel-builder.Dockerfile -t biscuit-kernel-builder:latest docker/
       docker build -f docker/cm12-ubuntu14.Dockerfile -t cm12-ubuntu14:latest docker/
-
-      echo "==> Prepare stock blobs/vendor"
-      scripts/extract-biscuit-stock-blobs.sh workspace/extracted/biscuit-ota/system.img
 
       echo "==> Build kernel"
       scripts/build-kernel.sh
