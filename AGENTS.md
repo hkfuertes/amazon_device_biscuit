@@ -53,6 +53,7 @@ Notes:
 ## TODOs
 
 - Enable USB gadgets in the kernel, ideally all required ones, specifically USB audio out/in, for a future APK that turns Biscuit into a conference speaker/microphone.
+- Tune microphone gain and speaker EQ for better voice/audio quality.
 - Future mega-TODO: investigate moving to Android 7 / CM14.1 with a 6.5.x kernel for Biscuit. Treat as a separate line of work; do not mix with current CM12 stabilization.
 
 ## Device safety
