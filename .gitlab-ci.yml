@@ -61,6 +61,9 @@ build:ota:
       echo "==> Build kernel"
       scripts/build-kernel.sh
 
+      echo "==> Fix workspace ownership for builder container"
+      chown -R 1000:1000 workspace
+
       echo "==> Build OTA"
       scripts/build.sh
       docker logs -f cm12-biscuit-build &
