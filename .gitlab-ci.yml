@@ -38,13 +38,21 @@ validate:device-tree:
 build:ota:
   extends: .default_docker
   stage: build
+  tags:
+    - saas-linux-medium-amd64
   needs: ["validate:device-tree"]
   timeout: 8h
   script:
     - |
       set -euo pipefail
+      echo "==> Disk before bootstrap"
+      df -h . /var/lib/docker || true
+
       echo "==> Bootstrap workspace"
       scripts/bootstrap-workspace.sh
+
+      echo "==> Disk after bootstrap"
+      df -h . /var/lib/docker || true
 
       echo "==> Build Docker images"
       docker build -f docker/biscuit-kernel-builder.Dockerfile -t biscuit-kernel-builder:latest docker/
