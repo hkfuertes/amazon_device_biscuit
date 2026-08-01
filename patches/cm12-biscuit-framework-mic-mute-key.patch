@@ -11,11 +11,43 @@ index f10ba968..e99c4520 100644
  key 114   VOLUME_DOWN
  key 115   VOLUME_UP
  key 116   POWER
+@@ -157,7 +157,7 @@ # key 134 "KEY_OPEN"
+ # key 135 "KEY_PASTE"
+ # key 136 "KEY_FIND"
+ # key 137 "KEY_CUT"
+-# key 138 "KEY_HELP"
++key 138   HELP
+ key 139   MENU
+ key 140   CALCULATOR
+ # key 141 "KEY_SETUP"
 diff --git a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java b/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
 index 1ef905fb..1f1f9274 100644
 --- a/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
 +++ b/frameworks/base/policy/src/com/android/internal/policy/impl/PhoneWindowManager.java
-@@ -5456,6 +5456,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -5408,6 +5408,22 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+             }
+         }
+ 
++        if (keyCode != KeyEvent.KEYCODE_VOLUME_DOWN
++                && keyCode != KeyEvent.KEYCODE_VOLUME_UP
++                && keyCode != KeyEvent.KEYCODE_VOLUME_MUTE
++                && keyCode != KeyEvent.KEYCODE_MUTE
++                && event.getRepeatCount() == 0) {
++            Intent intent = new Intent(down
++                    ? "com.amazon.device.intent.action.BUTTON_PRESSED"
++                    : "com.amazon.device.intent.action.BUTTON_RELEASED");
++            intent.putExtra("com.amazon.device.intent.extra.BUTTON_NAME",
++                    KeyEvent.keyCodeToString(keyCode));
++            intent.putExtra("com.amazon.device.intent.extra.KEY_CODE", keyCode);
++            intent.putExtra("com.amazon.device.intent.extra.SCAN_CODE", event.getScanCode());
++            intent.putExtra("com.amazon.device.intent.extra.DEVICE_ID", event.getDeviceId());
++            mContext.sendBroadcast(intent);
++        }
++
+         // Handle special keys.
+         switch (keyCode) {
+             case KeyEvent.KEYCODE_VOLUME_DOWN:
+@@ -5456,6 +5473,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                          cancelPendingScreenshotChordAction();
                      }
                  }
@@ -36,7 +68,7 @@ index 1ef905fb..1f1f9274 100644
                  if (down) {
                      TelecomManager telecomManager = getTelecommService();
                      if (telecomManager != null) {
-@@ -5543,6 +5557,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -5543,6 +5574,16 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                  break;
              }
  
@@ -53,7 +85,7 @@ index 1ef905fb..1f1f9274 100644
              case KeyEvent.KEYCODE_HOME:
                  if (down && !interactive && mHomeWakeScreen) {
                      isWakeKey = true;
-@@ -5660,7 +5684,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
+@@ -5660,7 +5701,6 @@ public class PhoneWindowManager implements WindowManagerPolicy {
              case KeyEvent.KEYCODE_MEDIA_PAUSE:
              case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
              case KeyEvent.KEYCODE_HEADSETHOOK:

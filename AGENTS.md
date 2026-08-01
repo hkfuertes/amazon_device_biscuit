@@ -25,6 +25,31 @@ Rules for agents in this repo.
 - Unless explicitly requested by the user, do not poll or wait for long periods. Long builds/flashes/reboots must be launched detached or as a single concrete action, with instructions for monitoring, then return control so the user can ask between steps.
 - Any change under `workspace/cm12` must be reproducible from tracked repo files: prefer `patches/*.patch`, `scripts/stage-tree.sh`, `scripts/apply-patches.sh`, or equivalent scripts. Do not leave manual-only changes in `workspace/cm12`.
 
+## Biscuit service helper
+
+Current builds include `/system/bin/biscuit_service`, a shell-friendly wrapper around the Biscuit Android service. Prefer it over ad-hoc Java probes for supported device actions.
+
+Known commands:
+
+```sh
+adb shell biscuit_service wifi on
+adb shell biscuit_service wifi connect '<ssid>' '<psk>'
+adb shell biscuit_service wifi off
+adb shell biscuit_service volume up
+adb shell biscuit_service volume down
+adb shell biscuit_service volume set '<0..max>'
+adb shell biscuit_service mute on|off|toggle
+adb shell biscuit_service mic mute|unmute|toggle
+adb shell biscuit_service bt pair
+adb shell biscuit_service bt off
+```
+
+Notes:
+
+- Do not print WiFi PSKs in responses/log summaries.
+- `wifi on` reconnects a saved network; `wifi connect` saves/connects WPA-PSK or open networks.
+- Use this for WiFi reconnect after data wipe/OTA before falling back to `scripts/wifi/*.java`.
+
 ## TODOs
 
 - Enable USB gadgets in the kernel, ideally all required ones, specifically USB audio out/in, for a future APK that turns Biscuit into a conference speaker/microphone.
