@@ -24,7 +24,7 @@ variables:
       alias: docker
   before_script:
     - apk upgrade --no-cache
-    - apk add --no-cache bash curl git coreutils findutils tar bzip2 xz p7zip unzip python3
+    - apk add --no-cache bash curl git coreutils findutils tar bzip2 xz p7zip unzip python3 patch
     - docker version
 
 validate:device-tree:
