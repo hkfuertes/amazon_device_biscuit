@@ -9,6 +9,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12_DIR="$REPO_ROOT/workspace/cm12"
 OUT_DIR="$CM12_DIR/out-docker"   # absolute, required by amonet remap
 BUILD_TARGET="${BUILD_TARGET:-otapackage}"
+BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
 CLEAN_BISCUIT_OUT="${CLEAN_BISCUIT_OUT:-0}"
 BUILD_KERNEL="${BUILD_KERNEL:-0}"
 
@@ -58,7 +59,7 @@ docker run -d \
     lunch cm_biscuit-userdebug >/tmp/lunch.log
     export OUT_DIR='$OUT_DIR'
     export PATH=\"\$OUT_DIR/host/linux-x86/bin:\$PATH\"
-    make -j\$(nproc) '$BUILD_TARGET'
+    make -j'$BUILD_JOBS' '$BUILD_TARGET'
   "
 
 echo "Build started ($BUILD_TARGET). Output: $OUT_DIR"

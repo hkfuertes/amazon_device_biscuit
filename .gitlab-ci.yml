@@ -66,13 +66,17 @@ build:ota:
 
       echo "==> Build OTA"
       mkdir -p ci-logs
-      scripts/build.sh
+      BUILD_JOBS=4 scripts/build.sh
       docker logs -f cm12-biscuit-build > ci-logs/cm12-biscuit-build.log 2>&1 &
       LOG_PID="$!"
       BUILD_STATUS="$(docker wait cm12-biscuit-build)"
       wait "$LOG_PID" || true
+      docker inspect cm12-biscuit-build > ci-logs/cm12-biscuit-build.inspect.json 2>&1 || true
+      { df -h; echo; free -m || true; echo; du -sh workspace/cm12/out-docker 2>/dev/null || true; } > ci-logs/ci-resources-after-ota.txt 2>&1
       if [ "$BUILD_STATUS" != 0 ]; then
-        echo "==> OTA build failed; last log lines"
+        echo "==> OTA build failed; container/resources/log tail"
+        python3 -c "import json; j=json.load(open('ci-logs/cm12-biscuit-build.inspect.json'))[0]['State']; print({k:j.get(k) for k in ('Status','ExitCode','OOMKilled','Error','StartedAt','FinishedAt')})" || true
+        cat ci-logs/ci-resources-after-ota.txt || true
         tail -n 300 ci-logs/cm12-biscuit-build.log || true
       fi
       exit "$BUILD_STATUS"
