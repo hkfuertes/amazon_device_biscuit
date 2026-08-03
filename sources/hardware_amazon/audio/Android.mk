@@ -4,9 +4,8 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := audio.primary.mt8163
 LOCAL_MODULE_RELATIVE_PATH := hw
-LOCAL_SRC_FILES := audio_hw.c
-LOCAL_C_INCLUDES := external/tinyalsa/include
-LOCAL_SHARED_LIBRARIES := liblog libcutils libtinyalsa
+LOCAL_SRC_FILES := audio_wrapper.c
+LOCAL_SHARED_LIBRARIES := liblog libcutils libhardware
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS := -Wno-unused-parameter
 
@@ -27,6 +26,16 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := biscuit_audiorecord_test
 LOCAL_SRC_FILES := biscuit_audiorecord_test.cpp
 LOCAL_SHARED_LIBRARIES := libmedia libutils liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_CFLAGS := -Wno-unused-parameter
+
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := biscuit_asp_beam_probe
+LOCAL_SRC_FILES := biscuit_asp_beam_probe.cpp
+LOCAL_SHARED_LIBRARIES := libbinder libmedia libutils liblog
 LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS := -Wno-unused-parameter
 
