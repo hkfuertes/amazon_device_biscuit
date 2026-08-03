@@ -18,6 +18,12 @@ service biscuit-ledd /system/bin/biscuit-ledd
     socket biscuit-ledd stream 0660 system system
     disabled
 
+# Stock Amazon (init.project.rc): sets up TLV320AIC3101 mic path (DIF1 + PGA)
+# and TLV320AIC3204 speaker path (HPL/HPR). Without it mics are silent.
+service audio_init /system/bin/sh /system/etc/audio_init.sh
+    class late_start
+    oneshot
+
 # ponytail: only stock A/B symlinks needed for bring-up; pull the full vendor init later if logs demand it.
 on property:ro.boot.slot_suffix=_a
     symlink /dev/block/platform/soc/by-name/lk_b       /dev/block/other-lk

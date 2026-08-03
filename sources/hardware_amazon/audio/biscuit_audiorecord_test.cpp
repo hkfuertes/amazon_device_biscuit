@@ -17,6 +17,7 @@ int main(int argc, char **argv)
 {
     const uint32_t rate = 16000;
     const int seconds = argc > 1 ? atoi(argv[1]) : 1;
+    const audio_source_t source = (audio_source_t)(argc > 2 ? atoi(argv[2]) : AUDIO_SOURCE_MIC);
     size_t min_frames = 0;
     status_t ret = AudioRecord::getMinFrameCount(&min_frames, rate,
                                                  AUDIO_FORMAT_PCM_16_BIT,
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    sp<AudioRecord> rec = new AudioRecord(AUDIO_SOURCE_MIC, rate, AUDIO_FORMAT_PCM_16_BIT,
+    sp<AudioRecord> rec = new AudioRecord(source, rate, AUDIO_FORMAT_PCM_16_BIT,
                                           AUDIO_CHANNEL_IN_MONO, min_frames * 2,
                                           NULL, NULL, 0, AUDIO_SESSION_ALLOCATE,
                                           AudioRecord::TRANSFER_SYNC);
@@ -64,7 +65,7 @@ int main(int argc, char **argv)
     }
 
     rec->stop();
-    printf("samples=%d rms=%.0f peak=%d\n", got, sqrt(sum / got), peak);
+    printf("samples=%d rms=%.0f peak=%d source=%d\n", got, sqrt(sum / got), peak, (int)source);
     fflush(stdout);
     _exit(0); /* ponytail: avoid CM12 destructor weirdness in shell tests. */
 }

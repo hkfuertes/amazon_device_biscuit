@@ -107,6 +107,8 @@ android.intent.action.BOOT_COMPLETED
 android.media.VOLUME_CHANGED_ACTION
 ```
 
+Beam/direction ASP investigation and possible future Java-service API: `docs/audio-beam-direction.md`.
+
 ## Proprietary blobs
 
 Blobs are not committed. Extract them from the stock OTA into `workspace/vendor/amazon/biscuit/`; `scripts/stage-tree.sh` copies them into the CM12 checkout.

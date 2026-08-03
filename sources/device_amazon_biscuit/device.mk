@@ -29,6 +29,7 @@ PRODUCT_PACKAGES += \
     audio.primary.mt8163 \
     biscuit_audiotrack_test \
     biscuit_audiorecord_test \
+    biscuit_asp_beam_probe \
     biscuit_mic_test \
     tinymix \
     tinyplay \
