@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.List;
 
 public final class BiscuitService extends Service {
     public static final class BootReceiver extends BroadcastReceiver {
@@ -198,6 +199,15 @@ public final class BiscuitService extends Service {
         if (enabled) wifi.reconnect();
     }
 
+    private int findNetwork(WifiManager wifi, String ssid) {
+        List<WifiConfiguration> configs = wifi.getConfiguredNetworks();
+        if (configs == null) return -1;
+        for (WifiConfiguration config : configs) {
+            if (config != null && ssid.equals(config.SSID)) return config.networkId;
+        }
+        return -1;
+    }
+
     private void connectWifi(String ssid, String psk) {
         if (ssid == null || ssid.length() == 0) return;
         WifiManager wifi = (WifiManager) getSystemService(WIFI_SERVICE);
@@ -208,9 +218,16 @@ public final class BiscuitService extends Service {
             config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
         } else {
             config.preSharedKey = isHexPsk(psk) ? psk : quote(psk);
+            config.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
         }
         wifi.setWifiEnabled(true);
-        int id = wifi.addNetwork(config);
+        int id = findNetwork(wifi, config.SSID);
+        if (id >= 0) {
+            config.networkId = id;
+            id = wifi.updateNetwork(config);
+        } else {
+            id = wifi.addNetwork(config);
+        }
         if (id >= 0) {
             wifi.enableNetwork(id, true);
             wifi.saveConfiguration();
