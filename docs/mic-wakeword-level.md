@@ -172,29 +172,84 @@ regenerado desde `system.img`, con un `grep -qx` que aborta la extracción si el
 formato stock cambiara. Marcado `ponytail:` para plegarlo a `patches/` cuando se
 unifique el parcheo de vendor.
 
-Aporta ~+15 dB de los ~34 necesarios: alcance estimado 10 cm → ~55 cm.
-Mejora, pero insuficiente por sí solo.
+Aporta ~+11 dB en AudioRecord: alcance estimado 10 cm → ~35 cm.
+Mejora, pero es la palanca **peor** de las dos disponibles (ver más abajo).
+
+## Objetivo revisado: 2 m, no 5 m
+
+```
+10 cm -> 5 m :  20*log10(50) = 34 dB
+10 cm -> 2 m :  20*log10(20) = 26 dB
+```
+
+8 dB menos, y son justo la diferencia entre "forzado" y "cómodo". Más allá de
+2-3 m el limitante deja de ser el nivel y pasa a ser la reverberación de la sala,
+que la ganancia no arregla.
+
+### Presupuesto de ganancia
+
+Del barrido medido, +20 dB de PGA en crudo dieron **+14.6 dB en AudioRecord**
+(el AGC del ASP absorbe el resto). Factor de transferencia ~0.73:
+
+| Configuración | dB en AudioRecord | Alcance estimado |
+|---|---|---|
+| PGA 40 (stock) | 0 | 10 cm |
+| PGA 70 (commit actual) | +11 | ~35 cm |
+| PGA 80 (máximo analógico) | +14.6 | ~55 cm |
+| PGA 80 + 11 dB digital | +26 | **2 m** |
+| PGA 80 + 19 dB digital | +34 | 5 m |
+
+El PGA analógico por sí solo **no llega ni a 1 m**. Hace falta ganancia digital sí o sí.
+
+### Por qué la ganancia digital es mejor palanca que el PGA aquí
+
+1. **No mejora el SNR ninguna de las dos.** El ADC tiene ~92 dB de SNR (suelo por
+   debajo de -90 dBFS) y la señal está a -65 dBFS: 27 dB por encima del suelo
+   electrónico. Domina el ruido acústico de la sala, no el ADC. Subir el PGA
+   analógico es, en este caso, equivalente a multiplicar en digital.
+2. **El PGA sí come headroom del AEC** (el altavoz está a centímetros de los mics).
+   La ganancia en `audio_wrapper.c` se aplica **después** de todo el procesado del
+   HAL, así que es inocua para el AEC.
+3. **Tunable en caliente** por property, sin recompilar ni reflashear.
+4. **Clampable** con precisión.
+
+Conclusión: el PGA a 70 no está mal, pero la palanca principal debe ser el wrapper.
+
+### Por qué ganancia fija no basta, y hace falta AGC
+
+En la medida a PGA 80, el pico de AudioRecord llegó al **38% FS con solo ruido
+ambiente** (rms -51 dBFS, pico -8.3 dBFS → factor de cresta de 43 dB, algún
+transitorio impulsivo). Multiplicar eso por 3.6 satura.
+
+Una ganancia fija calibrada para disparar a 2 m **saturará** al hablar cerca o con
+un ruido impulsivo. Lo correcto es **normalización lenta hacia un RMS objetivo**
+(~-25 dBFS) con limitador: justo lo que hace el motor de Amazon y lo que
+microWakeWord no trae. ~40 líneas en vez de ~20, pero resuelve cerca y lejos a la
+vez en lugar de elegir uno.
 
 ## Plan pendiente
 
-1. **Validar con AVA real** y voz: ¿a qué distancia dispara ahora el wake word?
-2. **PGA 70 → 80** (+5 dB). Cambiar un dígito en el `sed`. Probar antes en caliente:
+1. **Validar con AVA real** y voz: ¿a qué distancia dispara ahora el wake word con
+   PGA 70? Es el dato que falta para calibrar todo lo demás.
+2. **AGC lento en `sources/hardware_amazon/audio/audio_wrapper.c`** — palanca principal.
+   Es nuestro código y ya envuelve el HAL: interceptar `in->read()` y normalizar antes
+   de devolver.
+   - RMS objetivo ~-25 dBFS (lo que espera microWakeWord)
+   - ganancia máxima limitada (~+20 dB) para no amplificar ruido de fondo hasta
+     provocar falsos positivos
+   - ataque y release lentos (es normalización, no compresión de dinámica)
+   - limitador suave en el pico
+   - properties para tunear en caliente: objetivo, ganancia máxima, on/off
+   Con objetivo de 2 m el AGC no debería pasar de ~+15 dB, rango muy manejable.
+3. **Dejar el PGA en 70.** No subir a 80: no aporta SNR y sí quita headroom al AEC.
+   Si hiciera falta probarlo, es volátil y no requiere recompilar:
    ```sh
    for a in A B C D; do adb shell tinymix "ADC_$a MICPGA Volume Ctrl" 80 80; done
    ```
-   Volátil: un reboot restaura el valor compilado.
-3. **Ganancia digital en `sources/hardware_amazon/audio/audio_wrapper.c`** (+15…20 dB).
-   Es nuestro código y ya envuelve el HAL: interceptar `in->read()` y escalar antes
-   de devolver. ~20 líneas, con:
-   - property `persist.biscuit.mic.gain` para tunear en caliente sin recompilar
-   - **clamp / limitador suave** en vez de multiplicación cruda, porque afecta a toda
-     la captura, incluido el audio que AVA manda a la nube para el ASR
-   Aquí la ganancia digital sí es la herramienta correcta: microWakeWord necesita
-   nivel, no SNR, y no controlamos el APK de AVA para hacerlo dentro.
-4. **Validar el AEC con música a volumen alto** antes de fijar el PGA definitivo:
+4. **Validar el AEC con música a volumen alto** antes de dar el PGA por definitivo:
    - que el raw no llegue a clipping (`peak` cerca de 8388607 en `biscuit_mic_test`)
    - que el wake word siga disparando con el altavoz sonando
-   Si satura, bajar a 50–60 y compensar el resto en el wrapper.
+   Si satura, bajar el PGA a 50-60 y compensar en el AGC del wrapper.
 
 ## Cómo reproducir las medidas
 
