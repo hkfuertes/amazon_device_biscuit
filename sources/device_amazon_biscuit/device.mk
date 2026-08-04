@@ -31,10 +31,15 @@ PRODUCT_PACKAGES += \
     biscuit_audiorecord_test \
     biscuit_asp_beam_probe \
     biscuit_mic_test \
+    audio_effects.conf \
     tinymix \
     tinyplay \
     tinycap \
     tinypcminfo
+
+# Replace full_base's generic effects config with Biscuit's AOSP/WebRTC AGC config.
+PRODUCT_COPY_FILES_OVERRIDES += \
+    system/etc/audio_effects.conf
 
 # ── LED ring / buttons ──────────────────────────────────────────────────────
 # Source-only Biscuit LED daemon + framework bridge; no stock lights/button blobs.
