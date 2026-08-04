@@ -35,16 +35,33 @@ workspace/vendor/amazon/biscuit
 
 See `docs/sources.md` for URLs and exact source policy.
 
-## Minimal flow
+## Build from an empty `workspace/`
+
+One-time CM12 Docker image, if missing:
 
 ```sh
-scripts/bootstrap-workspace.sh
-scripts/preflight.sh
-scripts/build-kernel.sh
-scripts/build.sh
+docker image inspect cm12-ubuntu14:latest >/dev/null 2>&1 || \
+  docker build -t cm12-ubuntu14:latest -f docker/cm12-ubuntu14.Dockerfile docker/
 ```
 
-`build.sh` keeps `workspace/cm12/out-docker/` by default for incremental builds. Partial cleanups are opt-in:
+Clean rebuild flow:
+
+```sh
+rm -rf workspace
+scripts/bootstrap-workspace.sh
+scripts/build-kernel.sh
+scripts/preflight.sh
+scripts/build.sh
+docker logs -f cm12-biscuit-build
+```
+
+`scripts/build.sh` stages tracked sources/patches, starts the OTA build in detached Docker, and leaves artifacts under:
+
+```txt
+workspace/cm12/out-docker/target/product/biscuit/
+```
+
+Incremental builds keep `workspace/cm12/out-docker/`. Partial cleanups are opt-in:
 
 ```sh
 CLEAN_BISCUIT_OUT=1 scripts/build.sh

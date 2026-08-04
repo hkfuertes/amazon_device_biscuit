@@ -1,9 +1,6 @@
-diff --git a/frameworks/base/packages/SettingsProvider/res/values/defaults.xml b/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
-index 5af436c..1111111 100644
 --- a/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
 +++ b/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
 @@ -56,7 +56,7 @@
-     <bool name="assisted_gps_enabled">true</bool>
      <string name="assisted_gps_configurable_list" translatable="false"></string>
      <bool name="def_netstats_enabled">true</bool>
      <bool name="def_usb_mass_storage_enabled">true</bool>
@@ -12,12 +9,9 @@ index 5af436c..1111111 100644
      <!-- 0 == never, 1 == only when plugged in, 2 == always -->
      <integer name="def_wifi_sleep_policy">2</integer>
      <bool name="def_networks_available_notification_on">true</bool>
-diff --git a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
-index dfd0487..2222222 100644
 --- a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
 +++ b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
-@@ -3618,12 +3618,9 @@ public class WifiStateMachine extends StateMachine {
-                 || linkDebouncing
+@@ -3620,10 +3620,7 @@
                  || state == SupplicantState.ASSOCIATING
                  || state == SupplicantState.AUTHENTICATING
                  || state == SupplicantState.FOUR_WAY_HANDSHAKE
@@ -29,7 +23,7 @@ index dfd0487..2222222 100644
              // Dont attempt auto-joining again while we are already attempting to join
              // and/or obtaining Ip address
              attemptAutoJoin = false;
-@@ -5571,6 +5568,7 @@ public class WifiStateMachine extends StateMachine {
+@@ -5567,6 +5564,7 @@
                  // TODO: actually check th supplicant status string and make sure the supplicant
                  // is in disconnecte4d state.
                  mWifiNative.status();
