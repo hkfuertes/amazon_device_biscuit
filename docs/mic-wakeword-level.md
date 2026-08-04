@@ -227,29 +227,33 @@ un ruido impulsivo. Lo correcto es **normalización lenta hacia un RMS objetivo*
 microWakeWord no trae. ~40 líneas en vez de ~20, pero resuelve cerca y lejos a la
 vez en lugar de elegir uno.
 
+## Estado tras prueba real
+
+La prueba funcional con AVA/microWakeWord dio OK **solo con la subida de ganancia
+analógica**. Por ahora no hace falta flashear ni validar la build experimental con
+AGC AOSP/WebRTC.
+
+Medida base post-HAL previa a flashear AGC:
+
+```txt
+adb shell biscuit_audiorecord_test 5 6
+samples=80128 rms=76 peak=1894 source=6
+```
+
 ## Plan pendiente
 
-1. **Validar con AVA real** y voz: ¿a qué distancia dispara ahora el wake word con
-   PGA 70? Es el dato que falta para calibrar todo lo demás.
-2. **AGC lento en `sources/hardware_amazon/audio/audio_wrapper.c`** — palanca principal.
-   Es nuestro código y ya envuelve el HAL: interceptar `in->read()` y normalizar antes
-   de devolver.
-   - RMS objetivo ~-25 dBFS (lo que espera microWakeWord)
-   - ganancia máxima limitada (~+20 dB) para no amplificar ruido de fondo hasta
-     provocar falsos positivos
-   - ataque y release lentos (es normalización, no compresión de dinámica)
-   - limitador suave en el pico
-   - properties para tunear en caliente: objetivo, ganancia máxima, on/off
-   Con objetivo de 2 m el AGC no debería pasar de ~+15 dB, rango muy manejable.
-3. **Dejar el PGA en 70.** No subir a 80: no aporta SNR y sí quita headroom al AEC.
-   Si hiciera falta probarlo, es volátil y no requiere recompilar:
-   ```sh
-   for a in A B C D; do adb shell tinymix "ADC_$a MICPGA Volume Ctrl" 80 80; done
-   ```
+1. **Dejar el PGA en 70 mientras funcione.** No subir a 80: no aporta SNR y sí quita
+   headroom al AEC.
+2. **No flashear AGC por ahora.** Retomarlo solo si vuelve a fallar wake word a la
+   distancia objetivo, aparecen falsos negativos, o hace falta más rango entre voz
+   cercana/lejana.
+3. **Si vuelve el problema**, preferir AGC/limitador en `audio_wrapper.c`: es nuestro
+   código y ya envuelve el HAL, así que puede interceptar `in->read()` antes de
+   devolver AudioRecord.
 4. **Validar el AEC con música a volumen alto** antes de dar el PGA por definitivo:
    - que el raw no llegue a clipping (`peak` cerca de 8388607 en `biscuit_mic_test`)
    - que el wake word siga disparando con el altavoz sonando
-   Si satura, bajar el PGA a 50-60 y compensar en el AGC del wrapper.
+   Si satura, bajar el PGA a 50-60 y compensar en el wrapper.
 
 ## Cómo reproducir las medidas
 
