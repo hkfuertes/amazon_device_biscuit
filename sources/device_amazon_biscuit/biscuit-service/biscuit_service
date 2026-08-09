@@ -28,6 +28,11 @@ WiFi:
   wifi on                    enable WiFi and reconnect saved network
   wifi connect <ssid> [psk]  save/connect WPA-PSK or open network
   wifi off                   disable WiFi
+
+USB:
+  usb mic on                 expose Biscuit as USB microphone + ADB and start bridge
+  usb mic off                stop bridge and restore plain ADB USB
+  usb mic status             show USB/mic gadget state
 EOF
 }
 
@@ -96,6 +101,35 @@ case "$1" in
                 ;;
             off|disable|stop)
                 start "$PKG.WIFI_OFF"
+                ;;
+        esac
+        ;;
+    usb)
+        case "$2" in
+            mic|microphone)
+                case "$3" in
+                    on|enable|start)
+                        if command -v biscuit_usb_mic_bridge >/dev/null 2>&1; then
+                            nohup setsid sh -c 'sleep 2; exec biscuit_usb_mic_bridge' </dev/null >/dev/null 2>&1 &
+                        fi
+                        setprop sys.usb.config audio_source,adb
+                        exit $?
+                        ;;
+                    off|disable|stop)
+                        killall biscuit_usb_mic_bridge >/dev/null 2>&1
+                        setprop sys.usb.config adb
+                        exit $?
+                        ;;
+                    status|'')
+                        echo "sys.usb.config=$(getprop sys.usb.config)"
+                        echo "sys.usb.state=$(getprop sys.usb.state)"
+                        echo "functions=$(cat /sys/class/android_usb/android0/functions 2>/dev/null)"
+                        echo "state=$(cat /sys/class/android_usb/android0/state 2>/dev/null)"
+                        echo "pcm=$(cat /sys/class/android_usb/android0/f_audio_source/pcm 2>/dev/null)"
+                        echo "bridge_pid=$(pidof biscuit_usb_mic_bridge 2>/dev/null)"
+                        exit 0
+                        ;;
+                esac
                 ;;
         esac
         ;;

@@ -31,6 +31,7 @@ PRODUCT_PACKAGES += \
     biscuit_audiorecord_test \
     biscuit_asp_beam_probe \
     biscuit_mic_test \
+    biscuit_usb_mic_bridge \
     audio_effects.conf \
     tinymix \
     tinyplay \
@@ -40,6 +41,12 @@ PRODUCT_PACKAGES += \
 # Replace full_base's generic effects config with Biscuit's AOSP/WebRTC AGC config.
 PRODUCT_COPY_FILES_OVERRIDES += \
     system/etc/audio_effects.conf
+
+# Optional USB speaker+mic gadget module, produced by scripts/build-kernel.sh.
+ifneq ($(wildcard $(LOCAL_PATH)/prebuilt/modules/g_audio.ko),)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/modules/g_audio.ko:system/lib/modules/g_audio.ko
+endif
 
 # ── LED ring / buttons ──────────────────────────────────────────────────────
 # Source-only Biscuit LED daemon + framework bridge; no stock lights/button blobs.

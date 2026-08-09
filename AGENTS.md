@@ -40,6 +40,9 @@ adb shell biscuit_service volume down
 adb shell biscuit_service volume set '<0..max>'
 adb shell biscuit_service mute on|off|toggle
 adb shell biscuit_service mic mute|unmute|toggle
+adb shell biscuit_service usb mic on
+adb shell biscuit_service usb mic off
+adb shell biscuit_service usb mic status
 adb shell biscuit_service bt pair
 adb shell biscuit_service bt off
 ```

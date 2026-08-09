@@ -21,6 +21,8 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 KERNEL_SOURCE="$REPO_ROOT/workspace/kernel/amazon/biscuit"
 PREBUILT_DIR="$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt"
 CM12_PREBUILT_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit/prebuilt"
+MODULE_PREBUILT_DIR="$PREBUILT_DIR/modules"
+CM12_MODULE_PREBUILT_DIR="$CM12_PREBUILT_DIR/modules"
 KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out}"
 DOCKER_IMAGE="biscuit-kernel-builder:latest"
 CONTAINER="biscuit-kernel-build"
@@ -140,6 +142,10 @@ find \"\$OUT_DIR/arch/\$TARGET_ARCH/boot\" -type f | while read f; do
   cp -v \"\$f\" \"/kernel-out/\$rel\"
 done
 
+# ponytail: flat module dir is enough; current target is one gadget module.
+mkdir -p /kernel-out/modules
+find \"\$OUT_DIR\" -type f -name '*.ko' -exec cp -v {} /kernel-out/modules/ \;
+
 echo '==> Done.'
 "
 
@@ -169,6 +175,15 @@ mkdir -p "$CM12_PREBUILT_DIR"
 cp "$KERNEL_IMAGE" "$CM12_PREBUILT_DIR/kernel"
 sha256sum "$PREBUILT_DIR/kernel" | tee "$PREBUILT_DIR/kernel.sha256"
 sha256sum "$CM12_PREBUILT_DIR/kernel" > "$CM12_PREBUILT_DIR/kernel.sha256"
+
+rm -rf "$MODULE_PREBUILT_DIR" "$CM12_MODULE_PREBUILT_DIR"
+if compgen -G "$KERNEL_OUT/modules/*.ko" >/dev/null; then
+  mkdir -p "$MODULE_PREBUILT_DIR" "$CM12_MODULE_PREBUILT_DIR"
+  cp -a "$KERNEL_OUT"/modules/*.ko "$MODULE_PREBUILT_DIR"/
+  cp -a "$KERNEL_OUT"/modules/*.ko "$CM12_MODULE_PREBUILT_DIR"/
+  sha256sum "$MODULE_PREBUILT_DIR"/*.ko > "$MODULE_PREBUILT_DIR/modules.sha256"
+  sha256sum "$CM12_MODULE_PREBUILT_DIR"/*.ko > "$CM12_MODULE_PREBUILT_DIR/modules.sha256"
+fi
 cat > "$PREBUILT_DIR/kernel-selection.txt" <<EOF
 source=workspace/kernel/amazon/biscuit
 kernel=${KERNEL_IMAGE#$REPO_ROOT/}

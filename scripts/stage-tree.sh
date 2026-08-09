@@ -65,3 +65,6 @@ copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel.sha256" \
 copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt" \
           "$CM12/device/amazon/biscuit/prebuilt/kernel-selection.txt" \
           "prebuilt kernel selection"
+copy_dir "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/modules" \
+         "$CM12/device/amazon/biscuit/prebuilt/modules" \
+         "prebuilt kernel modules"
