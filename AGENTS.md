@@ -71,6 +71,12 @@ Notes:
 - The user granted sudo NOPASSWD only for `/opt/amonet-biscuit-v1.1.0/amonet/boot-recovery.sh` and `boot-fastboot.sh`. Do not assume permissions for `brick.sh`, `bootrom-step.sh`, `fastboot-step.sh`, or `gpt-fix.sh`.
 - Run amonet scripts with stdin closed and logs redirected so tmux is not broken: `sudo -n ./boot-recovery.sh </dev/null >/tmp/amonet-boot-recovery.log 2>&1`.
 - If a kernel does not boot and enters a bootloop, the manual-method “unplug and plug back in” step may be resolved by waiting for the next boot cycle.
+- Before testing risky USB gadget configs from ADB (for example UAC/g_android changes), arm a short rollback timer first so the device can recover if enumeration drops:
+  ```sh
+  adb shell 'sh -c "sleep 15; setprop sys.usb.config adb" >/dev/null 2>&1 &'
+  adb shell 'setprop sys.usb.config uac2,adb'
+  ```
+  This helps only if Android keeps running; kernel panic/reboot or hard hangs still require TWRP/rollback.
 
 ## Enter TWRP
 

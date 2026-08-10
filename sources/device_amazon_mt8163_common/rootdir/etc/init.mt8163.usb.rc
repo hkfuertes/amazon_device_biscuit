@@ -323,6 +323,16 @@ on property:sys.usb.config=audio_source,adb
     write /sys/devices/platform/android_usb/usb_function_switch 131074
     setprop sys.usb.state ${sys.usb.config}
 
+# USB UAC2 duplex audio + ADB
+on property:sys.usb.config=uac2,adb
+    write /sys/class/android_usb/android0/enable 0
+    write /sys/class/android_usb/android0/idVendor ${sys.usb.vid}
+    write /sys/class/android_usb/android0/idProduct 2d03
+    write /sys/class/android_usb/android0/functions ${sys.usb.config}
+    write /sys/class/android_usb/android0/enable 1
+    start adbd
+    setprop sys.usb.state ${sys.usb.config}
+
 # USB and audio accessory
 on property:sys.usb.config=accessory,audio_source
     write /sys/devices/platform/android_usb/usb_function_switch 139264
