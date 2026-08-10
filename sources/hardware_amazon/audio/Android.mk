@@ -62,3 +62,14 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_CFLAGS := -Wno-unused-parameter -std=gnu99
 
 include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := conference_bridge
+LOCAL_SRC_FILES := conference_bridge.cpp
+LOCAL_C_INCLUDES := external/tinyalsa/include
+LOCAL_SHARED_LIBRARIES := libmedia libutils libtinyalsa
+LOCAL_MODULE_TAGS := optional
+LOCAL_CFLAGS := -Wno-unused-parameter
+
+include $(BUILD_EXECUTABLE)

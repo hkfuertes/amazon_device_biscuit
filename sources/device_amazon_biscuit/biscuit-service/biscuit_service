@@ -33,6 +33,11 @@ USB:
   usb mic on                 expose Biscuit as USB microphone + ADB and start bridge
   usb mic off                stop bridge and restore plain ADB USB
   usb mic status             show USB/mic gadget state
+  usb conference on          start UAC2 speaker+mic bridge
+  usb conference off         stop UAC2 speaker+mic bridge, keep UAC2+ADB exposed
+  usb conference status      show UAC2 conference state
+  usb uac2                   expose UAC2 speaker+mic + ADB
+  usb adb                    restore plain ADB USB
 EOF
 }
 
@@ -130,6 +135,42 @@ case "$1" in
                         exit 0
                         ;;
                 esac
+                ;;
+            conference|conf)
+                case "$3" in
+                    on|enable|start)
+                        [ "$(getprop sys.usb.config)" = "uac2,adb" ] || setprop sys.usb.config uac2,adb
+                        setprop ctl.stop conference_bridge
+                        sleep 1
+                        setprop ctl.start conference_bridge
+                        exit $?
+                        ;;
+                    off|disable|stop)
+                        setprop ctl.stop conference_bridge
+                        killall conference_bridge >/dev/null 2>&1
+                        exit 0
+                        ;;
+                    status|'')
+                        echo "sys.usb.config=$(getprop sys.usb.config)"
+                        echo "sys.usb.state=$(getprop sys.usb.state)"
+                        echo "functions=$(cat /sys/class/android_usb/android0/functions 2>/dev/null)"
+                        echo "state=$(cat /sys/class/android_usb/android0/state 2>/dev/null)"
+                        echo "bridge_pid=$(pidof conference_bridge 2>/dev/null)"
+                        echo "pcms="
+                        cat /proc/asound/pcm 2>/dev/null
+                        exit 0
+                        ;;
+                esac
+                ;;
+            uac2|audio|conference-gadget)
+                setprop sys.usb.config uac2,adb
+                exit $?
+                ;;
+            adb)
+                setprop ctl.stop conference_bridge
+                killall conference_bridge >/dev/null 2>&1
+                setprop sys.usb.config adb
+                exit $?
                 ;;
         esac
         ;;

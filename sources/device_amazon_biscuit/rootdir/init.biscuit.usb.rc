@@ -1,4 +1,4 @@
-# ponytail: runtime persist mirrors the TWRP hotfix; never put this in default.prop or it becomes adb,adb.
+# ponytail: keep UAC2 enumerated; userspace bridge claims audio only on demand.
 on boot
-    setprop persist.sys.usb.config adb
-    setprop sys.usb.config adb
+    setprop persist.sys.usb.config uac2,adb
+    setprop sys.usb.config uac2,adb

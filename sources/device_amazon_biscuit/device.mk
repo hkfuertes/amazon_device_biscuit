@@ -32,6 +32,7 @@ PRODUCT_PACKAGES += \
     biscuit_asp_beam_probe \
     biscuit_mic_test \
     biscuit_usb_mic_bridge \
+    conference_bridge \
     audio_effects.conf \
     tinymix \
     tinyplay \

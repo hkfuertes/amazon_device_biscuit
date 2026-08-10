@@ -18,6 +18,12 @@ service biscuit-ledd /system/bin/biscuit-ledd
     socket biscuit-ledd stream 0660 system system
     disabled
 
+service conference_bridge /system/bin/conference_bridge
+    class main
+    user root
+    group audio system media
+    disabled
+
 # Stock Amazon (init.project.rc): sets up TLV320AIC3101 mic path (DIF1 + PGA)
 # and TLV320AIC3204 speaker path (HPL/HPR). Without it mics are silent.
 service audio_init /system/bin/sh /system/etc/audio_init.sh
