@@ -30,14 +30,9 @@ WiFi:
   wifi off                   disable WiFi
 
 USB:
-  usb mic on                 expose Biscuit as USB microphone + ADB and start bridge
-  usb mic off                stop bridge and restore plain ADB USB
-  usb mic status             show USB/mic gadget state
-  usb conference on          start UAC2 speaker+mic bridge
-  usb conference off         stop UAC2 speaker+mic bridge, keep UAC2+ADB exposed
-  usb conference status      show UAC2 conference state
-  usb uac2                   expose UAC2 speaker+mic + ADB
-  usb adb                    restore plain ADB USB
+  usb mic on|off|status             legacy USB microphone gadget
+  usb conference on|off|status      UAC2 speaker+mic bridge
+  usb uac2|adb                      switch exposed USB gadget
 EOF
 }
 
