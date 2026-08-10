@@ -54,17 +54,6 @@ include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := biscuit_usb_mic_bridge
-LOCAL_SRC_FILES := biscuit_usb_mic_bridge.c
-LOCAL_C_INCLUDES := external/tinyalsa/include
-LOCAL_SHARED_LIBRARIES := libtinyalsa
-LOCAL_MODULE_TAGS := optional
-LOCAL_CFLAGS := -Wno-unused-parameter -std=gnu99
-
-include $(BUILD_EXECUTABLE)
-
-include $(CLEAR_VARS)
-
 LOCAL_MODULE := conference_bridge
 LOCAL_SRC_FILES := conference_bridge.cpp
 LOCAL_C_INCLUDES := external/tinyalsa/include

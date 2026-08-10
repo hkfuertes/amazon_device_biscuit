@@ -30,7 +30,6 @@ WiFi:
   wifi off                   disable WiFi
 
 USB:
-  usb mic on|off|status             legacy USB microphone gadget
   usb conference on|off|status      UAC2 speaker+mic bridge
   usb uac2|adb                      switch exposed USB gadget
 EOF
@@ -106,31 +105,6 @@ case "$1" in
         ;;
     usb)
         case "$2" in
-            mic|microphone)
-                case "$3" in
-                    on|enable|start)
-                        if command -v biscuit_usb_mic_bridge >/dev/null 2>&1; then
-                            nohup setsid sh -c 'sleep 2; exec biscuit_usb_mic_bridge' </dev/null >/dev/null 2>&1 &
-                        fi
-                        setprop sys.usb.config audio_source,adb
-                        exit $?
-                        ;;
-                    off|disable|stop)
-                        killall biscuit_usb_mic_bridge >/dev/null 2>&1
-                        setprop sys.usb.config adb
-                        exit $?
-                        ;;
-                    status|'')
-                        echo "sys.usb.config=$(getprop sys.usb.config)"
-                        echo "sys.usb.state=$(getprop sys.usb.state)"
-                        echo "functions=$(cat /sys/class/android_usb/android0/functions 2>/dev/null)"
-                        echo "state=$(cat /sys/class/android_usb/android0/state 2>/dev/null)"
-                        echo "pcm=$(cat /sys/class/android_usb/android0/f_audio_source/pcm 2>/dev/null)"
-                        echo "bridge_pid=$(pidof biscuit_usb_mic_bridge 2>/dev/null)"
-                        exit 0
-                        ;;
-                esac
-                ;;
             conference|conf)
                 case "$3" in
                     on|enable|start)
