@@ -2,6 +2,8 @@
 
 CyanogenMod 12 port for Amazon Biscuit with reproducible inputs and a disposable `workspace/`.
 
+Goal: a safe, rebuildable CM12 image for Biscuit that boots with ADB, WiFi, speaker playback, and microphone capture. Polish comes later.
+
 > Nothing here flashes the device. Scripts only produce build artifacts. Flashing notes live in `docs/amonet-biscuit-unlock.md`.
 
 ## Layout
@@ -125,6 +127,12 @@ android.media.VOLUME_CHANGED_ACTION
 ```
 
 Beam/direction ASP investigation and possible future Java-service API: `docs/audio-beam-direction.md`.
+
+## Planning notes
+
+- Tracked sources, patches, scripts, and docs are the source of truth.
+- Current bring-up scope: workspace, Docker, preflight, device tree, boot/ADB, WiFi, playback, and microphone.
+- Keep Amazon/source/stock extractions unmodified under ignored `workspace/`; express local changes as tracked patches or staged generated files.
 
 ## Proprietary blobs
 
