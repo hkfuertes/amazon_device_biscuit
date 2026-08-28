@@ -44,24 +44,7 @@ while IFS= read -r entry; do
   copy_files+=("vendor/amazon/mt8163-common/proprietary/$dst:system/$dst")
 done < "$LIST"
 
-# Force software EGL. Stock has "0 1 mali" even though Biscuit is headless/no_gpu.
-if [[ -f "$PROP/lib/egl/egl.cfg" ]]; then
-  printf '0 0 android\n' > "$PROP/lib/egl/egl.cfg"
-fi
-
-# Raise the TLV320ADC3101 analog mic PGA. Stock ships 40 (20 dB) of a 0->80 range,
-# i.e. half the available gain. Measured on device: 40->80 gives +20.4 dB raw and
-# +14.6 dB after the Amazon ASP pipeline, with no clipping (raw peak 16% FS).
-# 70 (35 dB) takes most of it while keeping ~14 dB of headroom for close speech.
-# Leaves A_PGA_R_LINEIN alone: line-in has its own calibration.
-# ponytail: sed over an extracted blob; fold into patches/ when vendor patching is unified.
-if [[ -f "$PROP/etc/audio_init.sh" ]]; then
-  sed -i 's/^A_PGA_L="40"$/A_PGA_L="70"/; s/^A_PGA_R="40"$/A_PGA_R="70"/' "$PROP/etc/audio_init.sh"
-  grep -qx 'A_PGA_L="70"' "$PROP/etc/audio_init.sh" && grep -qx 'A_PGA_R="70"' "$PROP/etc/audio_init.sh" || {
-    echo "ERROR: mic PGA patch did not apply to etc/audio_init.sh (stock format changed?)" >&2
-    exit 1
-  }
-fi
+"$REPO_ROOT/scripts/apply-vendor-patches.sh" "$PROP"
 
 cat > "$COMMON_OUT/mt8163-common-vendor.mk" <<'MK'
 # MT8163 common blobs extracted from stock Biscuit system.img.

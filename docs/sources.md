@@ -23,6 +23,7 @@
 - URL: `https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin`
 - Input generado: `workspace/extracted/biscuit-stock-272.6.4.1/system.img` from `system.new.dat` + `system.transfer.list`
 - Script: `scripts/extract-biscuit-stock-blobs.sh`
+- Serie vendor: `patches/vendor/`, aplicada por `scripts/apply-vendor-patches.sh`
 - Destino ignorado: `workspace/vendor/amazon/biscuit/`
 
 Política: no versionar blobs; extraerlos de OTA. El extractor excluye Mali/GPU y genera `biscuit-vendor.mk`.

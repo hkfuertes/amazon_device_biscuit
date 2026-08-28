@@ -141,7 +141,7 @@ Beam/direction ASP investigation and possible future Java-service API: `docs/aud
 
 ## Proprietary blobs
 
-Blobs are not committed. Extract them from the stock OTA into `workspace/vendor/amazon/biscuit/`; `scripts/stage-tree.sh` copies them into the CM12 checkout.
+Blobs are not committed. Extract them from the stock OTA into `workspace/vendor/amazon/biscuit/`; `patches/vendor/` records reviewed text deltas before `scripts/stage-tree.sh` copies them into the CM12 checkout.
 
 ## Credits and upstreams
 

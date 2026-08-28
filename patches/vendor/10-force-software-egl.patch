@@ -1,0 +1,5 @@
+--- a/lib/egl/egl.cfg
++++ b/lib/egl/egl.cfg
+@@ -1 +1 @@
+-0 1 mali
++0 0 android

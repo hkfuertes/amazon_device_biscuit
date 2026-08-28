@@ -159,7 +159,7 @@ centímetros de los mics).
 
 ## Estado actual
 
-Commit `79e7b75` — `scripts/extract-biscuit-stock-blobs.sh`:
+Parche vendor `patches/vendor/20-microphone-pga-70.patch`:
 
 ```
 A_PGA_L="40" -> "70"     (20 dB -> 35 dB)
@@ -167,10 +167,9 @@ A_PGA_R="40" -> "70"
 A_PGA_R_LINEIN="46"      <- intacto
 ```
 
-Aplicado como `sed` post-extracción porque `etc/audio_init.sh` es un blob
-regenerado desde `system.img`, con un `grep -qx` que aborta la extracción si el
-formato stock cambiara. Marcado `ponytail:` para plegarlo a `patches/vendor/` cuando se
-unifique el parcheo de vendor.
+Se aplica después de extraer `etc/audio_init.sh` desde `system.img`. Si el
+formato stock cambia, el parche no aplica y la extracción aborta con diagnóstico;
+la calibración nunca se reescribe silenciosamente.
 
 Aporta ~+11 dB en AudioRecord: alcance estimado 10 cm → ~35 cm.
 Mejora, pero es la palanca **peor** de las dos disponibles (ver más abajo).
