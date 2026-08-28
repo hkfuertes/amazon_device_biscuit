@@ -13,7 +13,7 @@
 - SHA256: `dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd`
 - Script: `scripts/prepare-kernel-source.sh`
 - Destino ignorado: `workspace/kernel/amazon/biscuit/`
-- Patches: `patches/biscuit-kernel-*.patch`
+- Patches: `patches/kernel/biscuit-kernel-*.patch`
 
 ## Blobs propietarios Biscuit
 
@@ -39,7 +39,9 @@ device/amazon/biscuit/
 device/amazon/mt8163-common/
 hardware/amazon/
 hardware/mediatek/
-patches/
+patches/cm12/
+patches/kernel/
+patches/vendor/
 scripts/
 docker/
 ```

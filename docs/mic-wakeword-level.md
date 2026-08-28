@@ -169,7 +169,7 @@ A_PGA_R_LINEIN="46"      <- intacto
 
 Aplicado como `sed` post-extracción porque `etc/audio_init.sh` es un blob
 regenerado desde `system.img`, con un `grep -qx` que aborta la extracción si el
-formato stock cambiara. Marcado `ponytail:` para plegarlo a `patches/` cuando se
+formato stock cambiara. Marcado `ponytail:` para plegarlo a `patches/vendor/` cuando se
 unifique el parcheo de vendor.
 
 Aporta ~+11 dB en AudioRecord: alcance estimado 10 cm → ~35 cm.

@@ -19,6 +19,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 KERNEL_SOURCE="$REPO_ROOT/workspace/kernel/amazon/biscuit"
+KERNEL_PATCH_DIR="$REPO_ROOT/patches/kernel"
 PREBUILT_DIR="$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt"
 CM12_PREBUILT_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit/prebuilt"
 KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out}"
@@ -45,7 +46,10 @@ if [[ ! -f "$KERNEL_SOURCE/Makefile" || ! -f "$KERNEL_SOURCE/arch/arm64/configs/
   "$REPO_ROOT/scripts/prepare-kernel-source.sh"
 fi
 
-# ── 2. Ensure Docker image exists ────────────────────────────────────────────
+# ── 2. Validate the kernel patch series ──────────────────────────────────────
+[[ -d "$KERNEL_PATCH_DIR" ]] || { echo "ERROR: kernel patch series missing at $KERNEL_PATCH_DIR" >&2; exit 1; }
+
+# ── 3. Ensure Docker image exists ────────────────────────────────────────────
 if [[ "$REBUILD_IMAGE" -eq 1 ]] || ! docker image inspect "$DOCKER_IMAGE" >/dev/null 2>&1; then
   echo "Building $DOCKER_IMAGE ..."
   docker build \
@@ -54,16 +58,17 @@ if [[ "$REBUILD_IMAGE" -eq 1 ]] || ! docker image inspect "$DOCKER_IMAGE" >/dev/
     "$REPO_ROOT/docker/"
 fi
 
-# ── 3. Prepare output directory ──────────────────────────────────────────────
+# ── 4. Prepare output directory ──────────────────────────────────────────────
 if [[ "$CLEAN_KERNEL_OUT" == 1 && -d "$KERNEL_OUT" ]]; then
   echo "Removing stale kernel-out/ ..."
   rm -rf "$KERNEL_OUT"
 fi
 mkdir -p "$KERNEL_OUT"
 
-# ── 4. Run kernel build inside Docker ────────────────────────────────────────
+# ── 5. Run kernel build inside Docker ────────────────────────────────────────
 # Mount:
 #   /kernel-src — read-only vendored Amazon kernel source
+#   /patches — read-only kernel patch series
 #   /kernel-out — writable output directory
 
 if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
@@ -76,7 +81,7 @@ docker run \
   --name "$CONTAINER" \
   --user "$(id -u):$(id -g)" \
   -v "$KERNEL_SOURCE:/kernel-src:ro" \
-  -v "$REPO_ROOT/patches:/patches:ro" \
+  -v "$KERNEL_PATCH_DIR:/patches:ro" \
   -v "$KERNEL_OUT:/kernel-out" \
   "$DOCKER_IMAGE" \
   bash -lc "
@@ -94,10 +99,10 @@ mkdir -p \"\$SRC_DIR\"
 cp -a /kernel-src/. \"\$SRC_DIR/\"
 
 echo '==> Applying Biscuit kernel patches ...'
-for p in /patches/biscuit-kernel-*.patch; do
+while IFS= read -r -d '' p; do
   echo '==> Applying' "\$p"
   patch -d "\$SRC_DIR" -p4 < "\$p"
-done
+done < <(LC_ALL=C find /patches -maxdepth 1 -type f -name '*.patch' -print0 | LC_ALL=C sort -z)
 
 OUT_DIR=\"\$TMPDIR/out\"
 mkdir -p \"\$OUT_DIR\"
@@ -143,7 +148,7 @@ done
 echo '==> Done.'
 "
 
-# ── 5. Copy kernel to prebuilt/ ──────────────────────────────────────────────
+# ── 6. Copy kernel to prebuilt/ ──────────────────────────────────────────────
 mkdir -p "$PREBUILT_DIR"
 
 # Prefer Image.gz-dtb, fall back to Image, then Image.gz

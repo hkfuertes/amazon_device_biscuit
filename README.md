@@ -12,7 +12,7 @@ Goal: a safe, rebuildable CM12 image for Biscuit that boots with ADB, WiFi, spea
 manifest/   # pinned CM12/AOSP repo manifest
 device/     # tracked Biscuit device trees
 hardware/   # tracked Amazon/MediaTek helpers
-patches/    # reproducible CM12/kernel patches
+patches/    # target-scoped CM12/kernel/vendor patch series
 docker/     # build images
 scripts/    # bootstrap, preflight, build, extract helpers
 docs/       # notes, source list, useful logs

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Show CM12 changes that must be represented by patches/*.patch.
+# Show CM12 changes that must be represented by patches/cm12/*.patch.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="$REPO_ROOT/workspace/cm12"
-PATCH_DIR="$REPO_ROOT/patches"
+PATCH_DIR="$REPO_ROOT/patches/cm12"
 
 [[ -d "$CM12/.repo" ]] || { echo "ERROR: CM12 repo checkout missing at $CM12" >&2; exit 1; }
 
@@ -22,10 +22,9 @@ while read -r gitref; do
   git -C "$project" diff --name-only HEAD | sed "s#^#$rel_project/#"
 done | sort -u > "$tmp_changed"
 
-for p in "$PATCH_DIR"/*.patch; do
-  [[ -e "$p" ]] || continue
+while IFS= read -r -d '' p; do
   grep -E '^\+\+\+ b/' "$p" | sed 's#^+++ b/##; s#\t.*##'
-done | sort -u > "$tmp_patched"
+done < <(LC_ALL=C find "$PATCH_DIR" -maxdepth 1 -type f -name '*.patch' -print0 | LC_ALL=C sort -z) | sort -u > "$tmp_patched"
 
 echo "-- CM12 dirty files vs upstream HEAD --"
 if [[ -s "$tmp_changed" ]]; then
