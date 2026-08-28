@@ -35,10 +35,10 @@ Política: no versionar blobs; extraerlos de OTA. El extractor excluye Mali/GPU 
 ## Trabajo nuestro trackeado
 
 ```txt
-sources/device_amazon_biscuit/
-sources/device_amazon_mt8163_common/
-sources/hardware_amazon/
-sources/hardware_mediatek/
+device/amazon/biscuit/
+device/amazon/mt8163-common/
+hardware/amazon/
+hardware/mediatek/
 patches/
 scripts/
 docker/

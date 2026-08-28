@@ -4,7 +4,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SYSTEM_IMG="${1:-$REPO_ROOT/workspace/extracted/biscuit-stock-272.6.4.1/system.img}"
-LIST="$REPO_ROOT/sources/device_amazon_mt8163_common/proprietary-files.txt"
+LIST="$REPO_ROOT/device/amazon/mt8163-common/proprietary-files.txt"
 COMMON_OUT="$REPO_ROOT/workspace/vendor/amazon/mt8163-common"
 BISCUIT_OUT="$REPO_ROOT/workspace/vendor/amazon/biscuit"
 PROP="$COMMON_OUT/proprietary"

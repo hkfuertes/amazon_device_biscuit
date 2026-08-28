@@ -10,7 +10,8 @@ Goal: a safe, rebuildable CM12 image for Biscuit that boots with ADB, WiFi, spea
 
 ```txt
 manifest/   # pinned CM12/AOSP repo manifest
-sources/    # tracked device/hardware work
+device/     # tracked Biscuit device trees
+hardware/   # tracked Amazon/MediaTek helpers
 patches/    # reproducible CM12/kernel patches
 docker/     # build images
 scripts/    # bootstrap, preflight, build, extract helpers
@@ -57,7 +58,7 @@ scripts/build.sh
 docker logs -f cm12-biscuit-build
 ```
 
-`scripts/build.sh` stages tracked sources/patches, starts the OTA build in detached Docker, and leaves artifacts under:
+`scripts/build.sh` stages tracked `device/`, `hardware/`, and patches, starts the OTA build in detached Docker, and leaves artifacts under:
 
 ```txt
 workspace/cm12/out-docker/target/product/biscuit/

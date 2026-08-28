@@ -10,10 +10,10 @@ check_dir() { [[ -d "$1" ]] && echo "OK $2" || { echo "MISS $2: $1"; fail=1; }; 
 check_cmd() { command -v "$1" >/dev/null 2>&1 && echo "OK cmd $1" || { echo "MISS cmd $1"; fail=1; }; }
 
 check_file "$REPO_ROOT/manifest/cm12.lock.xml" "CM12 locked manifest"
-check_dir "$REPO_ROOT/sources/device_amazon_biscuit" "Biscuit device source"
-check_dir "$REPO_ROOT/sources/device_amazon_mt8163_common" "MT8163 common source"
-check_dir "$REPO_ROOT/sources/hardware_amazon" "Amazon hardware source"
-check_dir "$REPO_ROOT/sources/hardware_mediatek" "Mediatek hardware source"
+check_dir "$REPO_ROOT/device/amazon/biscuit" "Biscuit device source"
+check_dir "$REPO_ROOT/device/amazon/mt8163-common" "MT8163 common source"
+check_dir "$REPO_ROOT/hardware/amazon" "Amazon hardware source"
+check_dir "$REPO_ROOT/hardware/mediatek" "Mediatek hardware source"
 check_dir "$REPO_ROOT/patches" "patches"
 check_dir "$REPO_ROOT/docker" "dockerfiles"
 
