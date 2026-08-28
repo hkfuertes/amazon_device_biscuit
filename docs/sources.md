@@ -28,6 +28,14 @@
 
 Política: no versionar blobs; extraerlos de OTA. El extractor excluye Mali/GPU y genera `biscuit-vendor.mk`.
 
+## Certificados CA
+
+- Proyecto AOSP: `https://android.googlesource.com/platform/system/ca-certificates`
+- Revisión inmutable aprobada: `45c7f199cb11b08f6d1ae2b75da25e53140a0c7d`
+- Configuración trackeada: `config/ca-certificates.env`
+- Materializador: `scripts/update-ca-certs.sh`; genera `workspace/cacerts/`, `workspace/cacerts.pem` y `workspace/cacerts.source`.
+- Para actualizar la confianza, cambiar el SHA revisado en `config/ca-certificates.env`, revisar el cambio de certificados y regenerar los outputs. No se aceptan ramas ni refs mutables.
+
 ## Política media y variante de build
 
 - OMX MTK y sus bibliotecas no se extraen, stagean, anuncian ni integran. Las referencias a dumps, logs o listas de binarios sólo son evidencia de ABI; nunca son fuente de integración.

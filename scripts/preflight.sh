@@ -9,6 +9,33 @@ check_file() { [[ -f "$1" ]] && echo "OK $2" || { echo "MISS $2: $1"; fail=1; };
 check_dir() { [[ -d "$1" ]] && echo "OK $2" || { echo "MISS $2: $1"; fail=1; }; }
 check_cmd() { command -v "$1" >/dev/null 2>&1 && echo "OK cmd $1" || { echo "MISS cmd $1"; fail=1; }; }
 
+ca_bundle_matches_pin() {
+  local dir="$REPO_ROOT/workspace/cacerts" bundle="$REPO_ROOT/workspace/cacerts.pem"
+  local metadata="$REPO_ROOT/workspace/cacerts.source" expected actual count
+  [[ -n "${AOSP_CA_REVISION:-}" && -d "$dir" && -f "$bundle" && -f "$metadata" ]] || return 1
+  grep -Fqx "source_revision=$AOSP_CA_REVISION" "$metadata" || return 1
+  expected="$(awk -F= '$1 == "bundle_sha256" { print $2 }' "$metadata")"
+  [[ "$expected" =~ ^[0-9a-f]{64}$ ]] || return 1
+  actual="$(sha256sum "$bundle" | awk '{ print $1 }')"
+  [[ "$actual" == "$expected" ]] || return 1
+  count="$(awk -F= '$1 == "certificate_count" { print $2 }' "$metadata")"
+  [[ "$count" =~ ^[1-9][0-9]*$ ]] || return 1
+  [[ "$(find "$dir" -maxdepth 1 -type f -name '*.[0-9]' -printf . | wc -c)" -eq "$count" ]]
+}
+
+CA_CONFIG="$REPO_ROOT/config/ca-certificates.env"
+check_file "$CA_CONFIG" "pinned AOSP CA input"
+if [[ -f "$CA_CONFIG" ]]; then
+  # shellcheck source=../config/ca-certificates.env
+  source "$CA_CONFIG"
+  if [[ "${AOSP_CA_REVISION:-}" =~ ^[0-9a-f]{40}$ ]]; then
+    echo "OK pinned AOSP CA revision $AOSP_CA_REVISION"
+  else
+    echo "MISS immutable AOSP CA revision in $CA_CONFIG"
+    fail=1
+  fi
+fi
+
 check_file "$REPO_ROOT/manifest/cm12.lock.xml" "CM12 locked manifest"
 check_dir "$REPO_ROOT/device/amazon/biscuit" "Biscuit device source"
 check_dir "$REPO_ROOT/device/amazon/mt8163-common" "MT8163 common source"
@@ -56,6 +83,13 @@ if [[ -f "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel" ]]; then
   echo "OK prebuilt kernel present"
 else
   echo "MISS prebuilt kernel; run scripts/build-kernel.sh"
+  fail=1
+fi
+
+if ca_bundle_matches_pin; then
+  echo "OK pinned AOSP CA bundle materialized"
+else
+  echo "MISS pinned AOSP CA bundle; run scripts/update-ca-certs.sh"
   fail=1
 fi
 

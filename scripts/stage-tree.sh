@@ -4,6 +4,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="${CM12:-$REPO_ROOT/workspace/cm12}"
+CA_CERTS_DIR="${CA_CERTS_DIR:-$REPO_ROOT/workspace/cacerts}"
+CA_CERTS_BUNDLE="${CA_CERTS_BUNDLE:-$REPO_ROOT/workspace/cacerts.pem}"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
 
@@ -49,10 +51,10 @@ copy_dir "$REPO_ROOT/hardware/mediatek" \
 copy_dir "$REPO_ROOT/workspace/vendor/amazon" \
          "$CM12/vendor/amazon" \
          "vendor/amazon"
-copy_files_from_dir "$REPO_ROOT/workspace/cacerts" \
+copy_files_from_dir "$CA_CERTS_DIR" \
                     "$CM12/libcore/luni/src/main/files/cacerts" \
                     "libcore cacerts"
-copy_file "$REPO_ROOT/workspace/cacerts.pem" \
+copy_file "$CA_CERTS_BUNDLE" \
           "$CM12/device/amazon/biscuit/cacerts.pem" \
           "curl cacerts.pem"
 copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel" \
