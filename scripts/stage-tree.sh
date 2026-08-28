@@ -49,7 +49,6 @@ copy_dir "$REPO_ROOT/hardware/mediatek" \
 copy_dir "$REPO_ROOT/workspace/vendor/amazon" \
          "$CM12/vendor/amazon" \
          "vendor/amazon"
-"$REPO_ROOT/scripts/disable-mtk-omx-codecs.sh"
 copy_files_from_dir "$REPO_ROOT/workspace/cacerts" \
                     "$CM12/libcore/luni/src/main/files/cacerts" \
                     "libcore cacerts"
