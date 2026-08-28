@@ -28,8 +28,12 @@ workspace/cm12
 
 workspace/kernel/amazon/biscuit
   <- scripts/prepare-kernel-source.sh
-  <- Amazon Echo Dot 5.5.5.4 source tarball
+  <- verified, unmodified Amazon Echo Dot 5.5.5.4 source
   <- sha256 dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd
+
+workspace/kernel/build/biscuit
+  <- scripts/stage-kernel-for-build.sh
+  <- disposable patched build stage
 
 workspace/vendor/amazon/biscuit
   <- scripts/extract-biscuit-stock-blobs.sh <system.img>

@@ -11,8 +11,10 @@
 - Source: Amazon Echo Dot 5.5.5.4
 - URL: `https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2`
 - SHA256: `dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd`
-- Script: `scripts/prepare-kernel-source.sh`
-- Destino ignorado: `workspace/kernel/amazon/biscuit/`
+- Materializador: `scripts/prepare-kernel-source.sh`
+- Base ignorada e inmutable: `workspace/kernel/amazon/biscuit/`
+- Soporte de build ignorado: `workspace/kernel/amazon/biscuit-build-support/`
+- Stage de build ignorado: `workspace/kernel/build/biscuit/` via `scripts/stage-kernel-for-build.sh`
 - Patches: `patches/kernel/biscuit-kernel-*.patch`
 
 ## Blobs propietarios Biscuit

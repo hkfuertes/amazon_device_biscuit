@@ -10,7 +10,7 @@ scripts/build-kernel.sh
 
 Outputs (ignored by git):
 
-- `kernel` — `Image.gz-dtb` built from `workspace/kernel/amazon/biscuit`.
+- `kernel` — `Image.gz-dtb` built from a patched stage of `workspace/kernel/amazon/biscuit`.
 - `kernel.sha256`
 - `kernel-selection.txt`
 
