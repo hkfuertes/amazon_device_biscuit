@@ -3,7 +3,7 @@ new file mode 100644
 index 0000000..ee9f498
 --- /dev/null
 +++ b/frameworks/av/media/libstagefright/codecs/flac/dec/Android.mk
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,28 @@
 +LOCAL_PATH := $(call my-dir)
 +include $(CLEAR_VARS)
 +
@@ -236,7 +236,7 @@ new file mode 100644
 index 0000000..4ab1ab2
 --- /dev/null
 +++ b/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.cpp
-@@ -0,0 +1,458 @@
+@@ -0,0 +1,474 @@
 +/*
 + * Copyright (C) 2017 The Android Open Source Project
 + *
