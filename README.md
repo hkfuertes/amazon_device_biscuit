@@ -42,7 +42,12 @@ workspace/vendor/amazon/biscuit
 
 See `docs/sources.md` for URLs plus source, media, and build-variant policy.
 
-## Build from an empty `workspace/`
+## Build
+
+The build deliberately has two Docker stages: a reproducibly generated kernel,
+then the CM12 OTA that consumes that generated kernel as a prebuilt. The
+Amazon kernel source and every output remain ignored under `workspace/`; only
+the recipe and patch series are tracked.
 
 One-time CM12 Docker image, if missing:
 
@@ -51,29 +56,65 @@ docker image inspect cm12-ubuntu14:latest >/dev/null 2>&1 || \
   docker build -t cm12-ubuntu14:latest -f docker/cm12-ubuntu14.Dockerfile docker/
 ```
 
-Clean rebuild flow:
+### Clean build from an empty `workspace/`
 
 ```sh
+# Optional destructive clean: removes only ignored downloads, sources, blobs, and outputs.
 rm -rf workspace
+
+# Materialize all reproducible external inputs.
 scripts/bootstrap-workspace.sh
+
+# Build the patched kernel in its dedicated Docker image.
 scripts/build-kernel.sh
+
+# Read-only gate: verify inputs, pins, blobs, generated kernel, and host tools.
 scripts/preflight.sh
+
+# Stage tracked trees and launch the detached CM12 userdebug OTA build.
 scripts/build.sh
 docker logs -f cm12-biscuit-build
 ```
 
-`scripts/build.sh` stages tracked `device/`, `hardware/`, and patches, starts the OTA build in detached Docker, and leaves artifacts under:
+The commands have distinct responsibilities:
+
+| Command | What it does |
+| --- | --- |
+| `scripts/bootstrap-workspace.sh` | Syncs the pinned CM12 manifest, verifies/extracts the unmodified Amazon kernel base, materializes the pinned CA bundle, prepares the stock system image, extracts and vendor-patches blobs, then stages tracked trees and CM12 patches. |
+| `scripts/build-kernel.sh` | Copies the verified kernel base to a disposable stage, applies `patches/kernel/`, builds `Image.gz-dtb` with the dedicated toolchain container, and places the generated prebuilt under ignored `workspace/`. It creates `biscuit-kernel-builder:latest` if needed. |
+| `scripts/preflight.sh` | Performs no download, sync, build, or flash. It fails with a specific missing-input command if the workspace is incomplete. Run it explicitly before every OTA build. |
+| `scripts/build.sh` | Re-stages tracked `device/` and `hardware/` trees, vendor inputs, CA files, and `patches/cm12/`; then starts `make otapackage` in detached `cm12-biscuit-build`. It does **not** run `preflight.sh` itself. |
+
+The OTA is written under:
 
 ```txt
 workspace/cm12/out-docker/target/product/biscuit/
 ```
 
-Incremental builds keep `workspace/cm12/out-docker/`. Partial cleanups are opt-in:
+### Incremental builds
+
+For ordinary CM12/device changes with an existing valid kernel:
 
 ```sh
-CLEAN_BISCUIT_OUT=1 scripts/build.sh
-CLEAN_KERNEL_OUT=1 scripts/build-kernel.sh
+scripts/preflight.sh
+scripts/build.sh
+docker logs -f cm12-biscuit-build
 ```
+
+If the Amazon kernel source recipe or `patches/kernel/` changed, rebuild the
+kernel first. Clean outputs only when a clean rebuild is intended:
+
+```sh
+CLEAN_KERNEL_OUT=1 scripts/build-kernel.sh
+scripts/preflight.sh
+CLEAN_BISCUIT_OUT=1 scripts/build.sh
+docker logs -f cm12-biscuit-build
+```
+
+`BUILD_KERNEL=1 scripts/build.sh` is a convenience form that runs the separate
+kernel builder before launching CM12; it does not make the kernel part of the
+CM12 Make dependency graph. Prefer the explicit sequence above when monitoring
+or diagnosing the two builds separately.
 
 ## Biscuit intents
 
