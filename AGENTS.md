@@ -44,6 +44,8 @@ adb shell biscuit_service volume down
 adb shell biscuit_service volume set '<0..max>'
 adb shell biscuit_service mute on|off|toggle
 adb shell biscuit_service mic mute|unmute|toggle
+adb shell biscuit_service countdown set '<remaining-ms>' '<total-ms>'
+adb shell biscuit_service countdown clear
 adb shell biscuit_service bt pair
 adb shell biscuit_service bt off
 ```

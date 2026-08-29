@@ -20,6 +20,10 @@ Audio:
   mute on|off|toggle         set/toggle real microphone mute
   mic mute|unmute|toggle     same as mute
 
+Countdown:
+  countdown set <remaining-ms> <total-ms>  show a breathing countdown bar
+  countdown clear                          clear the countdown display
+
 Bluetooth:
   bt pair                    enable Bluetooth and enter pairing mode
   bt off                     disable Bluetooth / disconnect clients
@@ -69,6 +73,19 @@ case "$1" in
                 ;;
             toggle|'')
                 start "$PKG.MICROPHONE_MUTE_TOGGLE"
+                ;;
+        esac
+        ;;
+    countdown|timer)
+        case "$2" in
+            set|progress)
+                [ -n "$3" ] && [ -n "$4" ] || { echo "missing countdown values" >&2; usage >&2; exit 2; }
+                exec am startservice -a "$PKG.COUNTDOWN_PROGRESS" \
+                    --el com.amazon.biscuit.service.EXTRA_COUNTDOWN_REMAINING_MS "$3" \
+                    --el com.amazon.biscuit.service.EXTRA_COUNTDOWN_TOTAL_MS "$4" "$COMP"
+                ;;
+            clear|off|stop)
+                start "$PKG.COUNTDOWN_CLEAR"
                 ;;
         esac
         ;;

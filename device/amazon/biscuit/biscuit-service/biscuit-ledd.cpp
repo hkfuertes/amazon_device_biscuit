@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include <string>
+#include <time.h>
 #include <vector>
 
 #define LED_FRAME "/sys/bus/i2c/devices/0-003f/frame"
@@ -31,6 +32,10 @@ static unsigned g_volume_generation;
 static std::string g_manual;
 static std::string g_active;
 static bool g_mic_muted;
+static bool g_countdown_running;
+static unsigned g_countdown_generation;
+static long long g_countdown_remaining;
+static long long g_countdown_total;
 
 static bool write_file(const char* path, const std::string& s) {
     int fd = open(path, O_WRONLY);
@@ -77,6 +82,71 @@ static bool parse_rgb(const std::string& in, std::string* out) {
         return true;
     }
     return false;
+}
+
+struct Rgb { int red; int green; int blue; };
+
+// Index 11 -> 0 matches the physical fill order of volume.animation.
+static const int k_countdown_order[12] = { 11, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+
+static int scale_component(int component, int percent) {
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+    return (component * percent + 50) / 100;
+}
+
+static void append_rgb(std::string* frame, int red, int green, int blue) {
+    char rgb[7];
+    snprintf(rgb, sizeof(rgb), "%02X%02X%02X", red, green, blue);
+    frame->append(rgb);
+}
+
+static Rgb countdown_color(long long remaining, long long total) {
+    long double fraction = (long double)remaining / (long double)total;
+    if (fraction > 0.50L) return Rgb{0x6F, 0xD3, 0xB5};  // mint green
+    if (fraction >= 0.20L) return Rgb{0xF4, 0xE2, 0xB6}; // warm ivory
+    return Rgb{0xF0, 0x8A, 0x82};                        // soft coral
+}
+
+static std::string render_countdown_frame(long long remaining, long long total,
+                                          int body_percent, int cursor_percent) {
+    if (total <= 0 || remaining <= 0 || remaining > total) return std::string(72, '0');
+    int lit = (int)(((long double)remaining * 12.0L + (long double)total - 1.0L)
+            / (long double)total);
+    if (lit < 0) lit = 0;
+    if (lit > 12) lit = 12;
+
+    int brightness[12] = {};
+    for (int i = 0; i < lit; ++i) {
+        brightness[k_countdown_order[i]] = i == lit - 1 ? cursor_percent : body_percent;
+    }
+
+    Rgb color = countdown_color(remaining, total);
+    std::string frame;
+    frame.reserve(72);
+    for (int led = 0; led < 12; ++led) {
+        append_rgb(&frame,
+                   scale_component(color.red, brightness[led]),
+                   scale_component(color.green, brightness[led]),
+                   scale_component(color.blue, brightness[led]));
+    }
+    return frame;
+}
+
+static unsigned long long monotonic_ms() {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return (unsigned long long)now.tv_sec * 1000ULL + (unsigned long long)now.tv_nsec / 1000000ULL;
+}
+
+static void countdown_brightness(int* body_percent, int* cursor_percent) {
+    const unsigned long long period_ms = 2000;
+    const unsigned long long half_period_ms = period_ms / 2;
+    unsigned long long phase = monotonic_ms() % period_ms;
+    unsigned long long triangle = phase <= half_period_ms ? phase : period_ms - phase;
+    // ponytail: the caller owns timekeeping; the daemon only renders the continuous breath.
+    *body_percent = 35 + (int)(triangle * 45 / half_period_ms);
+    *cursor_percent = 55 + (int)(triangle * 45 / half_period_ms);
 }
 
 static bool parse_frame_line(const std::string& line, Frame* frame) {
@@ -152,7 +222,11 @@ static void* player(void* arg) {
 
 static void play_name(const std::string& name, bool manual) {
     pthread_mutex_lock(&g_lock);
-    if (manual) g_manual = name;
+    if (manual) {
+        g_manual = name;
+        g_countdown_running = false;
+        ++g_countdown_generation;
+    }
     g_active = name;
     ++g_generation;
     ++g_volume_generation;
@@ -195,6 +269,73 @@ static void show_volume(int current, int max) {
     pthread_detach(thread);
 }
 
+static void* countdown_player(void* arg) {
+    unsigned generation = *(unsigned*)arg;
+    delete (unsigned*)arg;
+    for (;;) {
+        long long remaining = 0, total = 0;
+        pthread_mutex_lock(&g_lock);
+        bool active = g_countdown_running && generation == g_countdown_generation;
+        remaining = g_countdown_remaining;
+        total = g_countdown_total;
+        pthread_mutex_unlock(&g_lock);
+        if (!active) return NULL;
+
+        int body_percent = 0, cursor_percent = 0;
+        countdown_brightness(&body_percent, &cursor_percent);
+        write_file(LED_FRAME, render_countdown_frame(remaining, total, body_percent, cursor_percent));
+        usleep(50 * 1000);
+    }
+}
+
+static void clear_countdown() {
+    pthread_mutex_lock(&g_lock);
+    bool muted = g_mic_muted;
+    g_manual.clear();
+    g_active.clear();
+    g_running = false;
+    g_countdown_running = false;
+    g_countdown_remaining = 0;
+    g_countdown_total = 0;
+    ++g_generation;
+    ++g_volume_generation;
+    ++g_countdown_generation;
+    pthread_mutex_unlock(&g_lock);
+    if (muted) play_name("volume-muted", false);
+    else write_file(LED_FRAME, "000000000000000000000000000000000000000000000000000000000000000000000000");
+}
+
+static void show_countdown(long long remaining, long long total) {
+    if (total <= 0 || remaining < 0 || remaining > total) return;
+    if (remaining == 0) {
+        clear_countdown();
+        return;
+    }
+
+    bool start = false;
+    unsigned generation = 0;
+    pthread_mutex_lock(&g_lock);
+    g_manual = "countdown";
+    g_active = "countdown";
+    ++g_generation;
+    ++g_volume_generation;
+    g_running = true;
+    g_countdown_remaining = remaining;
+    g_countdown_total = total;
+    if (!g_countdown_running) {
+        g_countdown_running = true;
+        generation = ++g_countdown_generation;
+        start = true;
+    }
+    pthread_mutex_unlock(&g_lock);
+
+    if (start) {
+        pthread_t thread;
+        pthread_create(&thread, NULL, countdown_player, new unsigned(generation));
+        pthread_detach(thread);
+    }
+}
+
 static void set_mic_mute(bool muted) {
     pthread_mutex_lock(&g_lock);
     g_mic_muted = muted;
@@ -212,8 +353,12 @@ static void clear() {
     g_active.clear();
     g_mic_muted = false;
     g_running = false;
+    g_countdown_running = false;
+    g_countdown_remaining = 0;
+    g_countdown_total = 0;
     ++g_generation;
     ++g_volume_generation;
+    ++g_countdown_generation;
     pthread_mutex_unlock(&g_lock);
     write_file(LED_FRAME, "000000000000000000000000000000000000000000000000000000000000000000000000");
 }
@@ -229,6 +374,15 @@ static void handle(int fd, char* line) {
         Animation anim;
         if (load_animation(name, &anim)) { play(name); dprintf(fd, "OK\n"); }
         else dprintf(fd, "ERR bad animation\n");
+    } else if (!strncmp(line, "COUNTDOWN ", 10)) {
+        long long remaining = -1, total = -1;
+        if (sscanf(line + 10, "%lld %lld", &remaining, &total) == 2
+                && total > 0 && remaining >= 0 && remaining <= total) {
+            show_countdown(remaining, total);
+            dprintf(fd, "OK\n");
+        } else {
+            dprintf(fd, "ERR bad countdown\n");
+        }
     } else if (!strncmp(line, "VOLUME ", 7)) {
         int cur = -1, max = -1;
         if (sscanf(line + 7, "%d %d", &cur, &max) == 2) { show_volume(cur, max); dprintf(fd, "OK\n"); }

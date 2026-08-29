@@ -153,9 +153,33 @@ com.amazon.biscuit.service.WIFI_CONNECT      extras: ssid, psk
 com.amazon.biscuit.service.VOLUME_UP
 com.amazon.biscuit.service.VOLUME_DOWN
 com.amazon.biscuit.service.VOLUME_SET        extra: volume
+com.amazon.biscuit.service.COUNTDOWN_PROGRESS extras: remaining_ms, total_ms
+com.amazon.biscuit.service.COUNTDOWN_CLEAR
 com.amazon.biscuit.service.MICROPHONE_MUTE_ON
 com.amazon.biscuit.service.MICROPHONE_MUTE_OFF
 com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE
+```
+
+### Countdown ring
+
+`COUNTDOWN_PROGRESS` renders a reverse volume bar: all remaining LEDs breathe
+in synchrony, and the final lit LED is the brighter cursor. The complete active
+bar is mint above 50% remaining, warm ivory from 50% through 20%, and soft coral
+below 20%. At zero, the display clears.
+
+Use long extras with these exact names:
+
+```txt
+com.amazon.biscuit.service.EXTRA_COUNTDOWN_REMAINING_MS
+com.amazon.biscuit.service.EXTRA_COUNTDOWN_TOTAL_MS
+```
+
+The caller owns timekeeping and updates the remaining value (once per second is
+sufficient). For shell testing:
+
+```sh
+adb shell biscuit_service countdown set 300000 600000
+adb shell biscuit_service countdown clear
 ```
 
 Microphone mute changes are broadcast as sticky system broadcasts:
