@@ -101,11 +101,9 @@ static void append_rgb(std::string* frame, int red, int green, int blue) {
     frame->append(rgb);
 }
 
-static Rgb countdown_color(long long remaining, long long total) {
-    long double fraction = (long double)remaining / (long double)total;
-    if (fraction > 0.50L) return Rgb{0x6F, 0xD3, 0xB5};  // mint green
-    if (fraction >= 0.20L) return Rgb{0xF4, 0xE2, 0xB6}; // warm ivory
-    return Rgb{0xF0, 0x8A, 0x82};                        // soft coral
+static Rgb countdown_color() {
+    // Saturated purple remains visibly colored on the physical LED ring.
+    return Rgb{0xFF, 0x00, 0xFF};
 }
 
 static std::string render_countdown_frame(long long remaining, long long total,
@@ -121,7 +119,7 @@ static std::string render_countdown_frame(long long remaining, long long total,
         brightness[k_countdown_order[i]] = i == lit - 1 ? cursor_percent : body_percent;
     }
 
-    Rgb color = countdown_color(remaining, total);
+    Rgb color = countdown_color();
     std::string frame;
     frame.reserve(72);
     for (int led = 0; led < 12; ++led) {

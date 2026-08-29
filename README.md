@@ -164,8 +164,8 @@ com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE
 
 `COUNTDOWN_PROGRESS` renders a reverse volume bar: all remaining LEDs breathe
 in synchrony, and the final lit LED is the brighter cursor. The complete active
-bar is mint above 50% remaining, warm ivory from 50% through 20%, and soft coral
-below 20%. At zero, the display clears.
+bar is saturated purple (`#FF00FF`) at every remaining-time state. At zero, the
+display clears.
 
 Use long extras with these exact names:
 
