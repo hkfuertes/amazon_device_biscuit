@@ -2,6 +2,10 @@
 
 Rules for agents in this repo.
 
+## Language
+
+- All repository copy and documentation must be written in English. Preserve literal command output, identifiers, and quoted upstream text when translation would change their meaning.
+
 ## References
 
 - Amazon help: https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480

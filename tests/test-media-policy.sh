@@ -11,8 +11,8 @@ MEDIA="$REPO_ROOT/device/amazon/biscuit/media_codecs.xml"
 ! grep -qi 'OMX\.MTK\|mtk_omx' "$MEDIA"
 grep -Fqx '    <Include href="media_codecs_ffmpeg.xml" />' "$MEDIA"
 grep -Fqx '    <Include href="media_codecs_google_audio.xml" />' "$MEDIA"
-grep -Fq 'OMX MTK y sus bibliotecas no se extraen, stagean, anuncian ni integran.' "$POLICY"
-grep -Fq 'Los codecs Google, FFmpeg y FLAC se construyen desde fuente.' "$POLICY"
-grep -Fq 'La variante soportada sigue siendo `userdebug`:' "$POLICY"
+grep -Fq 'MTK OMX and its libraries are not extracted, staged, advertised, or integrated.' "$POLICY"
+grep -Fq 'Google, FFmpeg, and FLAC codecs are built from source.' "$POLICY"
+grep -Fq 'The supported variant remains `userdebug`:' "$POLICY"
 
 echo 'PASS media policy excludes OMX MTK and retains source codecs/userdebug'

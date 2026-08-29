@@ -1,10 +1,11 @@
 # Baseline smoke checks — CM12 Biscuit
 
-Estado aceptado para esta ROM: `userdebug`, SELinux `permissive`, root/ADB root habilitable. No tratar eso como fallo.
+Accepted state for this ROM: `userdebug`, permissive SELinux, and root/ADB root
+can be enabled. Do not treat those as failures.
 
 ## Baseline OK
 
-Tras flashear una OTA, la base se considera válida si:
+After flashing an OTA, the baseline is valid if:
 
 ```sh
 adb devices -l
@@ -14,30 +15,30 @@ adb shell 'ps | grep -E "(zygote|system_server|surfaceflinger|mediaserver|netd|w
 adb shell 'getprop | grep -E "\[(init\.svc\.(media|zygote|surfaceflinger|netd|wpa_supplicant|biscuit)|sys\.boot_completed|wlan\.|dhcp\.|wifi\.)"'
 ```
 
-Esperado:
+Expected:
 
-- ADB vuelve como `device`.
+- ADB returns as `device`.
 - `sys.boot_completed=1`.
 - `ro.product.device=biscuit`.
-- slot real ROM: `_a` o `_b` según build/flasheo.
-- `/system` montado `ro`; `/data` y `/cache` montados `rw`.
-- procesos vivos: `zygote`, `system_server`, `surfaceflinger`, `netd`, `wpa_supplicant`, `biscuit-ledd`, `com.amazon.biscuit.service`.
-- WiFi con `wlan.driver.status=ok`, DHCP `ok`, IP en `wlan0`.
+- Actual ROM slot: `_a` or `_b`, depending on the build/flash.
+- `/system` is mounted `ro`; `/data` and `/cache` are mounted `rw`.
+- Live processes: `zygote`, `system_server`, `surfaceflinger`, `netd`, `wpa_supplicant`, `biscuit-ledd`, `com.amazon.biscuit.service`.
+- Wi-Fi has `wlan.driver.status=ok`, DHCP `ok`, and an address on `wlan0`.
 
-## Checks red
+## Network checks
 
 ```sh
 adb shell 'ip addr show wlan0; ip route'
 adb shell 'ping -c 2 -W 2 192.168.77.1; ping -c 2 -W 2 8.8.8.8; ping -c 2 -W 2 google.com'
 ```
 
-Esperado:
+Expected:
 
-- `wlan0` `UP,LOWER_UP`.
-- ruta default vía gateway local.
-- ping gateway/internet/DNS con `0% packet loss`.
+- `wlan0` is `UP,LOWER_UP`.
+- The default route goes through the local gateway.
+- Gateway/internet/DNS pings have `0% packet loss`.
 
-## Fallos conocidos que NO invalidan baseline
+## Known failures that do NOT invalidate the baseline
 
 ### Trebuchet/headless UI
 
@@ -47,27 +48,28 @@ FATAL EXCEPTION: main
 LauncherProvider / AppWidgetHost.deleteHost / IAppWidgetService null
 ```
 
-Track: cleanup headless; quitar Trebuchet/launcher en vez de arreglar widgets.
+Track as headless cleanup; remove Trebuchet/the launcher instead of fixing
+widgets.
 
-### WiFi warnings con red funcional
+### Wi-Fi warnings with a working network
 
 ```txt
 wpa_driver_nl80211_driver_cmd: failed to issue private commands
 Unexpected BatchedScanResults :null
 ```
 
-No invalida baseline si DHCP y ping funcionan.
+These do not invalidate the baseline if DHCP and ping work.
 
-### SELinux permissive/root/userdebug
+### Permissive SELinux/root/userdebug
 
 ```txt
 avc: denied ... permissive=1
 Service ... needs a SELinux domain defined
 ```
 
-Aceptado para esta ROM. Solo arreglar si bloquea algo real.
+Accepted for this ROM. Fix only if it blocks something real.
 
-### Ruido CM/apps sobrantes
+### CM noise/unneeded apps
 
 ```txt
 Unknown permission ...
@@ -77,9 +79,9 @@ no app suggest provider found
 no available spell checker services found
 ```
 
-Track: cleanup headless.
+Track as headless cleanup.
 
-### Kernel/device-tree warnings no bloqueantes
+### Non-blocking kernel/device-tree warnings
 
 ```txt
 mt8163-mfgsys not found
@@ -90,17 +92,18 @@ Failed to read rtc boot reason
 /dev/hw_random not found
 ```
 
-No invalida baseline salvo síntoma en sensor/LED/boot reason.
+These do not invalidate the baseline unless there is a sensor/LED/boot-reason
+symptom.
 
-## Criterio de fallo real
+## Real failure criteria
 
-Abrir investigación si aparece cualquiera de estos:
+Start an investigation if any of the following occurs:
 
-- ADB no vuelve tras arranque razonable/manual.
-- `sys.boot_completed` no llega a `1`.
-- bootloop/reinicio espontáneo.
-- `system_server`/`zygote` muertos o reiniciando.
-- `/data` o `/cache` no montan `rw`.
-- WiFi sin IP/DHCP o sin ping a gateway.
-- `biscuit-ledd` no arranca.
-- kernel panic/oops nuevo.
+- ADB does not return after a reasonable/manual boot period.
+- `sys.boot_completed` does not reach `1`.
+- Boot loop or spontaneous reboot.
+- `system_server`/`zygote` is dead or restarting.
+- `/data` or `/cache` is not mounted `rw`.
+- Wi-Fi has no IP/DHCP or cannot ping the gateway.
+- `biscuit-ledd` does not start.
+- A new kernel panic/oops.
