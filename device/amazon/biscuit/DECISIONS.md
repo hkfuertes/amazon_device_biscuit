@@ -2,8 +2,8 @@
 
 ## Location
 
-`sources/device_amazon_biscuit/` — tracked in this repo.  
-Symlinked to `workspace/cm12/device/amazon/biscuit` by `preflight.sh` when CM12 source is present.
+`device/amazon/biscuit/` — tracked in this repo.
+Copied to `workspace/cm12/device/amazon/biscuit` by `stage-tree.sh` when CM12 source is present.
 
 ## What is (and isn't) here
 

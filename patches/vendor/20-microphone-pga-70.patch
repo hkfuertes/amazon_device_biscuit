@@ -1,0 +1,7 @@
+--- a/etc/audio_init.sh
++++ b/etc/audio_init.sh
+@@ -7,2 +7,2 @@
+-A_PGA_L="40"
+-A_PGA_R="40"
++A_PGA_L="70"
++A_PGA_R="70"

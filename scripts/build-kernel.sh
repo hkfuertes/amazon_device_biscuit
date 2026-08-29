@@ -18,7 +18,8 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-KERNEL_SOURCE="$REPO_ROOT/workspace/kernel/amazon/biscuit"
+KERNEL_BASE="$REPO_ROOT/workspace/kernel/amazon/biscuit"
+KERNEL_STAGE="${KERNEL_STAGE:-$REPO_ROOT/workspace/kernel/build/biscuit}"
 PREBUILT_DIR="$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt"
 CM12_PREBUILT_DIR="$REPO_ROOT/workspace/cm12/device/amazon/biscuit/prebuilt"
 KERNEL_OUT="${KERNEL_OUT:-$REPO_ROOT/workspace/kernel-out}"
@@ -40,12 +41,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# ── 1. Ensure kernel source exists ─────────────────────────────────────────
-if [[ ! -f "$KERNEL_SOURCE/Makefile" || ! -f "$KERNEL_SOURCE/arch/arm64/configs/biscuit_defconfig" ]]; then
+# ── 1. Ensure the verified kernel base exists ─────────────────────────────────
+if [[ ! -f "$KERNEL_BASE/Makefile" || ! -f "$KERNEL_BASE/arch/arm64/configs/biscuit_defconfig" ]]; then
   "$REPO_ROOT/scripts/prepare-kernel-source.sh"
 fi
 
-# ── 2. Ensure Docker image exists ────────────────────────────────────────────
+# ── 2. Stage a patched build copy without mutating the base ───────────────────
+KERNEL_STAGE="$KERNEL_STAGE" "$REPO_ROOT/scripts/stage-kernel-for-build.sh"
+
+# ── 3. Ensure Docker image exists ────────────────────────────────────────────
 if [[ "$REBUILD_IMAGE" -eq 1 ]] || ! docker image inspect "$DOCKER_IMAGE" >/dev/null 2>&1; then
   echo "Building $DOCKER_IMAGE ..."
   docker build \
@@ -54,16 +58,16 @@ if [[ "$REBUILD_IMAGE" -eq 1 ]] || ! docker image inspect "$DOCKER_IMAGE" >/dev/
     "$REPO_ROOT/docker/"
 fi
 
-# ── 3. Prepare output directory ──────────────────────────────────────────────
+# ── 4. Prepare output directory ──────────────────────────────────────────────
 if [[ "$CLEAN_KERNEL_OUT" == 1 && -d "$KERNEL_OUT" ]]; then
   echo "Removing stale kernel-out/ ..."
   rm -rf "$KERNEL_OUT"
 fi
 mkdir -p "$KERNEL_OUT"
 
-# ── 4. Run kernel build inside Docker ────────────────────────────────────────
+# ── 5. Run kernel build inside Docker ────────────────────────────────────────
 # Mount:
-#   /kernel-src — read-only vendored Amazon kernel source
+#   /kernel-src — writable, disposable patched kernel build stage
 #   /kernel-out — writable output directory
 
 if docker ps -a --format '{{.Names}}' | grep -qx "$CONTAINER"; then
@@ -75,8 +79,7 @@ echo "Starting kernel build in container '$CONTAINER' (jobs=$JOBS) ..."
 docker run \
   --name "$CONTAINER" \
   --user "$(id -u):$(id -g)" \
-  -v "$KERNEL_SOURCE:/kernel-src:ro" \
-  -v "$REPO_ROOT/patches:/patches:ro" \
+  -v "$KERNEL_STAGE:/kernel-src" \
   -v "$KERNEL_OUT:/kernel-out" \
   "$DOCKER_IMAGE" \
   bash -lc "
@@ -88,16 +91,9 @@ trap 'rm -rf \$TMPDIR' EXIT
 DEFCONFIG_NAME=\"biscuit_defconfig\"
 TARGET_ARCH=\"arm64\"
 
-SRC_DIR=\"\$TMPDIR/src\"
-echo '==> Copying vendored kernel source ...'
-mkdir -p \"\$SRC_DIR\"
-cp -a /kernel-src/. \"\$SRC_DIR/\"
+SRC_DIR=\"/kernel-src\"
+echo '==> Building staged kernel source ...'
 
-echo '==> Applying Biscuit kernel patches ...'
-for p in /patches/biscuit-kernel-*.patch; do
-  echo '==> Applying' "\$p"
-  patch -d "\$SRC_DIR" -p4 < "\$p"
-done
 
 OUT_DIR=\"\$TMPDIR/out\"
 mkdir -p \"\$OUT_DIR\"
@@ -143,7 +139,7 @@ done
 echo '==> Done.'
 "
 
-# ── 5. Copy kernel to prebuilt/ ──────────────────────────────────────────────
+# ── 6. Copy kernel to prebuilt/ ──────────────────────────────────────────────
 mkdir -p "$PREBUILT_DIR"
 
 # Prefer Image.gz-dtb, fall back to Image, then Image.gz
@@ -171,6 +167,8 @@ sha256sum "$PREBUILT_DIR/kernel" | tee "$PREBUILT_DIR/kernel.sha256"
 sha256sum "$CM12_PREBUILT_DIR/kernel" > "$CM12_PREBUILT_DIR/kernel.sha256"
 cat > "$PREBUILT_DIR/kernel-selection.txt" <<EOF
 source=workspace/kernel/amazon/biscuit
+build_stage=${KERNEL_STAGE#$REPO_ROOT/}
+patch_series=patches/kernel
 kernel=${KERNEL_IMAGE#$REPO_ROOT/}
 upstream_url=https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2
 upstream_sha256=dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd

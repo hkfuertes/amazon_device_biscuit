@@ -6,7 +6,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TREE="$REPO_ROOT/sources/device_amazon_biscuit"
+TREE="$REPO_ROOT/device/amazon/biscuit"
 
 PASS=0
 FAIL=0
@@ -69,7 +69,7 @@ echo "-- CM12 sync check (if CM12 synced) --"
 CM12_BISCUIT="$REPO_ROOT/workspace/cm12/device/amazon/biscuit"
 CM12_COMMON="$REPO_ROOT/workspace/cm12/device/amazon/mt8163-common"
 if [[ -d "$REPO_ROOT/workspace/cm12/build" ]]; then
-  check "device tree link farm in cm12/" "[[ -f '$CM12_BISCUIT/cm_biscuit.mk' ]]"
+  check "device tree staged in cm12/" "[[ -f '$CM12_BISCUIT/cm_biscuit.mk' ]]"
   check "mt8163-common copied in cm12/" "[[ -f '$CM12_COMMON/mt8163-common.mk' ]]"
 else
   echo "  SKIP cm12/ not synced — run preflight.sh after repo sync"
