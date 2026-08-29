@@ -153,7 +153,9 @@ com.amazon.biscuit.service.WIFI_CONNECT      extras: ssid, psk
 com.amazon.biscuit.service.VOLUME_UP
 com.amazon.biscuit.service.VOLUME_DOWN
 com.amazon.biscuit.service.VOLUME_SET        extra: volume
-com.amazon.biscuit.service.COUNTDOWN_PROGRESS extras: remaining_ms, total_ms
+com.amazon.biscuit.service.COUNTDOWN_PROGRESS
+  long extras: com.amazon.biscuit.service.EXTRA_COUNTDOWN_REMAINING_MS
+               com.amazon.biscuit.service.EXTRA_COUNTDOWN_TOTAL_MS
 com.amazon.biscuit.service.COUNTDOWN_CLEAR
 com.amazon.biscuit.service.MICROPHONE_MUTE_ON
 com.amazon.biscuit.service.MICROPHONE_MUTE_OFF
@@ -165,7 +167,8 @@ com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE
 `COUNTDOWN_PROGRESS` renders a reverse volume bar: all remaining LEDs breathe
 in synchrony, and the final lit LED is the brighter cursor. The complete active
 bar is saturated purple (`#FF00FF`) at every remaining-time state. At zero, the
-display clears.
+countdown clears. If the microphone is muted, its existing red mute indicator
+takes priority instead.
 
 Use long extras with these exact names:
 
