@@ -2,6 +2,10 @@
 
 Rules for agents in this repo.
 
+## Language
+
+- All repository copy and documentation must be written in English. Preserve literal command output, identifiers, and quoted upstream text when translation would change their meaning.
+
 ## References
 
 - Amazon help: https://www.amazon.com/gp/help/customer/display.html?nodeId=201626480
@@ -40,6 +44,8 @@ adb shell biscuit_service volume down
 adb shell biscuit_service volume set '<0..max>'
 adb shell biscuit_service mute on|off|toggle
 adb shell biscuit_service mic mute|unmute|toggle
+adb shell biscuit_service countdown set '<remaining-ms>' '<total-ms>'
+adb shell biscuit_service countdown clear
 adb shell biscuit_service bt pair
 adb shell biscuit_service bt off
 ```

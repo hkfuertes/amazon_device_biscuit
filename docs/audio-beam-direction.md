@@ -1,28 +1,29 @@
-# Dirección de voz / beam ASP — Biscuit
+# Voice direction / ASP beam — Biscuit
 
-## Resumen
+## Summary
 
-Stock no parece calcular la dirección en Alexa directamente. La cadena vista en blobs stock es:
+Stock does not appear to calculate direction directly in Alexa. The stock-blob
+chain is:
 
 ```txt
 libasp / audiosignalprocessor
-  -> callback ASP con evento de beam/dirección
+  -> ASP callback with a beam/direction event
   -> stock audiohub
-  -> LIPC event/property beamDir en com.doppler.audio
+  -> LIPC beamDir event/property in com.doppler.audio
   -> stock ledd BeamDirection / BeamPattern
-  -> animación del anillo
+  -> ring animation
 ```
 
-En CM12 actual:
+In the current CM12 build:
 
-- `audiosignalprocessor` existe como Binder service.
-- `libasp.so` y `libaspclient.so` están presentes.
-- `biscuit-ledd` es nuestro daemon simple por socket Unix; no implementa `BeamDirection`/`beamDir`.
-- `BiscuitService` Java es el punto correcto para exponer una API pública nuestra; el wrapper shell solo debe invocarla.
+- `audiosignalprocessor` exists as a Binder service.
+- `libasp.so` and `libaspclient.so` are present.
+- `biscuit-ledd` is our simple Unix-socket daemon; it does not implement `BeamDirection`/`beamDir`.
+- The Java `BiscuitService` is the right place to expose our public API; the shell wrapper should only call it.
 
-## Evidencia stock
+## Stock evidence
 
-Fuentes locales inspeccionadas:
+Inspected local sources:
 
 ```txt
 workspace/extracted/biscuit-stock-272.6.4.1/system.img
@@ -32,7 +33,7 @@ workspace/extracted/biscuit-stock-272.6.4.1/system.img
 /tmp/biscuit-stock-asp/libaspclient.so
 ```
 
-Strings relevantes:
+Relevant strings:
 
 ### `bin/audiohub`
 
@@ -74,38 +75,40 @@ AFEDiagBeamChangeCount
 Beam change count: %d
 ```
 
-También aparecen comandos de arbitraje, probablemente no la dirección directa:
+Arbitration commands also appear, but they are probably not the direct direction
+value:
 
 ```txt
 ASP_CMD_REQUEST_ARBITRATION_DATA
 {"sequenceID":%d,"voiceEnergy":%d,"ambientEnergy":%d}
 ```
 
-## Comprobación en CM12 actual
+## Check on the current CM12 build
 
-Lectura en dispositivo:
+Device readout:
 
 ```txt
 service list | grep audiosignalprocessor
 87 audiosignalprocessor: [com.amazon.asp.IAudioSignalProcessor]
 ```
 
-Esto sugiere que podemos registrar un listener igual que stock `audiohub`, sin portar `audiohub` completo.
+This suggests that we can register a listener like stock `audiohub` without
+porting all of `audiohub`.
 
-## Cómo averiguar el valor real
+## How to discover the actual value
 
-Prueba mínima, sin cambios persistentes:
+Minimum test, with no persistent changes:
 
-1. Compilar/subir `biscuit_asp_beam_probe` temporal a `/data/local/tmp`.
-2. El probe registra un `com.amazon.asp.IAudioEventListener` contra `audiosignalprocessor` por Binder.
-3. Abrir captura con `AudioRecord` source `VOICE_RECOGNITION` (`6`) para activar `PipelineAsr`.
-4. Descartar audio; loguear solo eventos ASP: `what`, `size`, bytes crudos, y si `size == 4`, interpretarlo como `int32` candidato `beamDir`.
-5. Hablar desde varias posiciones y mapear valor -> sector físico del anillo.
+1. Temporarily build/push `biscuit_asp_beam_probe` to `/data/local/tmp`.
+2. The probe registers a `com.amazon.asp.IAudioEventListener` with `audiosignalprocessor` through Binder.
+3. Open capture with `AudioRecord` source `VOICE_RECOGNITION` (`6`) to activate `PipelineAsr`.
+4. Discard audio; log only ASP events: `what`, `size`, raw bytes, and, if `size == 4`, interpret it as a candidate `beamDir` `int32`.
+5. Speak from several positions and map the value to the physical ring sector.
 
-No usar reproducción de audio para esta prueba.
+Do not use audio playback for this test.
 
 ```sh
-# desde la raíz de amazon_device_biscuit
+# from the amazon_device_biscuit root
 scripts/stage-tree.sh
 
 docker rm -f cm12-biscuit-build >/dev/null 2>&1 || true
@@ -122,7 +125,7 @@ adb shell chmod 755 /data/local/tmp/biscuit_asp_beam_probe
 adb shell /data/local/tmp/biscuit_asp_beam_probe 20
 ```
 
-Salida esperada:
+Expected output:
 
 ```txt
 listening seconds=20 source=VOICE_RECOGNITION discard_audio=1
@@ -130,76 +133,70 @@ asp_event what=<n> size=<n> int32=<candidate> bytes=<hex>
 done
 ```
 
-## Búsqueda de ángulos precalculados (RE estático)
+## Search for precalculated angles (static RE)
 
-Hipótesis: Amazon convierte beam -> ángulo en algún blob userspace y podemos
-copiar la tabla. Resultado: **no existe en userspace**.
+Hypothesis: Amazon converts beam -> angle in a userspace blob, and we can copy
+the table. Result: **it does not exist in userspace**.
 
-Método: desensamblado local con capstone+pyelftools (wheels en
-`~/.local/lib/python3.13/site-packages`, sin sudo), búsqueda de xrefs a
-strings (pools, relocs R_ARM_RELATIVE, movw/movt) y escaneo de `.rodata`
-en busca de tablas float/double en progresión aritmética (0,30,60... o radianes).
+Method: local disassembly with capstone+pyelftools (wheels in
+`~/.local/lib/python3.13/site-packages`, no sudo), xref searches for strings
+(pools, `R_ARM_RELATIVE` relocs, movw/movt), and a `.rodata` scan for
+float/double tables in arithmetic progression (0,30,60... or radians).
 
-Hallazgos:
+Findings:
 
-- `libasp.so`: 0 tablas de ángulos. El beam lo calcula el AFE en el DSP;
-  libasp solo recibe el índice y lo reemite vía `ReportEvent(what=3, int32)`.
-- El nº de beams llega por config AFE en runtime (JSON WHA desde la nube):
-  `AFE config mics %d beams %d speakers %d`. No hardcodeado en el blob.
-- `audiohub`: passthrough crudo, sin conversión (ver sección anterior).
-- `ledd`: cluster de strings `BeamPattern/BeamPatternOn/BeamPatternOff/
-  BeamDirection/beamDir` en `.rodata` (0x4c1cc..0x4c2b3) **sin ninguna
-  referencia** desde código ni desde datos (probablemente código muerto o
-  manejado por una lib que no tenemos extraída). No hay tabla beam->LED.
+- `libasp.so`: 0 angle tables. The AFE in the DSP calculates the beam; libasp only receives the index and re-emits it through `ReportEvent(what=3, int32)`.
+- The number of beams comes from AFE configuration at runtime (cloud-delivered WHA JSON): `AFE config mics %d beams %d speakers %d`. It is not hard-coded in the blob.
+- `audiohub`: raw passthrough, without conversion (see the previous section).
+- `ledd`: the `BeamPattern/BeamPatternOn/BeamPatternOff/BeamDirection/beamDir` string cluster is in `.rodata` (`0x4c1cc..0x4c2b3`) **with no reference** from code or data (probably dead code or handled by a library we did not extract). There is no beam-to-LED table.
 
-Conclusión: el valor `beamDir` es un índice de beam crudo del AFE de
-principio a fin. La correspondencia con ángulos/posición física hay que
-medirla empíricamente.
+Conclusion: `beamDir` is a raw AFE beam index end to end. Its relationship to
+physical angles/positions must be measured empirically.
 
-Pista sobre la resolución: los valores observados en la primera prueba real
-fueron `3,5,7,9,11` (todos impares). Encaja con **12 beams de 30°**
-(índice x 30 = grados: 90,150,210,270,330...), coherente con un aro de 12
-LEDs. Pendiente de confirmar con el protocolo de mapeo.
+Resolution clue: the values observed during the first real test were `3,5,7,9,11`
+(all odd). That fits **12 beams of 30°** (index x 30 = degrees:
+90,150,210,270,330...), consistent with a 12-LED ring. This remains to be
+confirmed with the mapping protocol.
 
-## Protocolo de mapeo empírico beam -> sector físico (pendiente)
+## Empirical beam-to-physical-sector mapping protocol (pending)
 
-1. Elegir referencia física del aro (p.ej. botones / conector cable).
-2. Fuente de voz en bucle (teléfono/altavoz) a distancia fija (~1 m).
-3. Para cada posición (frente, 45°, derecha, 135°, detrás, 225°, izquierda,
-   315°): 15-20 s de voz mientras corre `biscuit_asp_beam_probe 25`.
-4. Anotar `int32` dominante por posición -> tabla `beam idx -> sector`.
-5. Validar repitiendo 2 posiciones; si el mapa es lineal (idx x 30 + offset),
-   interpolar el resto.
+1. Choose a physical ring reference (for example, buttons/cable connector).
+2. Place a voice source in a loop (phone/speaker) at a fixed distance (~1 m).
+3. For each position (front, 45°, right, 135°, behind, 225°, left, 315°), speak for 15–20 seconds while `biscuit_asp_beam_probe 25` runs.
+4. Record the dominant `int32` for each position -> `beam idx -> sector` table.
+5. Validate by repeating two positions; if the map is linear (`idx x 30 + offset`), interpolate the rest.
 
-## Posible soporte futuro en `BiscuitService` Java
+## Possible future Java `BiscuitService` support
 
-API pública nuestra debería vivir en el servicio Java, no en el wrapper shell:
+Our public API should live in the Java service, not in the shell wrapper:
 
-- Binder/AIDL opcional: `int getBeamDirection()` o `String beamStatus()`.
-- Broadcast sticky opcional:
+- Optional Binder/AIDL: `int getBeamDirection()` or `String beamStatus()`.
+- Optional sticky broadcast:
 
 ```txt
 com.amazon.biscuit.service.BEAM_DIRECTION_CHANGED
 com.amazon.biscuit.service.EXTRA_BEAM_DIRECTION   int
 ```
 
-Implementación mínima sugerida:
+Suggested minimum implementation:
 
 ```txt
 native ASP listener/helper
-  -> notifica dirección actual a BiscuitService Java
-  -> BiscuitService valida/ratea
-  -> opcionalmente manda comando nuevo a biscuit-ledd
+  -> notifies the current direction to Java BiscuitService
+  -> BiscuitService validates/rate-limits
+  -> optionally sends a new command to biscuit-ledd
 ```
 
-Motivo del helper nativo: `libaspclient.so` expone una interfaz Binder C++ (`com.amazon.asp.IAudioSignalProcessor`), no una API Java/AIDL ya disponible en el árbol.
+Reason for the native helper: `libaspclient.so` exposes a C++ Binder interface
+(`com.amazon.asp.IAudioSignalProcessor`), not a Java/AIDL API already available
+in the tree.
 
-Extensión LED mínima si queremos visualizarlo:
+Minimum LED extension if we want to display it:
 
 ```txt
-biscuit-ledd: comando BEAM <0..N-1>
-BiscuitService Java: método/action para set/get beam
-wrapper shell: solo cliente fino después
+biscuit-ledd: BEAM <0..N-1> command
+Java BiscuitService: set/get beam method/action
+shell wrapper: thin client only, afterwards
 ```
 
-Mantenerlo lazy: primero probe + mapa de valores; solo después añadir API estable.
+Keep it lazy: first obtain a probe and value map; only then add a stable API.

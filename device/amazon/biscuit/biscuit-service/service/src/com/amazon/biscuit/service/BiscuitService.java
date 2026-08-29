@@ -44,9 +44,13 @@ public final class BiscuitService extends Service {
     public static final String MIC_MUTE_ON = "com.amazon.biscuit.service.MICROPHONE_MUTE_ON";
     public static final String MIC_MUTE_OFF = "com.amazon.biscuit.service.MICROPHONE_MUTE_OFF";
     public static final String MIC_MUTE_TOGGLE = "com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE";
+    public static final String COUNTDOWN_PROGRESS = "com.amazon.biscuit.service.COUNTDOWN_PROGRESS";
+    public static final String COUNTDOWN_CLEAR = "com.amazon.biscuit.service.COUNTDOWN_CLEAR";
     private static final String EXTRA_SSID = "ssid";
     private static final String EXTRA_PSK = "psk";
     private static final String EXTRA_VOLUME = "volume";
+    private static final String EXTRA_COUNTDOWN_REMAINING_MS = "com.amazon.biscuit.service.EXTRA_COUNTDOWN_REMAINING_MS";
+    private static final String EXTRA_COUNTDOWN_TOTAL_MS = "com.amazon.biscuit.service.EXTRA_COUNTDOWN_TOTAL_MS";
     private static final String EXTRA_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
     private static final String EXTRA_STREAM_VALUE = "android.media.EXTRA_VOLUME_STREAM_VALUE";
     private static final String EXTRA_MICROPHONE_MUTED = "com.amazon.biscuit.service.EXTRA_MICROPHONE_MUTED";
@@ -114,6 +118,11 @@ public final class BiscuitService extends Service {
             adjustVolume(AudioManager.ADJUST_LOWER);
         } else if (intent != null && VOLUME_SET.equals(intent.getAction())) {
             setVolume(intent.getIntExtra(EXTRA_VOLUME, -1));
+        } else if (intent != null && COUNTDOWN_PROGRESS.equals(intent.getAction())) {
+            setCountdown(intent.getLongExtra(EXTRA_COUNTDOWN_REMAINING_MS, -1),
+                    intent.getLongExtra(EXTRA_COUNTDOWN_TOTAL_MS, -1));
+        } else if (intent != null && COUNTDOWN_CLEAR.equals(intent.getAction())) {
+            clearCountdown();
         } else if (intent != null && MIC_MUTE_ON.equals(intent.getAction())) {
             setRealMicMuted(true);
         } else if (intent != null && MIC_MUTE_OFF.equals(intent.getAction())) {
@@ -162,6 +171,24 @@ public final class BiscuitService extends Service {
         if (volume < 0) volume = 0;
         if (volume > max) volume = max;
         audio.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+    }
+
+    private void setCountdown(long remainingMs, long totalMs) {
+        if (totalMs <= 0 || remainingMs < 0 || remainingMs > totalMs) return;
+        if (remainingMs == 0) {
+            clearCountdown();
+            return;
+        }
+        try {
+            sendOk("COUNTDOWN " + remainingMs + " " + totalMs);
+        } catch (RemoteException ignored) { }
+    }
+
+    private void clearCountdown() {
+        try {
+            sendOk("CLEAR");
+            updateMicLed(((AudioManager) getSystemService(AUDIO_SERVICE)).isMicrophoneMute());
+        } catch (RemoteException ignored) { }
     }
 
     private void updateMicLed(boolean muted) {

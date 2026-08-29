@@ -1,57 +1,58 @@
-# Fuentes reproducibles
+# Reproducible sources
 
 ## CM12
 
 - Manifest: `manifest/cm12.lock.xml`
 - Sync: `scripts/sync-cm12.sh`
-- Destino ignorado: `workspace/cm12/`
+- Ignored destination: `workspace/cm12/`
 
 ## Kernel
 
 - Source: Amazon Echo Dot 5.5.5.4
 - URL: `https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2`
 - SHA256: `dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd`
-- Materializador: `scripts/prepare-kernel-source.sh`
-- Base ignorada e inmutable: `workspace/kernel/amazon/biscuit/`
-- Soporte de build ignorado: `workspace/kernel/amazon/biscuit-build-support/`
-- Stage de build ignorado: `workspace/kernel/build/biscuit/` via `scripts/stage-kernel-for-build.sh`
+- Materializer: `scripts/prepare-kernel-source.sh`
+- Ignored immutable base: `workspace/kernel/amazon/biscuit/`
+- Ignored build support: `workspace/kernel/amazon/biscuit-build-support/`
+- Ignored build stage: `workspace/kernel/build/biscuit/` via `scripts/stage-kernel-for-build.sh`
 - Patches: `patches/kernel/biscuit-kernel-*.patch`
 
-## Blobs propietarios Biscuit
+## Biscuit proprietary blobs
 
-- Source: OTA stock Biscuit full 272.6.4.1
+- Source: Biscuit full stock OTA 272.6.4.1
 - URL: `https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin`
-- Input generado: `workspace/extracted/biscuit-stock-272.6.4.1/system.img` from `system.new.dat` + `system.transfer.list`
+- Generated input: `workspace/extracted/biscuit-stock-272.6.4.1/system.img` from `system.new.dat` + `system.transfer.list`
 - Script: `scripts/extract-biscuit-stock-blobs.sh`
-- Serie vendor: `patches/vendor/`, aplicada por `scripts/apply-vendor-patches.sh`
-- Destino ignorado: `workspace/vendor/amazon/biscuit/`
+- Vendor series: `patches/vendor/`, applied by `scripts/apply-vendor-patches.sh`
+- Ignored destination: `workspace/vendor/amazon/biscuit/`
 
-Política: no versionar blobs; extraerlos de OTA. El extractor excluye Mali/GPU y genera `biscuit-vendor.mk`.
+Policy: do not version blobs; extract them from the OTA. The extractor excludes
+Mali/GPU and generates `biscuit-vendor.mk`.
 
-## Certificados CA
+## CA certificates
 
-- Proyecto AOSP: `https://android.googlesource.com/platform/system/ca-certificates`
-- Revisión inmutable aprobada: `45c7f199cb11b08f6d1ae2b75da25e53140a0c7d`
-- Configuración trackeada: `config/ca-certificates.env`
-- Materializador: `scripts/update-ca-certs.sh`; genera `workspace/cacerts/`, `workspace/cacerts.pem` y `workspace/cacerts.source`.
-- Para actualizar la confianza, cambiar el SHA revisado en `config/ca-certificates.env`, revisar el cambio de certificados y regenerar los outputs. No se aceptan ramas ni refs mutables.
+- AOSP project: `https://android.googlesource.com/platform/system/ca-certificates`
+- Approved immutable revision: `45c7f199cb11b08f6d1ae2b75da25e53140a0c7d`
+- Tracked configuration: `config/ca-certificates.env`
+- Materializer: `scripts/update-ca-certs.sh`; creates `workspace/cacerts/`, `workspace/cacerts.pem`, and `workspace/cacerts.source`.
+- To update trust, change the reviewed SHA in `config/ca-certificates.env`, review the certificate change, and regenerate the outputs. Branches and mutable refs are not accepted.
 
-## Política media y variante de build
+## Media and build-variant policy
 
-- OMX MTK y sus bibliotecas no se extraen, stagean, anuncian ni integran. Las referencias a dumps, logs o listas de binarios sólo son evidencia de ABI; nunca son fuente de integración.
-- El HAL Amazon, los blobs de tuning de audio y tinycompress stock siguen siendo dependencias binarias permitidas mientras no exista un reemplazo fuente validado.
-- Los codecs Google, FFmpeg y FLAC se construyen desde fuente. `OMX.google.*` identifica componentes software de AOSP/CM12, no soporte de OMX MTK.
-- Una investigación de OMX MTK requiere código con licencia clara, procedencia verificable y compatibilidad demostrada con MT8163/CM12. Cualquier integración futura necesita un PRD y pruebas en Biscuit independientes.
-- La variante soportada sigue siendo `userdebug`: ADB/root inseguros y SELinux permissive significan que no es una release de producción. Un futuro `user` requiere opt-in Biscuit para `adbd`, política USB y pruebas de privilegios; no se habilita root globalmente para productos CM12 `user`.
+- MTK OMX and its libraries are not extracted, staged, advertised, or integrated. References to dumps, logs, or binary lists are ABI evidence only; they are never an integration source.
+- The Amazon HAL, audio-tuning blobs, and stock tinycompress remain permitted binary dependencies until a validated source replacement exists.
+- Google, FFmpeg, and FLAC codecs are built from source. `OMX.google.*` identifies AOSP/CM12 software components, not MTK OMX support.
+- Any MTK OMX investigation requires clearly licensed code, verifiable provenance, and demonstrated MT8163/CM12 compatibility. Any future integration needs a separate PRD and Biscuit tests.
+- The supported variant remains `userdebug`: insecure ADB/root and permissive SELinux do not constitute a production release. A future `user` build requires Biscuit-specific opt-in for `adbd`, USB policy, and privilege testing; root must not be globally enabled for CM12 `user` products.
 
-## Referencias externas usadas
+## External references used
 
 - Amazon OSS MT8163 common: `https://github.com/amazon-oss/android_device_amazon_mt8163-common`
 - Amazon OSS hardware helpers: `https://github.com/amazon-oss/android_hardware_amazon/tree/cm-12.1`
 - MT8163 `frameworks/av` software-FLAC reference patch (not a source of OMX MTK integration): `https://github.com/mt8173-dev/android_device_amazon_sloane/raw/7a41e2f9314b0b20f49538718e5e515824c2f97d/patches/frameworks/av/0001-mt8163-frameworks-av-add-required-changes-for-mt8163.patch`
 - MTK helper comparison reference: `https://github.com/lbule/android_hardware_mediatek`
 
-## Trabajo nuestro trackeado
+## Tracked project work
 
 ```txt
 device/amazon/biscuit/
@@ -64,3 +65,31 @@ patches/vendor/
 scripts/
 docker/
 ```
+
+## Patch dependency map
+
+This table records patches with a concrete Biscuit consumer, ABI, or
+configuration. Do not remove one without replacing that dependency and passing
+a clean build plus an on-device test where applicable.
+
+| Patch | Dependency preserved |
+| --- | --- |
+| `cm12-biscuit-frameworks-av-flacdec.patch` | `mt8163-common.mk` installs `libstagefright_soft_flacdec`; the patch also adds the component declared in `media_codecs_google_audio.xml`. |
+| `cm12-biscuit-frameworks-av-flacdec-acodec.patch` | FLAC decoder companion: correctly configures `OMX.google.flac.decoder`. |
+| `cm12-biscuit-curl-system-cacerts.patch` | `curl` uses the materialized bundle at `/system/etc/security/cacerts.pem`. |
+| `cm12-biscuit-use-stock-tinycompress.patch` | The Amazon HAL requires proprietary `libtinycompress.so`; prevents a collision with CM12's source module. |
+| `cm12-biscuit-libhardware-legacy-wmtwifi.patch` | Enables/disables the MediaTek `/dev/wmtWifi` device configured by init and ueventd. |
+| `cm12-biscuit-wifi-sta-userspace.patch` | Configures wpa_supplicant for the proprietary MediaTek driver and STA-only operation without P2P/AP. |
+| `cm12-biscuit-wifi-headless-autoconnect.patch` | A product without a UI needs Wi-Fi enabled and saved-network reconnection at boot. |
+| `cm12-biscuit-bluetooth-headless-speaker.patch` | `persist.service.bt.a2dp.sink=true` requires A2DP Sink/AVRCP Controller and automatic connection. |
+| `cm12-biscuit-microphone-mute-broadcast.patch` | `BiscuitService` receives `MICROPHONE_MUTE_CHANGED` to reflect microphone state. |
+| `cm12-biscuit-framework-mic-mute-key.patch` | Connects physical volume/mute buttons and the documented button-event API for a headless product. |
+| `cm12-biscuit-headless-hwui-config.patch` | Makes `ro.config.no_gpu=true` effective; Biscuit does not integrate Mali/GPU blobs. |
+| `cm12-biscuit-libcutils-atrace-body.patch` | Amazon/MediaTek blobs import `atrace_*_body` symbols through the ABI. |
+| `biscuit-kernel-netfilter-xt-compat-percpu.patch` | Netfilter is enabled in `biscuit_defconfig`; avoids overwriting its per-CPU pointers when replacing tables. |
+| `biscuit-kernel-tsl2583-calibrated-lux-kfree.patch` | The TSL2583 ALS driver is enabled; frees the original pointer and avoids an invalid `kfree`. |
+| `20-microphone-pga-70.patch` | Microphone-gain calibration documented and covered by the vendor fixture. |
+
+The `lab126_log_write` ABI is also required by proprietary blobs. Keep
+`-DAMAZON_LOG` in the build configuration, although the exact place where it is
+defined can be reviewed separately.

@@ -1,92 +1,83 @@
-# Nivel de micrófono y wake word (microWakeWord) — Biscuit
+# Microphone level and wake word (microWakeWord) — Biscuit
 
-Estado: diagnóstico cerrado, fix parcial aplicado, pendiente de validar con AVA real.
+Status: diagnosis complete, partial fix applied, pending validation with real AVA.
 
-Relacionado: `docs/audio-beam-direction.md` (ASP/beam/LED). No duplicar contenido.
+Related: `docs/audio-beam-direction.md` (ASP/beam/LED). Do not duplicate its
+content.
 
-## Síntoma
+## Symptom
 
-Stock FireOS detecta "Alexa" desde el otro extremo de la habitación (~5 m).
-Con CM12 + AVA hay que estar a ~10 cm para que dispare el wake word.
+Stock FireOS detects “Alexa” from the other end of the room (~5 m). With CM12 +
+AVA, the wake word only fires from ~10 cm away.
 
-## Causa raíz
+## Root cause
 
-**No es un problema de la cadena de audio.** Es un desajuste de nivel absoluto
-entre lo que entrega el HAL y lo que espera microWakeWord.
+**This is not an audio-chain problem.** It is an absolute-level mismatch between
+what the HAL provides and what microWakeWord expects.
 
-- AVA usa **microWakeWord** con el modelo `okay_nabu`
-  (visto en `ava5/echo-biscuit-support/.../BiscuitMuteControllerTest.kt`:
-  `{"wakeWords":["okay_nabu"],"microWakeWords":["okay_nabu"]}`).
-- microWakeWord está diseñado para ESP32-S3 con micrófono cercano y **no lleva AGC**.
-  Clasifica directamente sobre el mel-spectrogram, que es sensible a la **amplitud
-  absoluta**. Sus modelos se entrenan con voz a niveles normales (~-25 dBFS).
-- La captura de Biscuit entrega **-69 dBFS**, unos 40 dB por debajo del rango de
-  entrenamiento. Los features caen fuera de distribución y la red no dispara.
-- El wake word engine de Amazon normaliza el nivel antes de clasificar, por eso a
-  stock le da igual correr con la misma ganancia analógica.
+- AVA uses **microWakeWord** with the `okay_nabu` model (observed in `ava5/echo-biscuit-support/.../BiscuitMuteControllerTest.kt`: `{"wakeWords":["okay_nabu"],"microWakeWords":["okay_nabu"]}`).
+- microWakeWord targets ESP32-S3 devices with a close microphone and **has no AGC**. It classifies directly from a mel spectrogram, which is sensitive to **absolute amplitude**. Its models are trained with speech at normal levels (~-25 dBFS).
+- Biscuit capture delivers **-69 dBFS**, about 40 dB below the training range. Features fall out of distribution and the network does not fire.
+- Amazon's wake-word engine normalizes level before classification, so stock operation is unaffected by the same analog gain.
 
-La cuenta cuadra con la ley inversa del cuadrado:
+The inverse-square-law calculation agrees:
 
 ```
 10 cm -> 5 m  =  20*log10(500/10)  =  34 dB
 ```
 
-Hacen falta ~34 dB más de nivel para alcance de habitación.
+About 34 dB more level is required for room-scale range.
 
-## Qué se descartó (con evidencia)
+## What was ruled out (with evidence)
 
-Todas estas hipótesis se investigaron y se descartaron. No volver a abrirlas sin
-un dato nuevo.
+All of these hypotheses were investigated and ruled out. Do not reopen them
+without new evidence.
 
-### El "AudioRecord es 256x más bajo que raw" era un artefacto de escala
+### “AudioRecord is 256x lower than raw” was a scaling artifact
 
-`biscuit_mic_test` reporta fondo de escala **24-bit** (±8388607).
-`biscuit_audiorecord_test` reporta **16-bit** (±32767). Normalizados:
+`biscuit_mic_test` reports **24-bit** full scale (±8388607).
+`biscuit_audiorecord_test` reports **16-bit** full scale (±32767). Normalized:
 
-| Medida | rms | fondo escala | dBFS |
+| Measurement | rms | full scale | dBFS |
 |---|---|---|---|
 | raw tinyalsa | 3000 | 8388608 | -69.0 |
 | AudioRecord | 11 | 32768 | -69.5 |
 
-Es el mismo nivel. El HAL no pierde ni un dB. El factor 256 era exactamente
-la diferencia 24-bit vs 16-bit.
+It is the same level. The HAL does not lose a single dB. The factor of 256 was
+exactly the 24-bit versus 16-bit difference.
 
-### NVRAM / MTK audio params — irrelevante
+### NVRAM / MTK audio parameters — irrelevant
 
-- El HAL no toca NVRAM en la ruta de captura: cero llamadas a
-  `GetAudioCustomParamFromNV`, `SetCaptureGain`, `SetMicGain` en logcat durante
-  un `openInputStream`.
-- Biscuit **no tiene** particiones `nvdata`, `nvram` ni `proinfo`. Solo `persist`.
-  Amazon usa IDME, no NVRAM MTK. `nvram_daemon` no aportaría nada.
-- Particiones reales: `boot boot_a boot_a_x boot_b boot_b_x cache dkb expdb kb lk
-  lk_a lk_b misc persist recovery system system_a system_b tee1 tee2 userdata`.
+- The HAL does not touch NVRAM in the capture path: zero calls to `GetAudioCustomParamFromNV`, `SetCaptureGain`, or `SetMicGain` in logcat during an `openInputStream`.
+- Biscuit **does not have** `nvdata`, `nvram`, or `proinfo` partitions. It has only `persist`. Amazon uses IDME, not MTK NVRAM. `nvram_daemon` would add nothing.
+- Actual partitions: `boot boot_a boot_a_x boot_b boot_b_x cache dkb expdb kb lk lk_a lk_b misc persist recovery system system_a system_b tee1 tee2 userdata`.
 
-### Calibración de micrófonos — presente y válida
+### Microphone calibration — present and valid
 
-`libasp.so` lee `/proc/idme/miccal.<n>` y `/proc/idme/board_id`.
-En el device existen `miccal.0`..`miccal.6` (7 mics) con valores válidos
-(18150, 17869, 15532, 16924, 17377, 17108, 13429). No aparece el error
-`ERROR! micCals[%d]=0! PLEASE CHECK IDME MIC VALUE!`.
+`libasp.so` reads `/proc/idme/miccal.<n>` and `/proc/idme/board_id`.
+The device has `miccal.0`..`miccal.6` (seven microphones) with valid values
+(18150, 17869, 15532, 16924, 17377, 17108, 13429). The error
+`ERROR! micCals[%d]=0! PLEASE CHECK IDME MIC VALUE!` does not appear.
 
-### Mixer / audio_init.sh — correctamente aplicado
+### Mixer / audio_init.sh — correctly applied
 
-El estado del mixer en vivo coincide exactamente con `audio_init.sh`.
-`INPUT_GAIN_SEL=0` significa "0 dB", por eso `DIF1_L Input Gain = Off`; es correcto.
+The live mixer state exactly matches `audio_init.sh`.
+`INPUT_GAIN_SEL=0` means “0 dB”, so `DIF1_L Input Gain = Off` is correct.
 
-### ASP passthrough — no es el interruptor
+### ASP passthrough — not the switch
 
-`libasp.so` expone `persist.asp.asr.passthrough`, `persist.asp.voice.passthrough`,
-`persist.asp.speaker.passthrough`. En el device ninguna está definida.
-A/B alternando `true`/`false` cuatro veces: rms 10, 7, 8, 8 (ruido, sin diferencia)
-y el log entrega siempre el mismo `PipelineAsr in 6 9 16000 out 1 1 16000`.
+`libasp.so` exposes `persist.asp.asr.passthrough`, `persist.asp.voice.passthrough`,
+and `persist.asp.speaker.passthrough`. None is defined on the device.
+A/B testing `true`/`false` four times: rms 10, 7, 8, 8 (noise, no difference),
+and the log always reports the same `PipelineAsr in 6 9 16000 out 1 1 16000`.
 
-### El nivel RMS no mide si el beamforming funciona
+### RMS level does not measure whether beamforming works
 
-Un beamformer normalizado (delay-and-sum / MVDR) mantiene **ganancia unidad** en la
-dirección de mira; mejora el **SNR**, no el nivel absoluto. Que la salida del ASP
-esté a -0.8 dB de un micrófono individual es normal. No hay "déficit de 8 dB".
+A normalized beamformer (delay-and-sum / MVDR) maintains **unit gain** in its
+look direction; it improves **SNR**, not absolute level. An ASP output within
+-0.8 dB of an individual microphone is normal. There is no “8 dB deficit”.
 
-### `ADC_A Digital Volume Control = 88` — no es un bug funcional
+### `ADC_A Digital Volume Control = 88` — not a functional bug
 
 ```c
 static const DECLARE_TLV_DB_SCALE(adc_3101_vol_tlv, -1200, -50, 0);
@@ -94,31 +85,33 @@ SOC_DOUBLE_R_SX_TLV("ADC_A Digital Volume Control",
                     ADC_LADC_VOL(0), ADC_RADC_VOL(0), 0, 0x28, 0x68, ...);
 ```
 
-`snd_soc_info_volsw_sx` declara `max = 0x68 - 0x28 = 64`, y `get` hace
-`(reg - xmin) & 0x7F`. Despejando el 88 observado: `(reg - 40) & 127 = 88` → `reg = 0x00`,
-que es 0 dB, el reset default correcto. No hay atenuación oculta.
+`snd_soc_info_volsw_sx` defines `max = 0x68 - 0x28 = 64`, and `get` calculates
+`(reg - xmin) & 0x7F`. Solving for the observed 88:
+`(reg - 40) & 127 = 88` -> `reg = 0x00`, which is the correct 0 dB reset
+default. There is no hidden attenuation.
 
-Lo que sí está roto es **escribir**: ALSA 0–64 mapea a registros `0x28`–`0x68`, y
-`0x29`–`0x67` es zona reservada del TLV320AIC3101. Arreglarlo exige tocar el driver
-y recompilar kernel. **No hacer**: la ganancia digital del codec no mejora SNR y
-lo que se necesita (nivel para microWakeWord) se consigue más barato en el wrapper.
+What is broken is **writing**: ALSA 0–64 maps to registers `0x28`–`0x68`, and
+`0x29`–`0x67` is a reserved TLV320AIC3101 range. Fixing it requires changing the
+driver and rebuilding the kernel. **Do not do this**: codec digital gain does
+not improve SNR, and the level microWakeWord needs can be obtained more cheaply
+in the wrapper.
 
-### Symlink `mtk-msdc.0` roto — impacto ~nulo
+### Broken `mtk-msdc.0` symlink — near-zero impact
 
 ```
-init.mt8163.rc:59   symlink /dev/block/platform/soc/11230000.mmc   <- destino NO existe, gana
-init.device.rc:4    symlink /dev/block/platform/soc                <- correcto, igual que stock
+init.mt8163.rc:59   symlink /dev/block/platform/soc/11230000.mmc   <- destination does NOT exist, wins
+init.device.rc:4    symlink /dev/block/platform/soc                <- correct, same as stock
 ```
 
-Ambos son `on fs`; el primero en parsearse crea el symlink, el segundo falla con
-`EEXIST`. Solo lo usan `bin/idme` y `lib/libnvram.so`, ninguno crítico
-(`/proc/idme` lo expone el kernel y funciona). Fix trivial (`soc/11230000.mmc` → `soc`)
-si algún día hace falta `bin/idme`.
+Both are `on fs`; the one parsed first creates the symlink and the second fails
+with `EEXIST`. Only `bin/idme` and `lib/libnvram.so` use it, neither critical
+(`/proc/idme` is exposed by the kernel and works). A trivial fix
+(`soc/11230000.mmc` -> `soc`) is available if `bin/idme` is ever needed.
 
-## Medidas de referencia
+## Reference measurements
 
-Barrido del PGA en los 4 ADCs, medianas sobre capturas de 5 s intercaladas
-(40/80/40/80/40/80) para cancelar la deriva del ruido ambiente:
+PGA sweep across all four ADCs, medians from interleaved 5-second captures
+(40/80/40/80/40/80) to cancel ambient-noise drift:
 
 | PGA | dB | raw rms | raw dBFS | AudioRecord rms | AR dBFS | AR peak |
 |---|---|---|---|---|---|---|
@@ -126,24 +119,25 @@ Barrido del PGA en los 4 ADCs, medianas sobre capturas de 5 s intercaladas
 | 80 | 40 dB | 49902 | -44.5 | 91 | -51.1 | 12559 (38% FS) |
 
 ```
-delta raw          +20.4 dB  (esperado +20.0)  -> el PGA escala lineal
-delta AudioRecord  +14.6 dB                    -> el AGC del ASP absorbe ~5 dB
-clipping           ninguno (raw peak 16% FS)
+delta raw          +20.4 dB  (expected +20.0)  -> PGA scales linearly
+delta AudioRecord  +14.6 dB                    -> ASP AGC absorbs ~5 dB
+clipping           none (raw peak 16% FS)
 ```
 
-Medido en silencio, con ruido ambiente. **No validado con altavoz sonando.**
+Measured in silence, with ambient noise. **Not validated while the speaker is
+playing.**
 
-## Quién fija la ganancia analógica
+## Who sets the analog gain
 
-| Capa | Valor | De quién |
+| Layer | Value | Owner |
 |---|---|---|
-| Chip TLV320ADC3101 | 0–119 (0–59.5 dB) | Texas Instruments |
-| Driver `tlv320aic3101.c` (`xmax = 0x50`) | 0–80 (0–40 dB) | Amazon (recorta el chip) |
+| TLV320ADC3101 chip | 0–119 (0–59.5 dB) | Texas Instruments |
+| `tlv320aic3101.c` driver (`xmax = 0x50`) | 0–80 (0–40 dB) | Amazon (caps the chip) |
 | `audio_init.sh` | 40 (20 dB) | Amazon |
-| Tabla init del driver (`MIC_PGA_GAIN_IDC`) | 20 dB | Amazon |
+| Driver initialization table (`MIC_PGA_GAIN_IDC`) | 20 dB | Amazon |
 
-Las 5 únicas ocurrencias de `MICPGA` en los 800 MB del `system.img` stock son las
-5 líneas de `audio_init.sh`. Ningún blob lo toca en runtime:
+The five only `MICPGA` occurrences in the 800 MB stock `system.img` are the
+five `audio_init.sh` lines. No blob changes it at runtime:
 
 ```
 lib/hw/audio.primary_amazon.mt8163.so   0
@@ -153,129 +147,120 @@ lib/libaudiocustparam.so                0
 lib/libaudiocomponentengine.so          0
 ```
 
-Stock corre con 20 dB permanentes, siempre. Es una decisión deliberada de Amazon,
-tomada dos veces, y probablemente protege el headroom del AEC (el altavoz está a
-centímetros de los mics).
+Stock always runs with permanent 20 dB. This is a deliberate Amazon decision,
+made twice, and it likely preserves AEC headroom (the speaker is centimeters
+from the microphones).
 
-## Estado actual
+## Current state
 
-Parche vendor `patches/vendor/20-microphone-pga-70.patch`:
+Vendor patch `patches/vendor/20-microphone-pga-70.patch`:
 
 ```
 A_PGA_L="40" -> "70"     (20 dB -> 35 dB)
 A_PGA_R="40" -> "70"
-A_PGA_R_LINEIN="46"      <- intacto
+A_PGA_R_LINEIN="46"      <- unchanged
 ```
 
-Se aplica después de extraer `etc/audio_init.sh` desde `system.img`. Si el
-formato stock cambia, el parche no aplica y la extracción aborta con diagnóstico;
-la calibración nunca se reescribe silenciosamente.
+It applies after extracting `etc/audio_init.sh` from `system.img`. If the stock
+format changes, the patch does not apply and extraction aborts with a diagnosis;
+calibration is never silently rewritten.
 
-Aporta ~+11 dB en AudioRecord: alcance estimado 10 cm → ~35 cm.
-Mejora, pero es la palanca **peor** de las dos disponibles (ver más abajo).
+It provides ~+11 dB in AudioRecord: estimated range 10 cm -> ~35 cm.
+It helps, but it is the **worse** of the two available levers (see below).
 
-## Objetivo revisado: 2 m, no 5 m
+## Revised target: 2 m, not 5 m
 
 ```
 10 cm -> 5 m :  20*log10(50) = 34 dB
 10 cm -> 2 m :  20*log10(20) = 26 dB
 ```
 
-8 dB menos, y son justo la diferencia entre "forzado" y "cómodo". Más allá de
-2-3 m el limitante deja de ser el nivel y pasa a ser la reverberación de la sala,
-que la ganancia no arregla.
+That is 8 dB less, exactly the difference between “forced” and “comfortable”.
+Beyond 2–3 m, room reverberation becomes the limiting factor rather than level;
+gain cannot fix it.
 
-### Presupuesto de ganancia
+### Gain budget
 
-Del barrido medido, +20 dB de PGA en crudo dieron **+14.6 dB en AudioRecord**
-(el AGC del ASP absorbe el resto). Factor de transferencia ~0.73:
+From the measured sweep, +20 dB raw PGA yielded **+14.6 dB in AudioRecord**
+(the ASP AGC absorbs the rest). Transfer factor ~0.73:
 
-| Configuración | dB en AudioRecord | Alcance estimado |
+| Configuration | dB in AudioRecord | Estimated range |
 |---|---|---|
 | PGA 40 (stock) | 0 | 10 cm |
-| PGA 70 (commit actual) | +11 | ~35 cm |
-| PGA 80 (máximo analógico) | +14.6 | ~55 cm |
+| PGA 70 (current commit) | +11 | ~35 cm |
+| PGA 80 (maximum analog) | +14.6 | ~55 cm |
 | PGA 80 + 11 dB digital | +26 | **2 m** |
 | PGA 80 + 19 dB digital | +34 | 5 m |
 
-El PGA analógico por sí solo **no llega ni a 1 m**. Hace falta ganancia digital sí o sí.
+Analog PGA alone **does not reach 1 m**. Digital gain is required.
 
-### Por qué la ganancia digital es mejor palanca que el PGA aquí
+### Why digital gain is the better lever here than PGA
 
-1. **No mejora el SNR ninguna de las dos.** El ADC tiene ~92 dB de SNR (suelo por
-   debajo de -90 dBFS) y la señal está a -65 dBFS: 27 dB por encima del suelo
-   electrónico. Domina el ruido acústico de la sala, no el ADC. Subir el PGA
-   analógico es, en este caso, equivalente a multiplicar en digital.
-2. **El PGA sí come headroom del AEC** (el altavoz está a centímetros de los mics).
-   La ganancia en `audio_wrapper.c` se aplica **después** de todo el procesado del
-   HAL, así que es inocua para el AEC.
-3. **Tunable en caliente** por property, sin recompilar ni reflashear.
-4. **Clampable** con precisión.
+1. **Neither improves SNR.** The ADC has ~92 dB SNR (floor below -90 dBFS) and the signal is at -65 dBFS: 27 dB above the electronic floor. Room acoustic noise dominates, not the ADC. Raising analog PGA is equivalent here to multiplying digitally.
+2. **PGA does consume AEC headroom** (the speaker is centimeters from the microphones). Gain in `audio_wrapper.c` is applied **after** all HAL processing, so it is harmless to AEC.
+3. **Hot-tunable** through a property, without recompiling or reflashing.
+4. **Precisely clampable**.
 
-Conclusión: el PGA a 70 no está mal, pero la palanca principal debe ser el wrapper.
+Conclusion: PGA 70 is not wrong, but the wrapper should be the primary lever.
 
-### Por qué ganancia fija no basta, y hace falta AGC
+### Why fixed gain is insufficient, and AGC is required
 
-En la medida a PGA 80, el pico de AudioRecord llegó al **38% FS con solo ruido
-ambiente** (rms -51 dBFS, pico -8.3 dBFS → factor de cresta de 43 dB, algún
-transitorio impulsivo). Multiplicar eso por 3.6 satura.
+At PGA 80, the AudioRecord peak reached **38% FS with only ambient noise**
+(rms -51 dBFS, peak -8.3 dBFS -> crest factor 43 dB, an impulsive transient).
+Multiplying that by 3.6 clips.
 
-Una ganancia fija calibrada para disparar a 2 m **saturará** al hablar cerca o con
-un ruido impulsivo. Lo correcto es **normalización lenta hacia un RMS objetivo**
-(~-25 dBFS) con limitador: justo lo que hace el motor de Amazon y lo que
-microWakeWord no trae. ~40 líneas en vez de ~20, pero resuelve cerca y lejos a la
-vez en lugar de elegir uno.
+A fixed gain calibrated to fire at 2 m **will clip** when someone speaks close
+by or during impulsive noise. The correct approach is **slow normalization
+toward a target RMS** (~-25 dBFS) with a limiter: exactly what Amazon's engine
+does and what microWakeWord does not include. It takes ~40 lines rather than
+~20, but handles both nearby and distant speech instead of choosing one.
 
-## Estado tras prueba real
+## State after the real test
 
-La prueba funcional con AVA/microWakeWord dio OK **solo con la subida de ganancia
-analógica**. Por ahora no hace falta flashear ni validar la build experimental con
-AGC AOSP/WebRTC.
+The functional AVA/microWakeWord test passed **with only the analog-gain
+increase**. For now, there is no need to flash or validate the experimental
+AOSP/WebRTC AGC build.
 
-Medida base post-HAL previa a flashear AGC:
+Post-HAL baseline measurement before flashing AGC:
 
 ```txt
 adb shell biscuit_audiorecord_test 5 6
 samples=80128 rms=76 peak=1894 source=6
 ```
 
-## Plan pendiente
+## Pending plan
 
-1. **Dejar el PGA en 70 mientras funcione.** No subir a 80: no aporta SNR y sí quita
-   headroom al AEC.
-2. **No flashear AGC por ahora.** Retomarlo solo si vuelve a fallar wake word a la
-   distancia objetivo, aparecen falsos negativos, o hace falta más rango entre voz
-   cercana/lejana.
-3. **Si vuelve el problema**, preferir AGC/limitador en `audio_wrapper.c`: es nuestro
-   código y ya envuelve el HAL, así que puede interceptar `in->read()` antes de
-   devolver AudioRecord.
-4. **Validar el AEC con música a volumen alto** antes de dar el PGA por definitivo:
-   - que el raw no llegue a clipping (`peak` cerca de 8388607 en `biscuit_mic_test`)
-   - que el wake word siga disparando con el altavoz sonando
-   Si satura, bajar el PGA a 50-60 y compensar en el wrapper.
+1. **Leave PGA at 70 while it works.** Do not increase it to 80: it adds no SNR and removes AEC headroom.
+2. **Do not flash AGC for now.** Resume only if the wake word again fails at the target distance, false negatives appear, or greater near/far range is needed.
+3. **If the problem returns**, prefer AGC/limiting in `audio_wrapper.c`: it is our code and already wraps the HAL, so it can intercept `in->read()` before returning AudioRecord.
+4. **Validate AEC with loud music** before treating the PGA as final:
+   - raw must not clip (`peak` near 8388607 in `biscuit_mic_test`)
+   - the wake word must still fire while the speaker is playing
+   If it clips, lower PGA to 50–60 and compensate in the wrapper.
 
-## Cómo reproducir las medidas
+## How to reproduce the measurements
 
 ```sh
-# nivel raw (24-bit full scale) y post-HAL (16-bit full scale)
+# raw level (24-bit full scale) and post-HAL level (16-bit full scale)
 adb shell biscuit_mic_test 5
 adb shell biscuit_audiorecord_test 5 6      # 6 = VOICE_RECOGNITION
 
-# ganancia analógica actual y rango
+# current analog gain and range
 adb shell tinymix "ADC_A MICPGA Volume Ctrl"
 
-# calibración de mics de fábrica
+# factory microphone calibration
 adb shell 'for i in 0 1 2 3 4 5 6; do cat /proc/idme/miccal.$i; echo; done'
 
-# traza del pipeline ASP durante una captura
+# ASP pipeline trace during capture
 adb shell logcat -c
 adb shell biscuit_audiorecord_test 2 6
 adb shell logcat -d | grep -iE 'AudioALSA|ASP|Pipeline'
 ```
 
-Para comparar niveles entre las dos herramientas hay que normalizar por el fondo
-de escala: `dBFS = 20*log10(rms/8388608)` para `biscuit_mic_test` y
-`20*log10(rms/32768)` para `biscuit_audiorecord_test`. No compararlos en crudo.
+To compare levels between the two tools, normalize by full scale:
+`dBFS = 20*log10(rms/8388608)` for `biscuit_mic_test` and
+`20*log10(rms/32768)` for `biscuit_audiorecord_test`. Do not compare their raw
+values directly.
 
-El ruido ambiente no es estacionario: medir con capturas de 5 s intercaladas entre
-los puntos a comparar y quedarse con la mediana, no con una sola muestra.
+Ambient noise is not stationary: take interleaved 5-second captures between
+comparison points, then use the median rather than a single sample.

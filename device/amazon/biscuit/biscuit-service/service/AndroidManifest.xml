@@ -32,6 +32,8 @@
                 <action android:name="com.amazon.biscuit.service.VOLUME_UP" />
                 <action android:name="com.amazon.biscuit.service.VOLUME_DOWN" />
                 <action android:name="com.amazon.biscuit.service.VOLUME_SET" />
+                <action android:name="com.amazon.biscuit.service.COUNTDOWN_PROGRESS" />
+                <action android:name="com.amazon.biscuit.service.COUNTDOWN_CLEAR" />
                 <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_ON" />
                 <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_OFF" />
                 <action android:name="com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE" />
