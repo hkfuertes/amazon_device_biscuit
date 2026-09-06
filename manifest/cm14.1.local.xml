@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- CM14.1 components verified for the MT8163 compile baseline. -->
+  <remote name="amazon-oss" fetch="https://github.com/amazon-oss" />
+
+  <project name="android_device_amazon_mt8163-common"
+           path="device/amazon/mt8163-common"
+           remote="amazon-oss"
+           revision="311f54e2878fe74c6aed380e739dd447e2ccea13"
+           upstream="cm-14.1" />
+  <project name="android_hardware_amazon"
+           path="hardware/amazon"
+           remote="amazon-oss"
+           revision="fa65a4bee671397b16d3e548463ef80b0144ca81"
+           upstream="cm-14.1" />
+</manifest>

@@ -27,6 +27,9 @@ RUN git clone --depth=1 -b lollipop-release \
     https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 \
     /toolchain/aarch64-linux-android-4.9
 
+# The runtime kernel build maps the host's non-root UID; Git requires this entry.
+RUN useradd --create-home --uid 1000 --user-group builder
+
 # ponytail: mkbootimg NOT baked here — build-boot-img.sh picks it up from:
 #   1. CM12 out-docker/host/linux-x86/bin/mkbootimg  (preferred, built by build.sh)
 #   2. apt-get install -y abootimg                   (fallback; build-boot-img.sh handles both)

@@ -8,6 +8,8 @@
 
 ## Kernel
 
+### CM12
+
 - Source: Amazon Echo Dot 5.5.5.4
 - URL: `https://fireos-audio-src.s3.amazonaws.com/fcDtMdy42ieZkba5oyC4H3KcwU/Echo_Dot_src-5.5.5.4-20220824.tar.bz2`
 - SHA256: `dd92a7ddd7c0fb9b61455542b84132ad00a445c38ef4f910b1272ac04f6f83dd`
@@ -16,6 +18,16 @@
 - Ignored build support: `workspace/kernel/amazon/biscuit-build-support/`
 - Ignored build stage: `workspace/kernel/build/biscuit/` via `scripts/stage-kernel-for-build.sh`
 - Patches: `patches/kernel/biscuit-kernel-*.patch`
+
+### CM14.1 as-is baseline
+
+- Source: Amazon Echo Dot 6.5.7.1
+- URL: `https://fireos-audio-src.s3.amazonaws.com/dMUQiRDxI3hFuRDaF0WTumrp71/Echo_Dot_src-6.5.7.1-20251024.tar.bz2`
+- Verified SHA256: `2f6b7eed8c09cecf7633f01909c6a4085bef691c29ed0d106c75e7b48c7b4721`
+- Launcher: `scripts/build-cm14.1-kernel-as-is.sh` (detached)
+- Source: `workspace/upstream/amazon-echo-dot-6.5.7.1/`
+- Output: `workspace/out/fireos-6.5.7.1-kernel-as-is/arch/arm/boot/zImage-dtb`
+- Patches: none; the Amazon source and build script remain unmodified.
 
 ## Biscuit proprietary blobs
 
