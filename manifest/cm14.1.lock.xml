@@ -4,9 +4,9 @@
   <remote name="aosp" fetch="https://android.googlesource.com" review="android-review.googlesource.com" revision="refs/tags/android-7.1.2_r36"/>
   <remote name="github" fetch=".." review="review.lineageos.org"/>
   <remote name="private" fetch="ssh://git@github.com"/>
-  
+
   <default remote="github" revision="refs/heads/cm-14.1" sync-j="4" sync-c="true"/>
-  
+
   <project name="LineageOS/android" path="android" revision="0638f6eb20da47d5aba0ee2ff05bb693f8b3e7cf" upstream="refs/heads/cm-14.1" dest-branch="refs/heads/cm-14.1"/>
   <project name="LineageOS/android_art" path="art" revision="c9c158c03fc493b5658ae728f9e10ae84510a99c" upstream="refs/heads/cm-14.1" dest-branch="refs/heads/cm-14.1" groups="pdk"/>
   <project name="LineageOS/android_bionic" path="bionic" revision="ed81e37ed7faf9102a1aac604e889f95110e49dd" upstream="refs/heads/cm-14.1" dest-branch="refs/heads/cm-14.1" groups="pdk"/>

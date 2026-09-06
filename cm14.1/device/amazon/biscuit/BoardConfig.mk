@@ -15,6 +15,8 @@ TARGET_KERNEL_HEADER_ARCH := arm
 TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-eabi-
 KERNEL_TOOLCHAIN := $(ANDROID_BUILD_TOP)/prebuilts/gcc/linux-x86/arm/arm-eabi-4.8/bin
 TARGET_LINUX_KERNEL_VERSION := 3.18
+# ponytail: compile .ko files but skip unavailable FireOS module installation.
+TARGET_KERNEL_MODULES := biscuit-kernel-modules-built
 BOARD_KERNEL_IMAGE_NAME := zImage-dtb
 BOARD_KERNEL_BASE := 0x40000000
 BOARD_KERNEL_PAGESIZE := 2048
