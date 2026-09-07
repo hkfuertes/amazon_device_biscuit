@@ -1,0 +1,139 @@
+diff --git a/hardware/amazon/audio/Android.mk b/hardware/amazon/audio/Android.mk
+new file mode 100644
+index 0000000..d436819
+--- /dev/null
++++ b/hardware/amazon/audio/Android.mk
+@@ -0,0 +1,11 @@
++LOCAL_PATH := $(call my-dir)
++
++include $(CLEAR_VARS)
++LOCAL_MODULE := audio.primary.mt8163
++LOCAL_MODULE_RELATIVE_PATH := hw
++LOCAL_SRC_FILES := audio_wrapper.c
++LOCAL_SHARED_LIBRARIES := libhardware liblog
++LOCAL_MODULE_TAGS := optional
++LOCAL_CFLAGS := -Wall -Werror
++include $(BUILD_SHARED_LIBRARY)
++
+diff --git a/hardware/amazon/audio/audio_wrapper.c b/hardware/amazon/audio/audio_wrapper.c
+new file mode 100644
+index 0000000..6290c69
+--- /dev/null
++++ b/hardware/amazon/audio/audio_wrapper.c
+@@ -0,0 +1,53 @@
++/*
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#define LOG_TAG "audio.amazon_wrapper"
++
++#include <errno.h>
++#include <string.h>
++
++#include <hardware/audio.h>
++#include <hardware/hardware.h>
++#include <log/log.h>
++
++static int adev_open(const struct hw_module_t* module, const char* name,
++                     struct hw_device_t** device) {
++    const struct hw_module_t* amazon_module;
++    int status;
++
++    (void)module;
++    if (strcmp(name, AUDIO_HARDWARE_INTERFACE) != 0) {
++        return -EINVAL;
++    }
++
++    status = hw_get_module_by_class(AUDIO_HARDWARE_MODULE_ID, "primary_amazon",
++                                    &amazon_module);
++    if (status != 0) {
++        ALOGE("cannot load FireOS primary audio module: %d", status);
++        return status;
++    }
++    if (!amazon_module->methods || !amazon_module->methods->open) {
++        ALOGE("FireOS primary audio module has no open method");
++        return -ENOSYS;
++    }
++
++    // ponytail: FireOS 6 and CM14 both expose audio-device API v3; forward it directly.
++    return amazon_module->methods->open(amazon_module, name, device);
++}
++
++static struct hw_module_methods_t hal_module_methods = {
++    .open = adev_open,
++};
++
++struct audio_module HAL_MODULE_INFO_SYM = {
++    .common = {
++        .tag = HARDWARE_MODULE_TAG,
++        .module_api_version = AUDIO_MODULE_API_VERSION_CURRENT,
++        .hal_api_version = HARDWARE_HAL_API_VERSION,
++        .id = AUDIO_HARDWARE_MODULE_ID,
++        .name = "Amazon FireOS audio HAL router",
++        .author = "The LineageOS Project",
++        .methods = &hal_module_methods,
++    },
++};
+diff --git a/hardware/amazon/libshims/Android.mk b/hardware/amazon/libshims/Android.mk
+index d7e1c1d..ccfdca0 100644
+--- a/hardware/amazon/libshims/Android.mk
++++ b/hardware/amazon/libshims/Android.mk
+@@ -61,3 +61,13 @@ LOCAL_MODULE_TAGS := optional
+ LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+ LOCAL_PROPRIETARY_MODULE := true
+ include $(BUILD_SHARED_LIBRARY)
++
++include $(CLEAR_VARS)
++LOCAL_SRC_FILES := libtinyalsa/pcm.c
++LOCAL_C_INCLUDES := external/tinyalsa/include
++LOCAL_SHARED_LIBRARIES := libtinyalsa
++LOCAL_MODULE := libtinyalsa_shim
++LOCAL_MODULE_TAGS := optional
++LOCAL_MODULE_CLASS := SHARED_LIBRARIES
++LOCAL_PROPRIETARY_MODULE := true
++include $(BUILD_SHARED_LIBRARY)
+diff --git a/hardware/amazon/libshims/libtinyalsa/pcm.c b/hardware/amazon/libshims/libtinyalsa/pcm.c
+new file mode 100644
+index 0000000..09a0592
+--- /dev/null
++++ b/hardware/amazon/libshims/libtinyalsa/pcm.c
+@@ -0,0 +1,39 @@
++/*
++ * SPDX-License-Identifier: Apache-2.0
++ */
++
++#include <time.h>
++
++#include <tinyalsa/asoundlib.h>
++
++#define PCM_ERROR_MAX 128
++
++/* Matches CM14's external/tinyalsa/pcm.c private layout. */
++struct pcm {
++    int fd;
++    unsigned int flags;
++    int running:1;
++    int prepared:1;
++    int underruns;
++    unsigned int buffer_size;
++    unsigned int boundary;
++    char error[PCM_ERROR_MAX];
++    struct pcm_config config;
++    struct snd_pcm_mmap_status *mmap_status;
++    struct snd_pcm_mmap_control *mmap_control;
++    struct snd_pcm_sync_ptr *sync_ptr;
++    void *mmap_buffer;
++    unsigned int noirq_frames_per_msec;
++    int wait_for_avail_min;
++};
++
++int pcm_get_xrun(struct pcm *pcm) {
++    return pcm->underruns;
++}
++
++int pcm_get_trigger_tstamp(struct pcm *pcm, struct timespec *timestamp) {
++    unsigned int available;
++
++    // ponytail: use CM14's current hardware timestamp; port legacy TinyALSA only if timing fails.
++    return pcm_get_htimestamp(pcm, &available, timestamp);
++}

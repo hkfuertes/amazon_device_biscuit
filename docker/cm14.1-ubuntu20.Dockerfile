@@ -28,6 +28,7 @@ RUN apt-get update \
     libx11-dev \
     libxml2-utils \
     openjdk-8-jdk \
+    patchelf \
     pngcrush \
     python \
     rsync \

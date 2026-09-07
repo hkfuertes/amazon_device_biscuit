@@ -37,7 +37,20 @@
 - Device patches: strict `-p1 --fuzz=0` application of `cm14.1-amonet-fstab.patch` and `cm14.1-headless-system-props.patch`; maps the OTA/runtime fstab to `system_a` and `boot_a_x`, then uses FireOS 6 headless properties without a Mali override.
 - Framework patches: strict `-p1 --fuzz=0` application of `cm14.1-software-egl-fallback.patch` and `cm14.1-hwui-egl-config-fallback.patch`; packages CM14's source-built `libGLES_android.so`, not the FireOS binary.
 
-## Biscuit proprietary blobs
+## CM14.1 Fire OS 6 audio blobs
+
+- Source: Biscuit/Puffin Fire OS 6.5.7.4 full OTA
+- URL: `https://d1s31zyz7dcc2d.cloudfront.net/2026/8/3/f49aaff7-dd63-4d9c-9e9a-c17498267de5/update-kindle-biscuit_puffin-NS6574_user_7623_0013121734532.bin`
+- OTA SHA256: `64ab6d2dd85f8093abdd62c275d229c7e9fdd68e4d46892b48bdbd1d100d46d8`
+- Reconstructor: `scripts/extract-fireos6-payload.py` reconstructs `system` directly from `payload.bin` using Python's standard library and verifies the partition hash embedded in the payload.
+- Verified system image: `workspace/extracted/biscuit-fireos-6.5.7.4/system.img`, SHA256 `eccfa850c3009d5454f69a411c0b757be642059b3224cae8fc941fa0dd22c570`.
+- Extractor: `scripts/extract-cm14-fireos6-audio-blobs.sh`, invoked by `scripts/stage-cm14.1-tree.sh`.
+- Tracked contract: `cm14.1/vendor/amazon/mt8163-common/fireos6-audio-files.txt`; it verifies 43 shared objects, stages Fire OS audio policy/configuration plus 40 audio-algorithm files, and generates the ignored CM14 vendor makefile.
+- Runtime contract: CM14 builds `audio.primary.mt8163` as a small router to the renamed Fire OS blob `audio.primary_amazon.mt8163.so`. The source-built TinyALSA stays in use; `libtinyalsa_shim` supplies the two legacy APIs required by the blob and `libutils_shim` is injected reproducibly. The extractor uses `patchelf` from the pinned CM14 Docker image when it is unavailable on the host.
+
+Policy: do not version blobs. This is an audio-only Fire OS 6 closure; it does not import or advertise MTK OMX codecs.
+
+## CM12 Biscuit proprietary blobs
 
 - Source: Biscuit full stock OTA 272.6.4.1
 - URL: `https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin`

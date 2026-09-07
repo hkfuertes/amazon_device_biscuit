@@ -61,6 +61,8 @@ apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
+CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 
 rm -rf "$KERNEL_DEST" "$KERNEL_SUPPORT"
 mkdir -p "$KERNEL_DEST" "$KERNEL_SUPPORT/include/generated"
@@ -81,4 +83,4 @@ apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-netfilter
   exit 1
 }
 
-echo "Staged CM14.1 Biscuit FireOS 6 kernel source."
+echo "Staged CM14.1 Biscuit FireOS 6 kernel source and audio blob closure."
