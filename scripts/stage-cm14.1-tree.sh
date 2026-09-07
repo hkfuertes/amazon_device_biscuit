@@ -57,9 +57,14 @@ fi
 
 copy_dir "$OVERLAY/device/amazon/biscuit" "$CM14/device/amazon/biscuit"
 copy_dir "$OVERLAY/vendor/amazon" "$CM14/vendor/amazon"
-apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab.patch"
-apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab-live-path.patch"
 FSTAB="$CM14/device/amazon/mt8163-common/rootdir/etc/fstab.mt8163"
+if grep -qE '^/dev/block/platform/soc/by-name/system_a[[:space:]]+/system' "$FSTAB" && \
+   grep -qE '^/dev/block/platform/soc/by-name/boot_a_x[[:space:]]+/boot' "$FSTAB"; then
+  echo "Amonet fstab already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab.patch"
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab-live-path.patch"
+fi
 grep -qE '^/dev/block/platform/soc/by-name/system_a[[:space:]]+/system' "$FSTAB"
 grep -qE '^/dev/block/platform/soc/by-name/boot_a_x[[:space:]]+/boot' "$FSTAB"
 ! grep -q 'soc/11230000\.mmc/by-name' "$FSTAB"
