@@ -1,0 +1,17 @@
+--- a/device/amazon/mt8163-common/rootdir/etc/fstab.mt8163
++++ b/device/amazon/mt8163-common/rootdir/etc/fstab.mt8163
+@@ -6,3 +6,3 @@
+-/dev/block/platform/soc/11230000.mmc/by-name/system_a   /system      ext4   ro						  wait
+-/dev/block/platform/soc/11230000.mmc/by-name/userdata   /data        ext4   noatime,nosuid,nodev,noauto_da_alloc,discard       check,encryptable=/dev/block/platform/soc/11230000.mmc/by-name/metadata,latemount
+-/dev/block/platform/soc/11230000.mmc/by-name/cache      /cache       ext4   noatime,nosuid,nodev,noauto_da_alloc               wait,check
++/dev/block/platform/soc/by-name/system_a   /system      ext4   ro						  wait
++/dev/block/platform/soc/by-name/userdata   /data        ext4   noatime,nosuid,nodev,noauto_da_alloc,discard       check,encryptable=/dev/block/platform/soc/by-name/metadata,latemount
++/dev/block/platform/soc/by-name/cache      /cache       ext4   noatime,nosuid,nodev,noauto_da_alloc               wait,check
+@@ -10,2 +10,2 @@
+-/dev/block/platform/soc/11230000.mmc/by-name/boot_a_x   /boot        emmc   defaults defaults
+-/dev/block/platform/soc/11230000.mmc/by-name/recovery   /recovery    emmc   defaults defaults
++/dev/block/platform/soc/by-name/boot_a_x   /boot        emmc   defaults defaults
++/dev/block/platform/soc/by-name/recovery   /recovery    emmc   defaults defaults
+@@ -13 +13 @@
+-/dev/block/platform/soc/11230000.mmc/by-name/MISC       /misc        emmc   defaults defaults
++/dev/block/platform/soc/by-name/misc       /misc        emmc   defaults defaults
