@@ -30,6 +30,7 @@ RUN apt-get update \
     openjdk-8-jdk \
     pngcrush \
     python \
+    rsync \
     schedtool \
     unzip \
     x11proto-core-dev \
