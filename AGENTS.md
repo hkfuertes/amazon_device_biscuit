@@ -26,7 +26,8 @@ Rules for agents in this repo.
 ## Agent workflow
 
 - Before every operational action, explicitly say what I am going to do, what I am not going to do, and why.
-- If an operation requires `sudo` or root permissions, do not run it: show the exact command for the user to run manually.
+- Agents may run `sudo -n ./boot-recovery.sh` or `sudo -n ./boot-fastboot.sh` only from `/opt/amonet-biscuit-v1.1.0/amonet`, for a user-authorized device operation. Use only these existing root-owned scripts, never wildcards. This exception does not authorize sudoers changes or expand flashing/wiping permissions.
+- For all other operations requiring `sudo` or root permissions, do not run them: show the exact command for the user to run manually.
 - On this device, `adb wait-for-device` can hang or be a poor progress signal. Prefer explicit checks with `adb devices -l`, visual LED/TWRP state, and short timeouts; if ADB does not appear, stop and report.
 - Unless explicitly requested by the user, do not poll or wait for long periods. Long builds/flashes/reboots must be launched detached or as a single concrete action, with instructions for monitoring, then return control so the user can ask between steps.
 - Any change under `workspace/cm12` must be reproducible from tracked repo files: prefer `patches/*.patch`, `scripts/stage-tree.sh`, `scripts/apply-patches.sh`, or equivalent scripts. Do not leave manual-only changes in `workspace/cm12`.
@@ -74,7 +75,7 @@ Notes:
 - Do not touch GPT/preloader/LK/TZ/recovery/userdata/cache/persist/misc unless explicitly requested.
 - In amonet, the real ROM boot slots are `boot_a_x` / `boot_b_x`; `boot_a` / `boot_b` contain the exploit. TWRP/hacked fastboot do the remapping.
 - The user granted sudo NOPASSWD only for `/opt/amonet-biscuit-v1.1.0/amonet/boot-recovery.sh` and `boot-fastboot.sh`. Do not assume permissions for `brick.sh`, `bootrom-step.sh`, `fastboot-step.sh`, or `gpt-fix.sh`.
-- Run amonet scripts with stdin closed and logs redirected so tmux is not broken: `sudo -n ./boot-recovery.sh </dev/null >/tmp/amonet-boot-recovery.log 2>&1`.
+- Launch authorized amonet boot helpers detached, with stdin closed and logs redirected so tmux is not broken: `nohup sudo -n ./boot-recovery.sh </dev/null >/tmp/amonet-boot-recovery.log 2>&1 &`. Use `/tmp/amonet-boot-fastboot.log` for `boot-fastboot.sh`; return control instead of waiting for USB in the foreground.
 - If a kernel does not boot and enters a bootloop, the manual-method “unplug and plug back in” step may be resolved by waiting for the next boot cycle.
 
 ## Enter TWRP
