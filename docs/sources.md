@@ -19,7 +19,7 @@
 - Ignored build stage: `workspace/kernel/build/biscuit/` via `scripts/stage-kernel-for-build.sh`
 - Patches: `patches/kernel/biscuit-kernel-*.patch`
 
-### CM14.1 as-is baseline
+### CM14.1 as-is comparison build
 
 - Source: Amazon Echo Dot 6.5.7.1
 - URL: `https://fireos-audio-src.s3.amazonaws.com/dMUQiRDxI3hFuRDaF0WTumrp71/Echo_Dot_src-6.5.7.1-20251024.tar.bz2`
@@ -28,6 +28,14 @@
 - Source: `workspace/upstream/amazon-echo-dot-6.5.7.1/`
 - Output: `workspace/out/fireos-6.5.7.1-kernel-as-is/arch/arm/boot/zImage-dtb`
 - Patches: none; the Amazon source and build script remain unmodified.
+
+### CM14.1 OTA staging
+
+- Staging: `scripts/stage-cm14.1-tree.sh`
+- Kernel source: disposable `workspace/cm14.1/kernel/amazon/biscuit/`
+- Kernel patch: `patches/kernel/biscuit-kernel-netfilter-xt-compat-percpu.patch`, strict `-p4 --fuzz=0` application only.
+- Device patches: strict `-p1 --fuzz=0` application of `cm14.1-amonet-fstab.patch` and `cm14.1-headless-system-props.patch`; maps the OTA/runtime fstab to `system_a` and `boot_a_x`, then uses FireOS 6 headless properties without a Mali override.
+- Framework patches: strict `-p1 --fuzz=0` application of `cm14.1-software-egl-fallback.patch` and `cm14.1-hwui-egl-config-fallback.patch`; packages CM14's source-built `libGLES_android.so`, not the FireOS binary.
 
 ## Biscuit proprietary blobs
 

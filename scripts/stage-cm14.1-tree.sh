@@ -16,6 +16,19 @@ KERNEL_ARCHIVE_PATH="kernel/mediatek/mt8163/3.18_hl"
 KERNEL_DEST="$CM14/kernel/amazon/biscuit"
 KERNEL_SUPPORT="$CM14/device/amazon/biscuit/kernel-build-support"
 
+apply_patch() {
+  local root="$1" strip="$2" patch_file="$3"
+
+  if patch --batch --forward --fuzz=0 --dry-run -d "$root" -p"$strip" <"$patch_file" >/dev/null; then
+    patch --batch --forward --fuzz=0 -d "$root" -p"$strip" <"$patch_file"
+  elif patch --batch --forward --fuzz=0 --dry-run -R -d "$root" -p"$strip" <"$patch_file" >/dev/null; then
+    echo "Patch already staged: ${patch_file#$REPO_ROOT/}"
+  else
+    echo "ERROR: patch does not apply cleanly: $patch_file" >&2
+    return 1
+  fi
+}
+
 [[ -d "$CM14/build" ]] || { echo "ERROR: CM14.1 not synced at $CM14" >&2; exit 1; }
 [[ -d "$CM14/device/amazon/mt8163-common" ]] || { echo "ERROR: MT8163 common source missing; run scripts/sync-cm14.1.sh" >&2; exit 1; }
 [[ -d "$CM14/hardware/amazon" ]] || { echo "ERROR: Amazon hardware source missing; run scripts/sync-cm14.1.sh" >&2; exit 1; }
@@ -44,6 +57,10 @@ fi
 
 copy_dir "$OVERLAY/device/amazon/biscuit" "$CM14/device/amazon/biscuit"
 copy_dir "$OVERLAY/vendor/amazon" "$CM14/vendor/amazon"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
 
 rm -rf "$KERNEL_DEST" "$KERNEL_SUPPORT"
 mkdir -p "$KERNEL_DEST" "$KERNEL_SUPPORT/include/generated"
@@ -54,6 +71,7 @@ tar -xOf "$SOURCE_DIR/platform.tar" \
 install -m 0644 "$SOURCE_DIR/prebuilt/include/generated/trapz_generated_kernel.h" \
   "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h"
 printf '%s  %s\n' "$VERITY_KEY_SHA256" "$KERNEL_SUPPORT/verity-keys" | sha256sum -c -
+apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-netfilter-xt-compat-percpu.patch"
 
 [[ -f "$KERNEL_DEST/Makefile" && \
    -f "$KERNEL_DEST/arch/arm/configs/biscuit_defconfig" && \

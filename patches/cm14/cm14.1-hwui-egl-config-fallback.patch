@@ -1,0 +1,18 @@
+--- a/frameworks/base/libs/hwui/renderthread/EglManager.cpp
++++ b/frameworks/base/libs/hwui/renderthread/EglManager.cpp
+@@ -172,4 +172,13 @@
+         } else {
+-            // Failed to get a valid config
+-            LOG_ALWAYS_FATAL("Failed to choose config, error = %s", egl_error_str());
++            // ponytail: headless Biscuit uses software GLES; accept any ES2 window config.
++            EGLint fallbackAttribs[] = {
++                    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
++                    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
++                    EGL_NONE
++            };
++            EGLint fallbackConfigs = 0;
++            if (!eglChooseConfig(mEglDisplay, fallbackAttribs, &mEglConfig, 1, &fallbackConfigs)
++                    || fallbackConfigs < 1) {
++                LOG_ALWAYS_FATAL("Failed to choose config, error = %s", egl_error_str());
++            }
+         }

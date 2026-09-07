@@ -1,0 +1,10 @@
+--- a/device/amazon/mt8163-common/system.prop
++++ b/device/amazon/mt8163-common/system.prop
+@@ -1,3 +1,6 @@
+ # Display
+-ro.hardware.gralloc=mt8163.mali
++# ponytail: headless Biscuit has no Mali GLES blob; libhardware falls through to gralloc.default.
++#ro.hardware.gralloc=mt8163.mali
++ro.build.configuration=headless
++debug.hwui.render_dirty_regions=false
+ ro.opengles.version=196609
