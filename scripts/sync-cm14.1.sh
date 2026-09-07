@@ -7,6 +7,10 @@ CM14="${CM14:-$REPO_ROOT/workspace/cm14.1}"
 LOCAL_MANIFEST="$REPO_ROOT/manifest/cm14.1.local.xml"
 LOCK="$REPO_ROOT/manifest/cm14.1.lock.xml"
 REPO_BIN="${REPO_BIN:-}"
+WEBVIEW_DIR="$CM14/external/chromium-webview/prebuilt/arm"
+WEBVIEW_APK="$WEBVIEW_DIR/webview.apk"
+WEBVIEW_APK_SHA256="feeedd44677f5643e2de2de4a44061f7bd31a662e78909d6e052b4fe1468870a"
+WEBVIEW_APK_SIZE=83580708
 
 [[ -f "$LOCAL_MANIFEST" ]] || { echo "ERROR: missing $LOCAL_MANIFEST" >&2; exit 1; }
 mkdir -p "$CM14" "$REPO_ROOT/workspace/bin"
@@ -15,6 +19,20 @@ command -v git-lfs >/dev/null 2>&1 || {
   echo "ERROR: CM14.1's WebView prebuilt requires git-lfs." >&2
   echo "Install it manually: sudo apt-get install git-lfs" >&2
   exit 1
+}
+
+hydrate_webview_lfs() {
+  [[ -d "$WEBVIEW_DIR" ]] || {
+    echo "ERROR: CM14.1 WebView ARM prebuilt is missing" >&2
+    return 1
+  }
+  git -C "$WEBVIEW_DIR" lfs pull --include=webview.apk github
+  printf '%s  %s\n' "$WEBVIEW_APK_SHA256" "$WEBVIEW_APK" | sha256sum -c -
+  [[ "$(stat -c '%s' "$WEBVIEW_APK")" == "$WEBVIEW_APK_SIZE" ]] || {
+    echo "ERROR: unexpected WebView APK size" >&2
+    return 1
+  }
+  unzip -tqq "$WEBVIEW_APK"
 }
 
 if [[ -z "$REPO_BIN" ]]; then
@@ -50,6 +68,8 @@ for attempt in 1 2 3; do
       "$REPO_BIN" manifest -r -o "$LOCK"
       echo "Wrote resolved lock manifest: $LOCK"
     fi
+    hydrate_webview_lfs
+    echo "Hydrated CM14.1 WebView ARM APK."
     exit 0
   fi
   echo "repo sync failed (attempt $attempt/3)" >&2
