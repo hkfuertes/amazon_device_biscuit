@@ -24,6 +24,14 @@ if ! command -v patchelf >/dev/null && ! command -v docker >/dev/null; then
   exit 1
 fi
 [[ -d "$CM14/build" ]] || { echo "ERROR: CM14.1 is not synced at $CM14" >&2; exit 1; }
+if ! command -v patchelf >/dev/null; then
+  docker image inspect cm14.1-ubuntu20:latest >/dev/null 2>&1 && \
+    docker run --rm --network none --entrypoint patchelf cm14.1-ubuntu20:latest \
+      --version >/dev/null 2>&1 || {
+      echo "ERROR: rebuild cm14.1-ubuntu20:latest with patchelf before staging audio blobs." >&2
+      exit 1
+    }
+fi
 [[ -f "$MANIFEST" ]] || { echo "ERROR: missing audio manifest: $MANIFEST" >&2; exit 1; }
 
 mkdir -p "$(dirname "$OTA")" "$(dirname "$SYSTEM_IMG")" "$REPO_ROOT/workspace/tmp"
