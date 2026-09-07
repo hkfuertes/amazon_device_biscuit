@@ -50,6 +50,9 @@ RUN set -eu; \
     dpkg -i /tmp/libtinfo5.deb /tmp/libncurses5.deb; \
     rm -f /tmp/libtinfo5.deb /tmp/libncurses5.deb
 
+# ponytail: build-only Jack 4.8 requires TLSv1/TLSv1.1; remove when Jack is retired.
+RUN sed -i 's/TLSv1, TLSv1\.1, //' /etc/java-8-openjdk/security/java.security
+
 RUN useradd -m -u 1000 builder
 USER builder
 WORKDIR /src
