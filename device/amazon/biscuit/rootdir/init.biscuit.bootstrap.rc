@@ -27,17 +27,18 @@ on post-fs-data
     mkdir /data/misc/dhcp 0770 dhcp wifi
     mkdir /data/wifi 0771 wifi wifi
 
+    start audio_init
+    setprop sys.boot_completed 1
+
+on property:ro.product.device=biscuit
     chmod 0660 /dev/stpwmt
     chmod 0660 /dev/wmtWifi
     chmod 0660 /dev/stpbt
     chown system system /dev/stpwmt
     chown system system /dev/wmtWifi
     chown bluetooth bluetooth /dev/stpbt
-
-    start audio_init
     start wmtLoader
     start conn_launcher
-    setprop sys.boot_completed 1
 
 on property:init.svc.conn_launcher=running
     start wifi_bootstrap

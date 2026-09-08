@@ -39,6 +39,19 @@ grep -Fq 'mkdir /tmp 0771 root root' "$INIT"
 grep -Fq 'mkdir /data/misc 01771 system misc' "$INIT"
 grep -Fq 'mkdir /data/local/tmp 0771 shell shell' "$INIT"
 grep -Fq 'mkdir /data/property 0700 root root' "$INIT"
+awk '
+    $0 == "on property:ro.product.device=biscuit" { in_handler = 1; next }
+    /^on |^service / { in_handler = 0 }
+    in_handler && $0 ~ /^[[:space:]]*start wmtLoader$/ { wmt = 1 }
+    in_handler && $0 ~ /^[[:space:]]*start conn_launcher$/ { conn = 1 }
+    END { exit !(wmt && conn) }
+' "$INIT"
+awk '
+    $0 == "on post-fs-data" { in_post_fs_data = 1; next }
+    /^on |^service / { in_post_fs_data = 0 }
+    in_post_fs_data && $0 ~ /^[[:space:]]*start (wmtLoader|conn_launcher)$/ { found = 1 }
+    END { exit found }
+' "$INIT"
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
 
 echo 'bootstrap product static checks passed'
