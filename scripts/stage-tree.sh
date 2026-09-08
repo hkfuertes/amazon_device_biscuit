@@ -6,6 +6,8 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="${CM12:-$REPO_ROOT/workspace/cm12}"
 CA_CERTS_DIR="${CA_CERTS_DIR:-$REPO_ROOT/workspace/cacerts}"
 CA_CERTS_BUNDLE="${CA_CERTS_BUNDLE:-$REPO_ROOT/workspace/cacerts.pem}"
+ECHOLOCAL_ARTIFACT="${ECHOLOCAL_ARTIFACT:-$REPO_ROOT/workspace/echolocal-release/0.0.6/echod}"
+ECHOLOCAL_MODEL_DIR="${ECHOLOCAL_MODEL_DIR:-$REPO_ROOT/workspace/echolocal-source/internal/host/assets/models}"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
 
@@ -66,3 +68,14 @@ copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel.sha256" \
 copy_file "$REPO_ROOT/workspace/device/amazon/biscuit/prebuilt/kernel-selection.txt" \
           "$CM12/device/amazon/biscuit/prebuilt/kernel-selection.txt" \
           "prebuilt kernel selection"
+copy_file "$ECHOLOCAL_ARTIFACT" \
+          "$CM12/device/amazon/biscuit/echolocal/echod" \
+          "EchoLocal echod"
+for model in okay_nabu hey_jarvis hey_mycroft; do
+  copy_file "$ECHOLOCAL_MODEL_DIR/$model.json" \
+            "$CM12/device/amazon/biscuit/echolocal/models/$model.json" \
+            "EchoLocal $model manifest"
+  copy_file "$ECHOLOCAL_MODEL_DIR/$model.tflite" \
+            "$CM12/device/amazon/biscuit/echolocal/models/$model.tflite" \
+            "EchoLocal $model"
+done

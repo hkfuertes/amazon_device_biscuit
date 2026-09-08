@@ -19,6 +19,9 @@ if [[ "$BUILD_KERNEL" == 1 ]]; then
 fi
 
 # --- preflight: source tree must match tracked inputs ---
+if [[ "$LUNCH_TARGET" == biscuit_echolocal-* ]]; then
+  make -f "$REPO_ROOT/mk/echolocal.mk" echolocal-prepare
+fi
 "$REPO_ROOT/scripts/stage-tree.sh"
 "$REPO_ROOT/scripts/apply-patches.sh"
 
