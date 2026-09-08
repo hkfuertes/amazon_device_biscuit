@@ -11,6 +11,7 @@ $(call inherit-product-if-exists, vendor/amazon/biscuit/biscuit-vendor.mk)
 PRODUCT_PACKAGES += \
     init \
     init.environ.rc \
+    linker \
     adbd \
     sh \
     toolbox \
