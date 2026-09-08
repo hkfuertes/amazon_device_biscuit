@@ -10,6 +10,7 @@ $(call inherit-product-if-exists, vendor/amazon/biscuit/biscuit-vendor.mk)
 
 PRODUCT_PACKAGES += \
     init \
+    init.environ.rc \
     adbd \
     sh \
     toolbox \
@@ -34,7 +35,6 @@ PRODUCT_PACKAGES += \
 # zygote, system_server, launcher, or package manager belongs in this product.
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.bootstrap.rc:root/init.rc \
-    system/core/rootdir/init.environ.rc:root/init.environ.rc \
     system/core/rootdir/init.usb.rc:root/init.usb.rc \
     $(LOCAL_PATH)/rootdir/fstab.mt8163:root/fstab.mt8163 \
     $(LOCAL_PATH)/rootdir/init.biscuit.bootstrap.rc:root/init.biscuit.bootstrap.rc \
