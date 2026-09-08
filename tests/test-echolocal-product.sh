@@ -13,9 +13,8 @@ BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/echolocal-bootstrap.sh"
 CONTROL="$ROOT/device/amazon/biscuit/rootdir/echolocal.sh"
 START="$ROOT/device/amazon/biscuit/rootdir/start_animation.sh"
 STOP="$ROOT/device/amazon/biscuit/rootdir/stop_animation.sh"
-PATCH="$ROOT/patches/cm12/cm12-biscuit-wpa-passphrase.patch"
 
-for file in "$PRODUCT" "$DEVICE" "$PRODUCTS" "$MODULE" "$INIT" "$COMMON" "$BOOTSTRAP" "$CONTROL" "$START" "$STOP" "$PATCH"; do
+for file in "$PRODUCT" "$DEVICE" "$PRODUCTS" "$MODULE" "$INIT" "$COMMON" "$BOOTSTRAP" "$CONTROL" "$START" "$STOP"; do
     [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
@@ -29,8 +28,8 @@ grep -Fq 'PRODUCT_MODEL        := Echo Dot' "$PRODUCT"
 ! grep -Eq 'inherit-product.*(full_base|core_minimal|core_tiny|vendor/cm/config/common)' "$PRODUCT"
 grep -Fq 'PRODUCT_PACKAGES += \' "$PRODUCT"
 grep -Fq '    echod \' "$PRODUCT"
-grep -Fq '    busybox \' "$PRODUCT"
-grep -Fq '    wpa_passphrase' "$PRODUCT"
+grep -Fq '    busybox' "$PRODUCT"
+! grep -Fq 'wpa_passphrase' "$PRODUCT"
 grep -Fq '$(LOCAL_PATH)/rootdir/echolocal.sh:system/bin/echolocal' "$PRODUCT"
 grep -Fq '$(LOCAL_PATH)/rootdir/echolocal-bootstrap.sh:system/bin/echolocal-bootstrap.sh' "$PRODUCT"
 grep -Fq '$(LOCAL_PATH)/rootdir/start_animation.sh:system/bin/start_animation.sh' "$PRODUCT"
@@ -45,8 +44,6 @@ grep -Fq 'LOCAL_MODULE_CLASS := EXECUTABLES' "$MODULE"
 grep -Fq 'LOCAL_MODULE_PATH := $(TARGET_OUT)/app/echod' "$MODULE"
 grep -Fq 'chmod 0755 $(TARGET_OUT)/app/echod/echod' "$MODULE"
 grep -Fq 'ln -sf /system/app/echod/echod $(TARGET_OUT_EXECUTABLES)/ledcontroller' "$MODULE"
-grep -Fq 'LOCAL_MODULE := wpa_passphrase' "$PATCH"
-grep -Fq 'LOCAL_SRC_FILES := $(OBJS_p)' "$PATCH"
 grep -Fq 'import /init.biscuit.common.rc' "$INIT"
 grep -Fq 'mkdir /data/misc/echolocal 0770 root system' "$INIT"
 grep -Fq 'mkdir /data/misc/echolocal/models 0770 root system' "$INIT"
@@ -80,7 +77,8 @@ grep -Fq 'echolocal key show|rotate' "$CONTROL"
 grep -Fq 'echolocal wifi status' "$CONTROL"
 grep -Fq 'echolocal wifi connect <ssid>' "$CONTROL"
 grep -Fq 'echolocal wifi open <ssid>' "$CONTROL"
-grep -Fq 'wpa_passphrase' "$CONTROL"
+grep -Fq 'prepare_wpa_credential' "$CONTROL"
+! grep -Fq 'wpa_passphrase' "$CONTROL"
 [[ -x "$BOOTSTRAP" && -x "$CONTROL" && -x "$START" && -x "$STOP" ]]
 
 echo 'EchoLocal product static checks passed'

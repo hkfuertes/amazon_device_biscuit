@@ -121,18 +121,17 @@ read_passphrase() {
     printf '\n' >&2
 }
 
-derive_psk() {
+prepare_wpa_credential() {
     if is_hex_key "$passphrase"; then
         psk=$passphrase
     else
         [ "${#passphrase}" -ge 8 ] && [ "${#passphrase}" -le 63 ] ||
             fail 'WPA passphrase must contain 8 to 63 characters'
-        psk="$(printf '%s\n' "$passphrase" |
-            /system/bin/wpa_passphrase "$ssid" |
-            /system/xbin/awk -F= '/^[[:space:]]*psk=[0-9a-fA-F]+$/ { sub(/^[[:space:]]*psk=/, ""); print; exit }')"
+        psk="$(printf '%s' "$passphrase" |
+            /system/xbin/awk '{ gsub(/\\/, "\\\\"); gsub(/"/, "\\\""); printf "\"%s\"", $0 }')"
     fi
     unset passphrase
-    is_hex_key "$psk" || fail 'could not derive a WPA PSK'
+    [ -n "$psk" ] || fail 'could not format WPA credential'
 }
 
 wait_for_wifi() {
@@ -169,7 +168,7 @@ wifi_connect() {
 
     if [ "$mode" = psk ]; then
         read_passphrase
-        derive_psk
+        prepare_wpa_credential
     fi
 
     remove_ssid "$ssid"

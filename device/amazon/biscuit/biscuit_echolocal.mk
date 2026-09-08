@@ -16,8 +16,7 @@ PRODUCT_CHARACTERISTICS := nosdcard
 # scripts/prepare-echolocal.sh stages this verified release artifact before lunch.
 PRODUCT_PACKAGES += \
     echod \
-    busybox \
-    wpa_passphrase
+    busybox
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/echolocal.sh:system/bin/echolocal \

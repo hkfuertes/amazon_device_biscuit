@@ -80,13 +80,6 @@ cat > "$root/system/xbin/sleep" <<'EOF'
 #!/usr/bin/env bash
 exit 0
 EOF
-cat > "$root/system/bin/wpa_passphrase" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-IFS= read -r passphrase
-printf '%s\n' "${#passphrase}" >> "$ECHOLOCAL_TEST_ROOT/passphrase-lengths"
-printf 'network={\n\t#psk=hidden\n\tpsk=%064d\n}\n' 0
-EOF
 cat > "$root/system/bin/wpa_cli" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -126,6 +119,7 @@ export ECHOLOCAL_TEST_TARGET='Cafe Network'
 printf 'wpa_state=COMPLETED\nssid=Cafe Network\nip_address=192.0.2.10\n' > "$root/status"
 python3 - "$tmp/echolocal" "$root" <<'PY'
 import os
+import pathlib
 import pty
 import subprocess
 import sys
@@ -142,19 +136,23 @@ process = subprocess.Popen(
     env=env,
 )
 os.close(slave)
-os.write(master, b'testpassphrase\n')
+password = 'test"pass\\word'
+os.write(master, password.encode() + b'\n')
 out, err = process.communicate(timeout=10)
 os.close(master)
 if process.returncode:
     raise SystemExit(f'connect failed: {out!r} {err!r}')
 if 'connected: Cafe Network (192.0.2.10)' not in out:
     raise SystemExit(f'unexpected connect output: {out!r}')
+if password in out or password in err:
+    raise SystemExit('passphrase leaked to command output')
+escaped = password.replace('\\', '\\\\').replace('"', '\\"')
+expected = f'set_network 7 psk "{escaped}"'
+if expected not in (pathlib.Path(root) / 'wpa.log').read_text():
+    raise SystemExit('passphrase was not safely quoted for wpa_cli')
 PY
-grep -Fxq '14' "$root/passphrase-lengths"
 grep -Fq 'remove_network 4' "$root/wpa.log"
 grep -Fq 'set_network 7 ssid 43616665204e6574776f726b' "$root/wpa.log"
-grep -Eq '^set_network 7 psk [0-9a-f]{64}$' "$root/wpa.log"
-! grep -Fq 'testpassphrase' "$root/wpa.log"
 grep -Fxq 'ctl.restart=dhcpcd_wlan0' "$root/setprop.log"
 
 : > "$root/wpa.log"
