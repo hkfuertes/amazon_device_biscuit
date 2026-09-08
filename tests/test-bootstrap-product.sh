@@ -18,12 +18,15 @@ grep -Fq 'PRODUCT_NAME         := biscuit_bootstrap' "$PRODUCT"
 grep -Fq 'wpa_supplicant' "$DEVICE"
 grep -Fq 'dhcpcd' "$DEVICE"
 grep -Fq 'tinymix' "$DEVICE"
-for package in linker linker64 libc libcutils libdl liblog libm libstdc++ libsigchain mkshrc reboot logwrapper; do
+for package in linker linker64 libc libcutils libdl liblog libm libstdc++ libsigchain mkshrc reboot logwrapper logd logcat; do
     grep -Fq "    $package \\" "$DEVICE"
 done
 grep -Fq '    init.environ.rc \' "$DEVICE"
 ! grep -Fq 'init.environ.rc:root/init.environ.rc' "$DEVICE"
 grep -Fq 'system/core/rootdir/init.usb.rc:root/init.usb.rc' "$DEVICE"
+grep -Fq 'system/core/rootdir/ueventd.rc:root/ueventd.rc' "$DEVICE"
+grep -Fq 'system/core/rootdir/etc/hosts:system/etc/hosts' "$DEVICE"
+grep -Fq 'external/dhcpcd/android.conf:system/etc/dhcpcd/dhcpcd.conf' "$DEVICE"
 grep -Fq 'LIBART_IMG_HOST_BASE_ADDRESS := 0x60000000' "$DEVICE"
 grep -Fq 'LIBART_IMG_TARGET_BASE_ADDRESS := 0x70000000' "$DEVICE"
 grep -Fq 'WITH_DEXPREOPT := false' "$DEVICE"
@@ -35,10 +38,34 @@ grep -Fq 'on load_all_props_action' "$ROOT_INIT"
 grep -Fq 'load_all_props' "$ROOT_INIT"
 grep -Fq 'trigger firmware_mounts_complete' "$ROOT_INIT"
 grep -Fq 'trigger early-boot' "$ROOT_INIT"
-grep -Fq 'mkdir /tmp 0771 root root' "$INIT"
-grep -Fq 'mkdir /data/misc 01771 system misc' "$INIT"
-grep -Fq 'mkdir /data/local/tmp 0771 shell shell' "$INIT"
-grep -Fq 'mkdir /data/property 0700 root root' "$INIT"
+for line in \
+    'setcon u:r:init:s0' \
+    'symlink /system/etc /etc' \
+    'symlink /system/vendor /vendor' \
+    'mount cgroup none /dev/cpuctl cpu' \
+    'mkdir /dev/cpuctl/bg_non_interactive' \
+    'chown system system /data' \
+    'chmod 0771 /data' \
+    'restorecon /data' \
+    'mkdir /tmp 0771 root root' \
+    'mkdir /data/misc 01771 system misc' \
+    'mkdir /data/local/tmp 0771 shell shell' \
+    'mkdir /data/property 0700 root root' \
+    'ifup lo' \
+    'hostname localhost' \
+    'domainname localdomain' \
+    'class_start core' \
+    'service logd /system/bin/logd' \
+    'socket logd stream 0666 logd logd' \
+    'socket logdr seqpacket 0666 logd logd' \
+    'socket logdw dgram 0222 logd logd' \
+    'seclabel u:r:logd:s0'; do
+    grep -Fq "$line" "$ROOT_INIT"
+done
+# Persistent properties must be loaded after their directory exists.
+awk '/mkdir \/data\/property / { directory = 1 }
+     /load_persist_props/ { if (!directory) exit 1; loaded = 1 }
+     END { if (!loaded) exit 1 }' "$ROOT_INIT"
 awk '
     $0 == "on property:ro.product.device=biscuit" { in_handler = 1; next }
     /^on |^service / { in_handler = 0 }
@@ -53,5 +80,14 @@ awk '
     END { exit found }
 ' "$INIT"
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
+[[ -x "$WIFI_BOOTSTRAP" ]]
+grep -Fq 'service wifi_events /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets -a/system/bin/wifi-bootstrap.sh' "$INIT"
+grep -Fq '    -W -iwlan0 -Dnl80211' "$INIT"
+grep -Fq 'on property:init.svc.wpa_supplicant=running' "$INIT"
+grep -Fq '    start wifi_events' "$INIT"
+grep -Fq '    stop wifi_events' "$INIT"
+grep -Fq 'service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL -f /system/etc/dhcpcd/dhcpcd.conf wlan0' "$INIT"
+# DHCP is controlled by association events, not merely by powering the radio.
+! grep -Eq '^[[:space:]]*start dhcpcd_wlan0$' "$INIT"
 
 echo 'bootstrap product static checks passed'

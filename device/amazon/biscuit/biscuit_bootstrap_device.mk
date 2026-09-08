@@ -25,9 +25,10 @@ PRODUCT_PACKAGES += \
     mkshrc \
     reboot \
     logwrapper \
+    logd \
+    logcat \
     sh \
     toolbox \
-    reboot \
     sepolicy \
     file_contexts \
     property_contexts \
@@ -44,11 +45,14 @@ PRODUCT_PACKAGES += \
     iptables \
     ip6tables
 
-# The static future daemon uses ALSA and HCI directly. No AudioFlinger, Bluetooth APK,
-# zygote, system_server, launcher, or package manager belongs in this product.
+# Reuse the general CM12 device rules as well as the MT8163-specific rules.
+# Native hardware access needs no AudioFlinger, Bluetooth APK, or Java framework.
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.bootstrap.rc:root/init.rc \
     system/core/rootdir/init.usb.rc:root/init.usb.rc \
+    system/core/rootdir/ueventd.rc:root/ueventd.rc \
+    system/core/rootdir/etc/hosts:system/etc/hosts \
+    external/dhcpcd/android.conf:system/etc/dhcpcd/dhcpcd.conf \
     $(LOCAL_PATH)/rootdir/fstab.mt8163:root/fstab.mt8163 \
     $(LOCAL_PATH)/rootdir/init.biscuit.bootstrap.rc:root/init.biscuit.bootstrap.rc \
     $(LOCAL_PATH)/rootdir/init.biscuit.usb.rc:root/init.biscuit.usb.rc \
@@ -65,7 +69,7 @@ LIBART_IMG_HOST_BASE_ADDRESS := 0x60000000
 LIBART_IMG_TARGET_BASE_ADDRESS := 0x70000000
 WITH_DEXPREOPT := false
 
-# ponytail: a development bootstrap needs root ADB; release hardening comes after the installer path.
+# ponytail: root ADB is intentional for this development base; harden before release.
 ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.adb.secure=0 \
     ro.secure=0 \
