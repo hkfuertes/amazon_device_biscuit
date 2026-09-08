@@ -36,6 +36,7 @@ on property:ro.product.device=biscuit
     start conn_launcher
 
 on boot
+    start led_bootstrap
     start wifi_bootstrap
 
 on property:sys.biscuit.wifi.ready=1
@@ -63,6 +64,12 @@ service wmtLoader /system/bin/wmt_loader
 service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
     user root
     group root system
+    disabled
+
+service led_bootstrap /system/bin/sh /system/bin/led-bootstrap.sh
+    user root
+    group root
+    oneshot
     disabled
 
 service wifi_bootstrap /system/bin/logwrapper /system/bin/sh /system/bin/wifi-bootstrap.sh
