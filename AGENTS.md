@@ -24,7 +24,8 @@ Rules for agents in this repo.
 ## Agent workflow
 
 - Before every operational action, explicitly say what I am going to do, what I am not going to do, and why.
-- If an operation requires `sudo` or root permissions, do not run it: show the exact command for the user to run manually.
+- Do not run local `sudo` or commands requiring host root permissions: show the exact command for the user to run manually.
+- ADB operations, including state-changing `adb shell` commands that run as root on Biscuit, are permitted when needed for user-authorized work. They remain subject to all Device safety restrictions below.
 - On this device, `adb wait-for-device` can hang or be a poor progress signal. Prefer explicit checks with `adb devices -l`, visual LED/TWRP state, and short timeouts; if ADB does not appear, stop and report.
 - Unless explicitly requested by the user, do not poll or wait for long periods. Long builds/flashes/reboots must be launched detached or as a single concrete action, with instructions for monitoring, then return control so the user can ask between steps.
 - Any change under `workspace/cm12` must be reproducible from tracked repo files: prefer `patches/*.patch`, `scripts/stage-tree.sh`, `scripts/apply-patches.sh`, or equivalent scripts. Do not leave manual-only changes in `workspace/cm12`.
