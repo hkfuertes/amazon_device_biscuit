@@ -91,6 +91,11 @@ awk '
     END { exit !(parent && child) }
 ' "$INIT"
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
+grep -Fq 'radio_settle_seconds=5' "$WIFI_BOOTSTRAP"
+grep -Fq 'sleep "$radio_settle_seconds"' "$WIFI_BOOTSTRAP"
+grep -Fq 'until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets scan' "$WIFI_BOOTSTRAP"
+grep -Fq "wpa_state=COMPLETED" "$WIFI_BOOTSTRAP"
+grep -Fq 'setprop ctl.restart dhcpcd_wlan0' "$WIFI_BOOTSTRAP"
 [[ -x "$WIFI_BOOTSTRAP" ]]
 grep -Fq 'service wifi_events /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets -a/system/bin/wifi-bootstrap.sh' "$INIT"
 grep -Fq '    -iwlan0 -Dnl80211' "$INIT"

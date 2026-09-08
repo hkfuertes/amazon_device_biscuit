@@ -33,6 +33,10 @@ while [ "$(getprop init.svc.wmtLoader)" != stopped ] || \
     sleep 1
 done
 
+# conn_launcher reports running before WMT/STP is ready for a radio request.
+radio_settle_seconds=5
+sleep "$radio_settle_seconds"
+
 # Same power-on operation as CM12's wifi_load_driver(); the driver is built in.
 printf 1 > /dev/wmtWifi
 if [ ! -d /sys/class/net/wlan0 ]; then
@@ -40,3 +44,26 @@ if [ ! -d /sys/class/net/wlan0 ]; then
     exit 1
 fi
 setprop sys.biscuit.wifi.ready 1
+
+# Request one scan after init creates the supplicant control socket.
+scan_attempts=0
+until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets scan >/dev/null 2>&1; do
+    scan_attempts=$((scan_attempts + 1))
+    if [ "$scan_attempts" -ge 10 ]; then
+        echo 'wpa_supplicant did not accept initial scan' >&2
+        exit 1
+    fi
+    sleep 1
+done
+
+# The first CONNECTED event can precede the wpa_cli action monitor.
+association_attempts=0
+until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets status 2>/dev/null | grep -q '^wpa_state=COMPLETED$'; do
+    association_attempts=$((association_attempts + 1))
+    if [ "$association_attempts" -ge 15 ]; then
+        echo 'wpa_supplicant did not complete initial association' >&2
+        exit 1
+    fi
+    sleep 1
+done
+setprop ctl.restart dhcpcd_wlan0
