@@ -79,6 +79,17 @@ awk '
     in_post_fs_data && $0 ~ /^[[:space:]]*start (wmtLoader|conn_launcher)$/ { found = 1 }
     END { exit found }
 ' "$INIT"
+# Imported hardware actions are parsed before root init actions: make their parent explicit.
+awk '
+    $0 == "on post-fs-data" { in_post_fs_data = 1; next }
+    /^on |^service / { in_post_fs_data = 0 }
+    in_post_fs_data && $0 == "    mkdir /data/misc 01771 system misc" { parent = 1 }
+    in_post_fs_data && $0 == "    mkdir /data/misc/wifi 0770 wifi wifi" {
+        if (!parent) exit 1
+        child = 1
+    }
+    END { exit !(parent && child) }
+' "$INIT"
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
 [[ -x "$WIFI_BOOTSTRAP" ]]
 grep -Fq 'service wifi_events /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets -a/system/bin/wifi-bootstrap.sh' "$INIT"

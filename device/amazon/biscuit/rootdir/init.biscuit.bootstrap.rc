@@ -9,6 +9,9 @@ on post-fs
     write /proc/sys/vm/page-cluster 0
 
 on post-fs-data
+    # This imported action is parsed before root init's generic post-fs-data block.
+    mkdir /data/misc 01771 system misc
+
     mkdir /data/nvram 2771 root system
     mkdir /data/nvram/media 0770 media audio
     mkdir /data/@btmtk 0770 bluetooth net_bt
