@@ -85,11 +85,9 @@ service dhcpcd_wlan0 /system/bin/dhcpcd -ABKL -f /system/etc/dhcpcd/dhcpcd.conf 
 
 # Wait for the monitor so a saved network cannot connect before it attaches.
 service wpa_supplicant /system/bin/wpa_supplicant \
-    -W -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf -e/data/misc/wifi/entropy.bin \
+    -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf -e/data/misc/wifi/entropy.bin \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf \
     -O/data/misc/wifi/sockets -g@android:wpa_wlan0
-    user wifi
-    group wifi inet keystore
     socket wpa_wlan0 dgram 660 wifi wifi
     disabled
     oneshot

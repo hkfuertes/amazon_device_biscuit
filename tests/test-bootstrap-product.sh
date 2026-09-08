@@ -93,7 +93,14 @@ awk '
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
 [[ -x "$WIFI_BOOTSTRAP" ]]
 grep -Fq 'service wifi_events /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets -a/system/bin/wifi-bootstrap.sh' "$INIT"
-grep -Fq '    -W -iwlan0 -Dnl80211' "$INIT"
+grep -Fq '    -iwlan0 -Dnl80211' "$INIT"
+# Android wpa_supplicant preserves NET_ADMIN/NET_RAW only when init starts it as root.
+awk '
+    /^service wpa_supplicant / { in_wpa = 1; seen = 1; next }
+    in_wpa && /^(service |on )/ { in_wpa = 0 }
+    in_wpa && (/^[[:space:]]*-W([[:space:]]|$)/ || /^[[:space:]]*user wifi$/ || /^[[:space:]]*group wifi inet keystore$/) { bad = 1 }
+    END { exit !(seen && !bad) }
+' "$INIT"
 grep -Fq 'on property:init.svc.wpa_supplicant=running' "$INIT"
 grep -Fq '    start wifi_events' "$INIT"
 grep -Fq '    stop wifi_events' "$INIT"
