@@ -1,0 +1,35 @@
+# Frameworkless root init for Biscuit.
+import /init.environ.rc
+import /init.usb.rc
+import /init.mt8163.usb.rc
+import /init.biscuit.usb.rc
+import /init.biscuit.bootstrap.rc
+
+on early-init
+    write /proc/1/oom_score_adj -1000
+    start ueventd
+
+on init
+    sysclktz 0
+    export PATH /sbin:/system/sbin:/system/bin:/system/xbin
+    export ANDROID_ROOT /system
+    export ANDROID_DATA /data
+    export EXTERNAL_STORAGE /sdcard
+
+on late-init
+    trigger early-fs
+    trigger fs
+    trigger post-fs
+    trigger post-fs-data
+    trigger boot
+
+service ueventd /sbin/ueventd
+    class core
+    critical
+    seclabel u:r:ueventd:s0
+
+service adbd /sbin/adbd --root_seclabel=u:r:su:s0
+    class core
+    socket adbd stream 660 system system
+    disabled
+    seclabel u:r:adbd:s0
