@@ -8,10 +8,10 @@ on post-fs-data
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/echolocal 0770 root system
     mkdir /data/misc/echolocal/models 0770 root system
-    start echolocal_bootstrap
+    start echolocal-boot
 
 # Seed state before the daemon starts. The helper requests init supervision after it finishes.
-service echolocal_bootstrap /system/bin/logwrapper /system/bin/sh /system/bin/echolocal-bootstrap.sh
+service echolocal-boot /system/bin/logwrapper /system/bin/sh /system/bin/echolocal-bootstrap.sh
     user root
     group root system
     oneshot

@@ -15,6 +15,18 @@ trap 'rm -rf "$tmp"' EXIT
 root="$tmp/fs"
 mkdir -p "$root/system/bin" "$root/system/etc/echolocal/models" "$root/data/misc/echolocal/models"
 
+export ECHOLOCAL_TEST_ROOT="$root"
+export ECHOLOCAL_TEST_LOG="$tmp/echolocal-args"
+cat > "$root/system/bin/echolocal" <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$ECHOLOCAL_TEST_LOG"
+[[ "$*" == 'key ensure' ]]
+mkdir -p "$ECHOLOCAL_TEST_ROOT/data/misc/echolocal"
+printf '%s\n' 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=' > "$ECHOLOCAL_TEST_ROOT/data/misc/echolocal/psk"
+chmod 0600 "$ECHOLOCAL_TEST_ROOT/data/misc/echolocal/psk"
+EOF
+chmod 0755 "$root/system/bin/echolocal"
+
 cat > "$tmp/expected-start" <<'EOF'
 #!/system/bin/sh
 # Installed by EchoLocal, replacing a ledctrl call that waits forever on a binder service echod does
@@ -75,6 +87,8 @@ for model in okay_nabu hey_jarvis hey_mycroft; do
     cmp "$root/system/etc/echolocal/models/$model.tflite" "$root/data/misc/echolocal/models/$model.tflite"
 done
 grep -Fxq 'ctl.start=ledcontroller' "$tmp/properties"
+grep -Fxq 'key ensure' "$tmp/echolocal-args"
+[[ -s "$root/data/misc/echolocal/psk" ]]
 
 # The installer contract keeps an existing model pair untouched.
 printf 'custom manifest\n' > "$root/data/misc/echolocal/models/okay_nabu.json"

@@ -14,9 +14,13 @@ PRODUCT_MANUFACTURER := amazon
 PRODUCT_CHARACTERISTICS := nosdcard
 
 # scripts/prepare-echolocal.sh stages this verified release artifact before lunch.
-PRODUCT_PACKAGES += echod
+PRODUCT_PACKAGES += \
+    echod \
+    busybox \
+    wpa_passphrase
 
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/echolocal.sh:system/bin/echolocal \
     $(LOCAL_PATH)/rootdir/echolocal-bootstrap.sh:system/bin/echolocal-bootstrap.sh \
     $(LOCAL_PATH)/rootdir/start_animation.sh:system/bin/start_animation.sh \
     $(LOCAL_PATH)/rootdir/stop_animation.sh:system/bin/stop_animation.sh \

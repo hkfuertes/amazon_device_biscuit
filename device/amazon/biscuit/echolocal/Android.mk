@@ -9,6 +9,7 @@ LOCAL_MODULE_CLASS := EXECUTABLES
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_PATH := $(TARGET_OUT)/app/echod
 # EchoLocal and its host tools retain the stock service path as a compatibility alias.
-LOCAL_POST_INSTALL_CMD := $(hide) mkdir -p $(TARGET_OUT_EXECUTABLES) && rm -f $(TARGET_OUT_EXECUTABLES)/ledcontroller && ln -sf /system/app/echod/echod $(TARGET_OUT_EXECUTABLES)/ledcontroller
+# BUILD_PREBUILT otherwise installs an executable below /system/app as mode 0644.
+LOCAL_POST_INSTALL_CMD := $(hide) chmod 0755 $(TARGET_OUT)/app/echod/echod && mkdir -p $(TARGET_OUT_EXECUTABLES) && rm -f $(TARGET_OUT_EXECUTABLES)/ledcontroller && ln -sf /system/app/echod/echod $(TARGET_OUT_EXECUTABLES)/ledcontroller
 include $(BUILD_PREBUILT)
 endif

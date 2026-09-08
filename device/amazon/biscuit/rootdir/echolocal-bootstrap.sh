@@ -11,6 +11,8 @@ mkdir -p "$models"
 chown root:system "$state" "$models"
 chmod 0770 "$state" "$models"
 
+/system/bin/echolocal key ensure
+
 for model in okay_nabu hey_jarvis hey_mycroft; do
     if [ ! -f "$models/$model.tflite" ]; then
         cp "$seed/$model.json" "$models/$model.json"
