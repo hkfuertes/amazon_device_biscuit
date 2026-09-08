@@ -11,6 +11,12 @@ on post-fs
 on post-fs-data
     load_persist_props
 
+    mkdir /tmp 0771 root root
+    mkdir /data/misc 01771 system misc
+    mkdir /data/local 0751 root root
+    mkdir /data/local/tmp 0771 shell shell
+    mkdir /data/property 0700 root root
+
     mkdir /data/nvram 2771 root system
     mkdir /data/nvram/media 0770 media audio
     mkdir /data/@btmtk 0770 bluetooth net_bt

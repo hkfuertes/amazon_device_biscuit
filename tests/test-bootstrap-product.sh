@@ -35,6 +35,10 @@ grep -Fq 'on load_all_props_action' "$ROOT_INIT"
 grep -Fq 'load_all_props' "$ROOT_INIT"
 grep -Fq 'trigger firmware_mounts_complete' "$ROOT_INIT"
 grep -Fq 'trigger early-boot' "$ROOT_INIT"
+grep -Fq 'mkdir /tmp 0771 root root' "$INIT"
+grep -Fq 'mkdir /data/misc 01771 system misc' "$INIT"
+grep -Fq 'mkdir /data/local/tmp 0771 shell shell' "$INIT"
+grep -Fq 'mkdir /data/property 0700 root root' "$INIT"
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
 
 echo 'bootstrap product static checks passed'
