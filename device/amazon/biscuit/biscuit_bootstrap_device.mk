@@ -47,6 +47,11 @@ PRODUCT_COPY_FILES += \
 TARGET_BOARD_PLATFORM := mt8163
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
 
+# Android 5.1 parses ART rules globally even when this image installs no Java runtime.
+LIBART_IMG_HOST_BASE_ADDRESS := 0x60000000
+LIBART_IMG_TARGET_BASE_ADDRESS := 0x70000000
+WITH_DEXPREOPT := false
+
 # ponytail: a development bootstrap needs root ADB; release hardening comes after the installer path.
 ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.adb.secure=0 \
