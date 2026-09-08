@@ -30,6 +30,10 @@ Rules for agents in this repo.
 - Unless explicitly requested by the user, do not poll or wait for long periods. Long builds/flashes/reboots must be launched detached or as a single concrete action, with instructions for monitoring, then return control so the user can ask between steps.
 - Any change under `workspace/cm12` must be reproducible from tracked repo files: prefer `patches/*.patch`, `scripts/stage-tree.sh`, `scripts/apply-patches.sh`, or equivalent scripts. Do not leave manual-only changes in `workspace/cm12`.
 
+## Pull request base
+
+- Until the user explicitly says otherwise, treat `cm12-minimal` as this repository's `main` branch for all future pull requests: branch from it and target it, rather than `main`, `master`, or another default branch.
+
 ## Biscuit service helper
 
 Current builds include `/system/bin/biscuit_service`, a shell-friendly wrapper around the Biscuit Android service. Prefer it over ad-hoc Java probes for supported device actions.
