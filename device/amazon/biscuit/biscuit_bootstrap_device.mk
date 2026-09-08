@@ -34,8 +34,8 @@ PRODUCT_PACKAGES += \
 # zygote, system_server, launcher, or package manager belongs in this product.
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/init.bootstrap.rc:root/init.rc \
-    $(SRC_TARGET_DIR)/rootdir/init.environ.rc:root/init.environ.rc \
-    $(SRC_TARGET_DIR)/rootdir/init.usb.rc:root/init.usb.rc \
+    system/core/rootdir/init.environ.rc:root/init.environ.rc \
+    system/core/rootdir/init.usb.rc:root/init.usb.rc \
     $(LOCAL_PATH)/rootdir/fstab.mt8163:root/fstab.mt8163 \
     $(LOCAL_PATH)/rootdir/init.biscuit.bootstrap.rc:root/init.biscuit.bootstrap.rc \
     $(LOCAL_PATH)/rootdir/init.biscuit.usb.rc:root/init.biscuit.usb.rc \
