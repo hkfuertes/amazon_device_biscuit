@@ -173,30 +173,41 @@ def main():
         assert script.count(b"/dev/block/") == 1
         assert b'"/dev/block/platform/soc/by-name/boot_a_x"' in script
         assert b'assert(getprop("ro.boot.slot_suffix") == "_a");' in script
-        for label in ("cm12-control", "fireos6-mtk", "fireos6-stock", "fireos6-stock-raw"):
-            header, original = unpack_boot(inputs[label.removesuffix("-raw")])
+        for label in ("cm12-control", "fireos6-mtk", "fireos6-stock", "fireos6-stock-raw",
+                      "fireos6-stock-raw-up"):
+            base_label = label.removesuffix("-up")
+            header, original = unpack_boot(inputs[base_label.removesuffix("-raw")])
             # CM12 omits the empty DT size from its ID; the diagnostic template includes it.
             counts = [n for n in (3, 4) if header[576:608] == boot_id(original[:n])]
             assert len(counts) == 1, "Unknown boot ID format"
             count = counts[0]
             kernel = original[0]
-            if label.endswith("-raw"):
+            if base_label.endswith("-raw"):
                 assert struct.unpack_from("<2I", kernel) == (0x58881688, len(kernel) - 512)
                 assert kernel[8:40].split(b"\0", 1)[0] == b"KERNEL"
                 assert kernel[40:512] == b"\xff" * 472
                 kernel = kernel[512:]
                 assert struct.unpack_from("<I", kernel, 0x24)[0] == 0x016f2818
+            cmdline = header[64:576]
+            if label.endswith("-up"):
+                args = cmdline.split(b"\0", 1)[0]
+                assert b"maxcpus=" not in args
+                args += b" maxcpus=1"
+                assert len(args) < 512
+                cmdline = args.ljust(512, b"\0")
             parts = original.copy()
             parts[0], parts[1] = kernel, ramdisk
             patched = bytearray(header)
             struct.pack_into("<I", patched, 8, len(kernel))
             struct.pack_into("<I", patched, 16, len(ramdisk))
+            patched[64:576] = cmdline
             patched[576:608] = boot_id(parts[:count])
             image = bytes(patched) + b"".join(p + bytes((-len(p)) % 2048) for p in parts)
             h, verified = unpack_boot(image)
             assert verified == parts and h[576:608] == boot_id(verified[:count])
             assert h[:8] == header[:8] and h[12:16] == header[12:16]
-            assert h[20:576] == header[20:576] and h[608:] == header[608:]
+            assert h[20:64] == header[20:64] and h[64:576] == cmdline
+            assert h[608:] == header[608:]
             assert len(image) <= 16777216
             assert verified[0] == kernel and verified[2:] == original[2:]
             (OUT / f"{label}.boot.img").write_bytes(image)
