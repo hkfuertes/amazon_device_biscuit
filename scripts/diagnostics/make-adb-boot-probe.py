@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Offline ADB-only boot probes: no block mounts, recovery UI, or device access."""
+import argparse
 import gzip
 import hashlib
 import json
@@ -137,6 +138,17 @@ def pack_cpio(entries):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--entry-beacon", action="store_true",
+                        help="Include the stock entry probe; requires the assembled beacon section")
+    beacon = None
+    if parser.parse_args().entry_beacon:
+        section = (OUT / "arm32-entry-beacon/beacon.section.bin").read_bytes()
+        # Exact ARM instructions from arm32-entry-beacon.S, including its test-only return.
+        assert section == struct.pack("<9I", 0xe30f3ff0, 0xe3443440, 0xe3a044a5,
+                                      0xe5834000, 0xe5831004, 0xe5832008,
+                                      0xe10f4000, 0xe583400c, 0xe12fff1e)
+        beacon = section[:32]
     inputs = {}
     for name, (path, expected) in INPUTS.items():
         inputs[name] = (ROOT / path).read_bytes()
@@ -173,9 +185,14 @@ def main():
         assert script.count(b"/dev/block/") == 1
         assert b'"/dev/block/platform/soc/by-name/boot_a_x"' in script
         assert b'assert(getprop("ro.boot.slot_suffix") == "_a");' in script
-        for label in ("cm12-control", "fireos6-mtk", "fireos6-stock", "fireos6-stock-raw",
-                      "fireos6-stock-raw-up"):
-            base_label = label.removesuffix("-up")
+        labels = ["cm12-control", "fireos6-mtk", "fireos6-stock", "fireos6-stock-raw",
+                  "fireos6-stock-raw-up"]
+        if beacon is not None:
+            labels.append("fireos6-stock-entry")
+            manifest["entry_beacon"] = {"address": "0x4440fff0", "marker": "0xa5000000",
+                                         "sha256": sha(beacon), "bytes": len(beacon)}
+        for label in labels:
+            base_label = label.removesuffix("-entry").removesuffix("-up")
             header, original = unpack_boot(inputs[base_label.removesuffix("-raw")])
             # CM12 omits the empty DT size from its ID; the diagnostic template includes it.
             counts = [n for n in (3, 4) if header[576:608] == boot_id(original[:n])]
@@ -188,6 +205,12 @@ def main():
                 assert kernel[40:512] == b"\xff" * 472
                 kernel = kernel[512:]
                 assert struct.unpack_from("<I", kernel, 0x24)[0] == 0x016f2818
+            if label == "fireos6-stock-entry":
+                assert struct.unpack_from("<2I", kernel) == (0x58881688, len(kernel) - 512)
+                assert kernel[512:544] == struct.pack("<I", 0xe1a00000) * 8
+                assert struct.unpack_from("<I", kernel, 512 + 0x24)[0] == 0x016f2818
+                kernel = kernel[:512] + beacon + kernel[544:]
+                assert kernel[:512] + struct.pack("<I", 0xe1a00000) * 8 + kernel[544:] == original[0]
             cmdline = header[64:576]
             if label.endswith("-up"):
                 args = cmdline.split(b"\0", 1)[0]

@@ -156,12 +156,16 @@ adb shell twrp sideload
 adb sideload update.zip
 ```
 
-Or confirmed hacked fastboot:
+Or confirmed hacked fastboot, for a boot-only operation on the verified active slot `a`:
 
 ```sh
 fastboot getvar all
-fastboot flash boot boot.img
-fastboot flash system system.img
+# Require amonet identification, current-slot: a, and boot_a_x size 0x1000000.
+fastboot flash boot_a_x boot.img
 ```
+
+Biscuit amonet 1.1.0 does not support `fastboot boot` or the bare `boot` partition alias. The explicit `boot_a_x` command above has been installed and readback-verified; do not substitute an unverified slot or partition name. Keep system updates on the recommended TWRP sideload path unless a separate authorized operation verifies its actual target.
+
+Do not use `boot_a_amonet` or `boot_b_amonet` for ROM images: those aliases bypass ROM remapping and write the exploit partitions.
 
 Only if `getvar all` confirms amonet/hacked fastboot. If it looks stock/restricted, stop.
