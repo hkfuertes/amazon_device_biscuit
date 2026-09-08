@@ -19,11 +19,20 @@ on init
 on property:sys.powerctl=*
     powerctl ${sys.powerctl}
 
+on load_all_props_action
+    load_all_props
+
+on firmware_mounts_complete
+    rm /dev/.booting
+
 on late-init
     trigger early-fs
     trigger fs
     trigger post-fs
     trigger post-fs-data
+    trigger load_all_props_action
+    trigger firmware_mounts_complete
+    trigger early-boot
     trigger boot
 
 service ueventd /sbin/ueventd

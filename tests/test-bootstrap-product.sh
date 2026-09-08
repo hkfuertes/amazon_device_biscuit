@@ -6,8 +6,9 @@ PRODUCT="$ROOT/device/amazon/biscuit/biscuit_bootstrap.mk"
 DEVICE="$ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
 INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
 ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
+WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$WIFI_BOOTSTRAP"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
@@ -30,5 +31,10 @@ grep -Fq 'service echod /system/app/echod/echod' "$INIT"
 ! grep -Fq 'service biscuit-ledd' "$INIT"
 grep -Fq 'on property:sys.powerctl=*' "$ROOT_INIT"
 grep -Fq 'powerctl ${sys.powerctl}' "$ROOT_INIT"
+grep -Fq 'on load_all_props_action' "$ROOT_INIT"
+grep -Fq 'load_all_props' "$ROOT_INIT"
+grep -Fq 'trigger firmware_mounts_complete' "$ROOT_INIT"
+grep -Fq 'trigger early-boot' "$ROOT_INIT"
+grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
 
 echo 'bootstrap product static checks passed'
