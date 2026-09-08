@@ -1,7 +1,6 @@
 # Frameworkless EchoLocal product for Biscuit.
 # Keep the generic bootstrap product intact and select only this product's init wrapper.
 BISCUIT_BOOTSTRAP_INIT_RC := device/amazon/biscuit/rootdir/init.biscuit.echolocal.rc
-BISCUIT_ENABLE_LED_BOOTSTRAP := false
 
 $(call inherit-product, device/amazon/biscuit/biscuit_bootstrap_device.mk)
 

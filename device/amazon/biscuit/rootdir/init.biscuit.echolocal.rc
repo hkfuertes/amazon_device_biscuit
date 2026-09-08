@@ -1,6 +1,9 @@
 # EchoLocal frameworkless Biscuit hardware selection.
 import /init.biscuit.common.rc
 
+on boot
+    start led_bootstrap
+
 on post-fs-data
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/echolocal 0770 root system
@@ -11,6 +14,12 @@ on post-fs-data
 service echolocal_bootstrap /system/bin/logwrapper /system/bin/sh /system/bin/echolocal-bootstrap.sh
     user root
     group root system
+    oneshot
+    disabled
+
+service led_bootstrap /system/bin/sh /system/bin/led-bootstrap.sh
+    user root
+    group root
     oneshot
     disabled
 
