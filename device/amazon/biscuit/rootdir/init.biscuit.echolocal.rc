@@ -1,0 +1,20 @@
+# EchoLocal frameworkless Biscuit hardware selection.
+import /init.biscuit.common.rc
+
+on post-fs-data
+    mkdir /data/misc 01771 system misc
+    mkdir /data/misc/echolocal 0770 root system
+    mkdir /data/misc/echolocal/models 0770 root system
+    start echolocal_bootstrap
+
+# Seed state before the daemon starts. The helper requests init supervision after it finishes.
+service echolocal_bootstrap /system/bin/logwrapper /system/bin/sh /system/bin/echolocal-bootstrap.sh
+    user root
+    group root system
+    oneshot
+    disabled
+
+# Keep EchoLocal's stock service name so ctl.start/ctl.stop remain compatible.
+service ledcontroller /system/bin/ledcontroller
+    user root
+    group shell system
