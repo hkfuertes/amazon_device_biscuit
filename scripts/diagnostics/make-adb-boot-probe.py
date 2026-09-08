@@ -188,7 +188,7 @@ def main():
         labels = ["cm12-control", "fireos6-mtk", "fireos6-stock", "fireos6-stock-raw",
                   "fireos6-stock-raw-up"]
         if beacon is not None:
-            labels.append("fireos6-stock-entry")
+            labels.extend(("fireos6-stock-entry", "fireos6-stock-raw-entry"))
             manifest["entry_beacon"] = {"address": "0x4440fff0", "marker": "0xa5000000",
                                          "sha256": sha(beacon), "bytes": len(beacon)}
         for label in labels:
@@ -205,12 +205,16 @@ def main():
                 assert kernel[40:512] == b"\xff" * 472
                 kernel = kernel[512:]
                 assert struct.unpack_from("<I", kernel, 0x24)[0] == 0x016f2818
-            if label == "fireos6-stock-entry":
-                assert struct.unpack_from("<2I", kernel) == (0x58881688, len(kernel) - 512)
-                assert kernel[512:544] == struct.pack("<I", 0xe1a00000) * 8
-                assert struct.unpack_from("<I", kernel, 512 + 0x24)[0] == 0x016f2818
-                kernel = kernel[:512] + beacon + kernel[544:]
-                assert kernel[:512] + struct.pack("<I", 0xe1a00000) * 8 + kernel[544:] == original[0]
+            if label.endswith("-entry"):
+                entry_offset = 0 if base_label.endswith("-raw") else 512
+                if entry_offset:
+                    assert struct.unpack_from("<2I", kernel) == (0x58881688, len(kernel) - 512)
+                pristine = kernel
+                assert kernel[entry_offset:entry_offset + 32] == struct.pack("<I", 0xe1a00000) * 8
+                assert struct.unpack_from("<I", kernel, entry_offset + 0x24)[0] == 0x016f2818
+                kernel = kernel[:entry_offset] + beacon + kernel[entry_offset + 32:]
+                assert (kernel[:entry_offset] + struct.pack("<I", 0xe1a00000) * 8
+                        + kernel[entry_offset + 32:]) == pristine
             cmdline = header[64:576]
             if label.endswith("-up"):
                 args = cmdline.split(b"\0", 1)[0]
