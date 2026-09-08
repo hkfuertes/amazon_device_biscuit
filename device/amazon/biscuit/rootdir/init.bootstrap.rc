@@ -16,6 +16,9 @@ on init
     export ANDROID_DATA /data
     export EXTERNAL_STORAGE /sdcard
 
+on property:sys.powerctl=*
+    powerctl ${sys.powerctl}
+
 on late-init
     trigger early-fs
     trigger fs

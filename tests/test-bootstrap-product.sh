@@ -5,8 +5,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PRODUCT="$ROOT/device/amazon/biscuit/biscuit_bootstrap.mk"
 DEVICE="$ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
 INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
+ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
@@ -16,7 +17,9 @@ grep -Fq 'ro.echolocal.install_mode=standalone' "$PRODUCT"
 grep -Fq 'wpa_supplicant' "$DEVICE"
 grep -Fq 'dhcpcd' "$DEVICE"
 grep -Fq 'tinymix' "$DEVICE"
-grep -Fq '    linker \' "$DEVICE"
+for package in linker linker64 libc libcutils libdl liblog libm libstdc++ libsigchain mkshrc reboot logwrapper; do
+    grep -Fq "    $package \\" "$DEVICE"
+done
 grep -Fq '    init.environ.rc \' "$DEVICE"
 ! grep -Fq 'init.environ.rc:root/init.environ.rc' "$DEVICE"
 grep -Fq 'system/core/rootdir/init.usb.rc:root/init.usb.rc' "$DEVICE"
@@ -25,5 +28,7 @@ grep -Fq 'LIBART_IMG_TARGET_BASE_ADDRESS := 0x70000000' "$DEVICE"
 grep -Fq 'WITH_DEXPREOPT := false' "$DEVICE"
 grep -Fq 'service echod /system/app/echod/echod' "$INIT"
 ! grep -Fq 'service biscuit-ledd' "$INIT"
+grep -Fq 'on property:sys.powerctl=*' "$ROOT_INIT"
+grep -Fq 'powerctl ${sys.powerctl}' "$ROOT_INIT"
 
 echo 'bootstrap product static checks passed'

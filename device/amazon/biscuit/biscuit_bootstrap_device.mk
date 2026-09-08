@@ -8,11 +8,23 @@ LOCAL_PATH := device/amazon/biscuit
 $(call inherit-product, vendor/amazon/mt8163-common/mt8163-common-vendor.mk)
 $(call inherit-product-if-exists, vendor/amazon/biscuit/biscuit-vendor.mk)
 
+# Explicit non-framework runtime subset from embedded.mk.
 PRODUCT_PACKAGES += \
     init \
     init.environ.rc \
     linker \
+    linker64 \
+    libc \
+    libcutils \
+    libdl \
+    liblog \
+    libm \
+    libstdc++ \
+    libsigchain \
     adbd \
+    mkshrc \
+    reboot \
+    logwrapper \
     sh \
     toolbox \
     reboot \
