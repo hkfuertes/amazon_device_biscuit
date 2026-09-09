@@ -91,6 +91,10 @@ awk '
     }
     END { exit !(parent && child) }
 ' "$INIT"
+grep -Fq 'BISCUIT_BOOTSTRAP_INIT_RC ?= $(LOCAL_PATH)/rootdir/init.biscuit.bootstrap.rc' "$DEVICE"
+grep -Fq 'BISCUIT_INSTALL_LEDCONTROLLER_FALLBACK ?= true' "$DEVICE"
+grep -Fq '$(BISCUIT_BOOTSTRAP_INIT_RC):root/init.biscuit.bootstrap.rc' "$DEVICE"
+grep -Fq 'ifeq ($(BISCUIT_INSTALL_LEDCONTROLLER_FALLBACK),true)' "$DEVICE"
 grep -Fq '$(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller' "$DEVICE"
 grep -Fq '    start ledcontroller' "$INIT"
 grep -Fq 'service ledcontroller /system/bin/ledcontroller' "$INIT"
