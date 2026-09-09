@@ -41,9 +41,10 @@ done
 
 grep -Fq 'LOCAL_MODULE := echod' "$MODULE"
 grep -Fq 'LOCAL_MODULE_CLASS := EXECUTABLES' "$MODULE"
-grep -Fq 'LOCAL_MODULE_PATH := $(TARGET_OUT)/app/echod' "$MODULE"
-grep -Fq 'chmod 0755 $(TARGET_OUT)/app/echod/echod' "$MODULE"
+grep -Fq 'LOCAL_MODULE_PATH := $(TARGET_OUT_EXECUTABLES)' "$MODULE"
+grep -Fq 'ln -sf /system/bin/echod $(TARGET_OUT)/app/echod/echod' "$MODULE"
 grep -Fq 'ln -sf /system/app/echod/echod $(TARGET_OUT_EXECUTABLES)/ledcontroller' "$MODULE"
+! grep -Fq 'chmod 0755 $(TARGET_OUT)/app/echod/echod' "$MODULE"
 grep -Fq 'import /init.biscuit.common.rc' "$INIT"
 grep -Fq 'mkdir /data/misc/echolocal 0770 root system' "$INIT"
 grep -Fq 'mkdir /data/misc/echolocal/models 0770 root system' "$INIT"
