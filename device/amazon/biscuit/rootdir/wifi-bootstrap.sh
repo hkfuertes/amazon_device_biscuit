@@ -49,6 +49,16 @@ scan() {
     done
 }
 
+has_saved_network() {
+    networks=$(/system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets list_networks 2>/dev/null) ||
+        return 2
+    case "$networks" in
+        *FAIL*) return 2 ;;
+    esac
+    printf '%s\n' "$networks" |
+        awk 'NR > 1 && $1 ~ /^[0-9]+$/ { found = 1 } END { exit !found }'
+}
+
 associate() {
     # The first CONNECTED event can precede the wpa_cli action monitor.
     association_attempts=0
@@ -72,9 +82,16 @@ while [ "$radio_attempt" -le "$max_radio_attempts" ]; do
         echo 'wlan0 did not appear after WMT Wi-Fi power-on' >&2
     else
         setprop sys.biscuit.wifi.ready 1
-        if scan && associate; then
-            setprop ctl.restart dhcpcd_wlan0
-            exit 0
+        if scan; then
+            if has_saved_network; then
+                if associate; then
+                    setprop ctl.restart dhcpcd_wlan0
+                    exit 0
+                fi
+            elif [ "$?" -eq 1 ]; then
+                # No saved network after a wipe: keep wpa_supplicant alive for provisioning.
+                exit 0
+            fi
         fi
     fi
 

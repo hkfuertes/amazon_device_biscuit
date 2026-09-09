@@ -52,6 +52,11 @@ wpa_cli() {
                 fi
             fi
             return 0 ;;
+        list_networks)
+            printf '%s\n' 'network id / ssid / bssid / flags'
+            [[ "$(<"$TEST_WPA_STATE")" == no-saved ]] ||
+                printf '%s\n' $'0\tsaved-network\tany\t'
+            ;;
         status)
             state="$(<"$TEST_WPA_STATE")"
             if [[ "$state" == association-delayed ]]; then
@@ -72,17 +77,28 @@ export -f getprop setprop chown sleep wpa_cli
 bash "$tmp/run.sh"
 [[ "$(<"$TEST_WIFI_ROOT/dev/wmtWifi")" == 1 ]]
 [[ "$(tr '\n' ' ' < "$tmp/waits")" == '1 5 1 ' ]]
-[[ "$(<"$TEST_WPA_LOG")" == $'scan\nstatus\nstatus' ]]
+[[ "$(<"$TEST_WPA_LOG")" == $'scan\nlist_networks\nstatus\nstatus' ]]
 grep -Fxq 'sys.biscuit.wifi.ready=1' "$TEST_PROPERTY_LOG"
 grep -Fxq 'ctl.restart=dhcpcd_wlan0' "$TEST_PROPERTY_LOG"
 cmp "$TEST_WIFI_ROOT/system/etc/wifi/wpa_supplicant.conf" "$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf"
 
 # A saved network survives boot; its expected ownership/mode is repaired.
+printf 'associated\n' > "$TEST_WPA_STATE"
 printf 'saved-network-placeholder\n' > "$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf"
 chmod 0600 "$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf"
 bash "$tmp/run.sh"
 [[ "$(<"$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf")" == saved-network-placeholder ]]
 [[ "$(stat -c %a "$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf")" == 660 ]]
+
+# A clean config has no network to associate; keep the control socket for provisioning.
+printf 'no-saved\n' > "$TEST_WPA_STATE"
+: > "$TEST_PROPERTY_LOG"
+: > "$TEST_WPA_LOG"
+bash "$tmp/run.sh"
+[[ "$(<"$TEST_WPA_LOG")" == $'scan\nlist_networks' ]]
+grep -Fxq 'sys.biscuit.wifi.ready=1' "$TEST_PROPERTY_LOG"
+! grep -Fq 'ctl.restart=dhcpcd_wlan0' "$TEST_PROPERTY_LOG"
+! grep -Fq 'ctl.stop=wpa_supplicant' "$TEST_PROPERTY_LOG"
 
 # A late radio scan retries without external intervention.
 export TEST_RADIO_MODE=ready
