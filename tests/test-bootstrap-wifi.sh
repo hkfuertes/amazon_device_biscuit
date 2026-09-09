@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 export TEST_WIFI_ROOT="$tmp/fs" TEST_PROPERTY_LOG="$tmp/properties" TEST_RADIO_MODE=delayed
-export TEST_WPA_LOG="$tmp/wpa-commands" TEST_WPA_STATE="$tmp/wpa-state"
+export TEST_WPA_LOG="$tmp/wpa-commands" TEST_WPA_STATE="$tmp/wpa-state" TEST_SCAN_COUNT="$tmp/scan-count"
 : > "$TEST_WPA_LOG"
 printf 'association-delayed\n' > "$TEST_WPA_STATE"
 mkdir -p "$TEST_WIFI_ROOT"/{system/etc/wifi,data/misc/wifi,dev,sys/class/net/wlan0}
@@ -39,7 +39,19 @@ wpa_cli() {
     local command="${@: -1}" state
     printf '%s\n' "$command" >> "$TEST_WPA_LOG"
     case "$command" in
-        scan) return 0 ;;
+        scan)
+            state="$(<"$TEST_WPA_STATE")"
+            if [[ "$state" == scan-retry ]]; then
+                count=0
+                [[ -e "$TEST_SCAN_COUNT" ]] && count="$(<"$TEST_SCAN_COUNT")"
+                count=$((count + 1))
+                printf '%s\n' "$count" > "$TEST_SCAN_COUNT"
+                if [[ "$count" -le 10 ]]; then
+                    [[ "$count" -eq 10 ]] && printf 'associated\n' > "$TEST_WPA_STATE"
+                    return 1
+                fi
+            fi
+            return 0 ;;
         status)
             state="$(<"$TEST_WPA_STATE")"
             if [[ "$state" == association-delayed ]]; then
@@ -72,15 +84,27 @@ bash "$tmp/run.sh"
 [[ "$(<"$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf")" == saved-network-placeholder ]]
 [[ "$(stat -c %a "$TEST_WIFI_ROOT/data/misc/wifi/wpa_supplicant.conf")" == 660 ]]
 
-# Initial association is bounded and must not start DHCP before COMPLETED.
+# A late radio scan retries without external intervention.
 export TEST_RADIO_MODE=ready
+printf 'scan-retry\n' > "$TEST_WPA_STATE"
+rm -f "$TEST_SCAN_COUNT"
+: > "$TEST_PROPERTY_LOG"
+: > "$TEST_WPA_LOG"
+: > "$tmp/waits"
+bash "$tmp/run.sh"
+[[ "$(<"$TEST_SCAN_COUNT")" == 10 ]]
+[[ "$(grep -c '^scan$' "$TEST_WPA_LOG")" == 11 ]]
+grep -Fxq 'ctl.stop=wpa_supplicant' "$TEST_PROPERTY_LOG"
+grep -Fxq 'ctl.restart=dhcpcd_wlan0' "$TEST_PROPERTY_LOG"
+
+# Initial association is bounded and must not start DHCP before COMPLETED.
 printf 'never\n' > "$TEST_WPA_STATE"
 : > "$TEST_PROPERTY_LOG"
 : > "$tmp/waits"
 if bash "$tmp/run.sh" > "$tmp/error" 2>&1; then echo 'accepted incomplete association' >&2; exit 1; fi
 ! grep -Fq 'ctl.restart=dhcpcd_wlan0' "$TEST_PROPERTY_LOG"
 grep -Fq 'did not complete initial association' "$tmp/error"
-[[ "$(grep -c '^1$' "$tmp/waits")" -lt 15 ]]
+[[ "$(grep -c '^1$' "$tmp/waits")" -le 42 ]]
 
 # A successful write alone is insufficient: require the actual network interface.
 rmdir "$TEST_WIFI_ROOT/sys/class/net/wlan0"

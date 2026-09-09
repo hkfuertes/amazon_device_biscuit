@@ -37,33 +37,53 @@ done
 radio_settle_seconds=5
 sleep "$radio_settle_seconds"
 
-# Same power-on operation as CM12's wifi_load_driver(); the driver is built in.
-printf 1 > /dev/wmtWifi
-if [ ! -d /sys/class/net/wlan0 ]; then
-    echo 'wlan0 did not appear after WMT Wi-Fi power-on' >&2
-    exit 1
-fi
-setprop sys.biscuit.wifi.ready 1
+scan() {
+    scan_attempts=0
+    until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets scan >/dev/null 2>&1; do
+        scan_attempts=$((scan_attempts + 1))
+        if [ "$scan_attempts" -ge 10 ]; then
+            echo 'wpa_supplicant did not accept initial scan' >&2
+            return 1
+        fi
+        sleep 1
+    done
+}
 
-# Request one scan after init creates the supplicant control socket.
-scan_attempts=0
-until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets scan >/dev/null 2>&1; do
-    scan_attempts=$((scan_attempts + 1))
-    if [ "$scan_attempts" -ge 10 ]; then
-        echo 'wpa_supplicant did not accept initial scan' >&2
-        exit 1
-    fi
-    sleep 1
-done
+associate() {
+    # The first CONNECTED event can precede the wpa_cli action monitor.
+    association_attempts=0
+    until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets status 2>/dev/null | grep -q '^wpa_state=COMPLETED$'; do
+        association_attempts=$((association_attempts + 1))
+        if [ "$association_attempts" -ge 15 ]; then
+            echo 'wpa_supplicant did not complete initial association' >&2
+            return 1
+        fi
+        sleep 1
+    done
+}
 
-# The first CONNECTED event can precede the wpa_cli action monitor.
-association_attempts=0
-until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets status 2>/dev/null | grep -q '^wpa_state=COMPLETED$'; do
-    association_attempts=$((association_attempts + 1))
-    if [ "$association_attempts" -ge 15 ]; then
-        echo 'wpa_supplicant did not complete initial association' >&2
-        exit 1
+# WMT can report ready before the first usable WLAN scan after a fresh boot.
+max_radio_attempts=3
+radio_attempt=1
+while [ "$radio_attempt" -le "$max_radio_attempts" ]; do
+    # Same power-on operation as CM12's wifi_load_driver(); the driver is built in.
+    printf 1 > /dev/wmtWifi
+    if [ ! -d /sys/class/net/wlan0 ]; then
+        echo 'wlan0 did not appear after WMT Wi-Fi power-on' >&2
+    else
+        setprop sys.biscuit.wifi.ready 1
+        if scan && associate; then
+            setprop ctl.restart dhcpcd_wlan0
+            exit 0
+        fi
     fi
-    sleep 1
+
+    if [ "$radio_attempt" -lt "$max_radio_attempts" ]; then
+        setprop sys.biscuit.wifi.ready 0
+        setprop ctl.stop wpa_supplicant
+        echo "Wi-Fi radio attempt $radio_attempt failed; retrying" >&2
+        sleep 5
+    fi
+    radio_attempt=$((radio_attempt + 1))
 done
-setprop ctl.restart dhcpcd_wlan0
+exit 1
