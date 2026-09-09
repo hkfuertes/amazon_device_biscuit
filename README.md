@@ -4,6 +4,8 @@ CyanogenMod 12 port for Amazon Biscuit with reproducible inputs and a disposable
 
 Goal: a safe, rebuildable CM12 image for Biscuit that boots with ADB, WiFi, speaker playback, and microphone capture. Polish comes later.
 
+> This userdebug base intentionally exposes root ADB on TCP/5555; use only a trusted LAN.
+
 > Nothing here flashes the device. Scripts only produce build artifacts. Flashing notes live in `docs/amonet-biscuit-unlock.md`.
 
 ## Layout
