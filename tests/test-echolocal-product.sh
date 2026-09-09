@@ -20,9 +20,8 @@ done
 
 grep -Fq '$(LOCAL_DIR)/biscuit_echolocal.mk' "$PRODUCTS"
 grep -Fq 'BISCUIT_BOOTSTRAP_INIT_RC := device/amazon/biscuit/rootdir/init.biscuit.echolocal.rc' "$PRODUCT"
-! grep -Fq 'BISCUIT_ENABLE_LED_BOOTSTRAP' "$PRODUCT"
-grep -Fq 'BISCUIT_ENABLE_LED_BOOTSTRAP ?= true' "$DEVICE"
-grep -Fq '$(LOCAL_PATH)/rootdir/led-bootstrap.sh:system/bin/led-bootstrap.sh' "$DEVICE"
+grep -Fq '$(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller' "$DEVICE"
+grep -Fq 'PRODUCT_COPY_FILES := $(filter-out $(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller,$(PRODUCT_COPY_FILES))' "$PRODUCT"
 grep -Fq 'PRODUCT_NAME         := biscuit_echolocal' "$PRODUCT"
 grep -Fq 'PRODUCT_MODEL        := Echo Dot' "$PRODUCT"
 ! grep -Eq 'inherit-product.*(full_base|core_minimal|core_tiny|vendor/cm/config/common)' "$PRODUCT"
@@ -30,6 +29,7 @@ grep -Fq 'PRODUCT_PACKAGES += \' "$PRODUCT"
 grep -Fq '    echod \' "$PRODUCT"
 grep -Fq '    busybox' "$PRODUCT"
 ! grep -Fq 'wpa_passphrase' "$PRODUCT"
+grep -Fq '$(LOCAL_PATH)/cacerts.pem:system/etc/ssl/certs/ca-certificates.crt' "$PRODUCT"
 grep -Fq '$(LOCAL_PATH)/rootdir/echolocal.sh:system/bin/echolocal' "$PRODUCT"
 grep -Fq '$(LOCAL_PATH)/rootdir/echolocal-bootstrap.sh:system/bin/echolocal-bootstrap.sh' "$PRODUCT"
 grep -Fq '$(LOCAL_PATH)/rootdir/start_animation.sh:system/bin/start_animation.sh' "$PRODUCT"
@@ -52,14 +52,8 @@ grep -Fq 'start echolocal-boot' "$INIT"
 grep -Fq 'service echolocal-boot /system/bin/logwrapper /system/bin/sh /system/bin/echolocal-bootstrap.sh' "$INIT"
 ! grep -Fq 'echolocal_bootstrap' "$INIT"
 grep -Fq 'service ledcontroller /system/bin/ledcontroller' "$INIT"
-grep -Fq '    start led_bootstrap' "$INIT"
-grep -Fq 'service led_bootstrap /system/bin/sh /system/bin/led-bootstrap.sh' "$INIT"
-awk '
-    /^service led_bootstrap / { in_service = 1; seen = 1; next }
-    in_service && /^(service |on )/ { in_service = 0 }
-    in_service && /^[[:space:]]*oneshot$/ { oneshot = 1 }
-    END { exit !(seen && oneshot) }
-' "$INIT"
+! grep -Fq 'led_bootstrap' "$INIT"
+! grep -Fq 'led-bootstrap.sh' "$INIT"
 ! grep -Fqi 'firewall' "$PRODUCT" "$INIT" "$BOOTSTRAP" "$CONTROL"
 awk '
     /^service ledcontroller / { in_service = 1; seen = 1; next }

@@ -6,6 +6,9 @@ $(call inherit-product, device/amazon/biscuit/biscuit_bootstrap_device.mk)
 
 LOCAL_PATH := device/amazon/biscuit
 
+# echod owns the stock-compatible path in this product.
+PRODUCT_COPY_FILES := $(filter-out $(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller,$(PRODUCT_COPY_FILES))
+
 PRODUCT_NAME         := biscuit_echolocal
 PRODUCT_DEVICE       := biscuit
 PRODUCT_BRAND        := Amazon
@@ -19,6 +22,7 @@ PRODUCT_PACKAGES += \
     busybox
 
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/cacerts.pem:system/etc/ssl/certs/ca-certificates.crt \
     $(LOCAL_PATH)/rootdir/echolocal.sh:system/bin/echolocal \
     $(LOCAL_PATH)/rootdir/echolocal-bootstrap.sh:system/bin/echolocal-bootstrap.sh \
     $(LOCAL_PATH)/rootdir/start_animation.sh:system/bin/start_animation.sh \

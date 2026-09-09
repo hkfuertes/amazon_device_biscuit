@@ -88,6 +88,5 @@ cmp "$TMP/cacerts-one/12345678.0" "$TMP/cm12/libcore/luni/src/main/files/cacerts
 cmp "$TMP/cacerts-one.pem" "$TMP/cm12/device/amazon/biscuit/cacerts.pem"
 PRODUCT_MK="$REPO_ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
 grep -Fq '$(LOCAL_PATH)/cacerts.pem:system/etc/security/cacerts.pem' "$PRODUCT_MK"
-grep -Fq '$(LOCAL_PATH)/cacerts.pem:system/etc/ssl/certs/ca-certificates.crt' "$PRODUCT_MK"
 
-echo 'PASS pinned CA bundle is reproducible and stages at Android and Go CA paths'
+echo 'PASS pinned CA bundle is reproducible and stages at the Android CA path'
