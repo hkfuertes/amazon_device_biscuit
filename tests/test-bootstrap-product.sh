@@ -10,8 +10,9 @@ USB_INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.usb.rc"
 WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
 LEDCONTROLLER="$ROOT/device/amazon/biscuit/rootdir/ledcontroller"
 BUILD="$ROOT/scripts/build.sh"
+WPA_PASSPHRASE_PATCH="$ROOT/patches/cm12/cm12-biscuit-wpa-passphrase.patch"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD" "$WPA_PASSPHRASE_PATCH"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
@@ -21,6 +22,9 @@ grep -Fq "rm -rf '\$OUT_DIR/target/product/biscuit'" "$BUILD"
 ! grep -Fq "'\$OUT_DIR/target/product/biscuit/system'" "$BUILD"
 ! grep -Fqi 'echolocal' "$PRODUCT" "$INIT"
 grep -Fq 'wpa_supplicant' "$DEVICE"
+grep -Fq 'wpa_passphrase' "$DEVICE"
+grep -Fq 'LOCAL_MODULE := wpa_passphrase' "$WPA_PASSPHRASE_PATCH"
+grep -Fq 'LOCAL_SRC_FILES := $(OBJS_p)' "$WPA_PASSPHRASE_PATCH"
 grep -Fq 'dhcpcd' "$DEVICE"
 grep -Fq 'tinymix' "$DEVICE"
 for package in linker linker64 libc libcutils libdl liblog libm libstdc++ libsigchain mkshrc reboot logwrapper logd logcat; do

@@ -39,6 +39,7 @@ PRODUCT_PACKAGES += \
     selinux_version \
     wpa_supplicant \
     wpa_cli \
+    wpa_passphrase \
     dhcpcd \
     dhcpcd-run-hooks \
     20-dns.conf \
