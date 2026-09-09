@@ -1,0 +1,21 @@
+--- a/external/wpa_supplicant_8/wpa_supplicant/Android.mk
++++ b/external/wpa_supplicant_8/wpa_supplicant/Android.mk
+@@ -1559,9 +1559,15 @@
+ include $(BUILD_EXECUTABLE)
+-
++########################
++include $(CLEAR_VARS)
++LOCAL_MODULE := wpa_passphrase
++LOCAL_MODULE_TAGS := optional
++LOCAL_SHARED_LIBRARIES := libc libcutils liblog libcrypto
++LOCAL_CFLAGS := $(L_CFLAGS)
++LOCAL_SRC_FILES := $(OBJS_p)
++LOCAL_C_INCLUDES := $(INCLUDES)
++include $(BUILD_EXECUTABLE)
+ # This needs QMI artifacts to be built
+ ifneq ($(QCPATH),)
+-
+ ifeq ($(CONFIG_EAP_PROXY),qmi)
+ include $(CLEAR_VARS)
+-
+ LOCAL_MODULE = libwpa_qmi_eap_proxy

@@ -48,4 +48,31 @@ if CM12="$CM12" PATCH_DIR="$TMP/bad" "$REPO_ROOT/scripts/apply-patches.sh" > "$T
 fi
 grep -q 'ERROR: patch does not apply cleanly: 10-incompatible.patch' "$TMP/bad.log"
 
+WPA_CM12="$TMP/wpa-cm12"
+WPA_PATCH_DIR="$TMP/wpa-patches"
+mkdir -p "$WPA_CM12/build" "$WPA_CM12/external/wpa_supplicant_8/wpa_supplicant" "$WPA_PATCH_DIR"
+cp "$REPO_ROOT/patches/cm12/cm12-biscuit-wpa-passphrase.patch" "$WPA_PATCH_DIR/"
+cat > "$WPA_CM12/external/wpa_supplicant_8/wpa_supplicant/Android.mk" <<'MK'
+LOCAL_MODULE := wpa_cli
+LOCAL_MODULE_TAGS := debug
+LOCAL_SHARED_LIBRARIES := libc libcutils liblog
+LOCAL_CFLAGS := $(L_CFLAGS)
+LOCAL_SRC_FILES := $(OBJS_c)
+LOCAL_C_INCLUDES := $(INCLUDES)
+include $(BUILD_EXECUTABLE)
+
+# This needs QMI artifacts to be built
+ifneq ($(QCPATH),)
+
+ifeq ($(CONFIG_EAP_PROXY),qmi)
+include $(CLEAR_VARS)
+
+LOCAL_MODULE = libwpa_qmi_eap_proxy
+LOCAL_SHARED_LIBRARIES := libcutils liblog libwpa_client
+MK
+CM12="$WPA_CM12" PATCH_DIR="$WPA_PATCH_DIR" "$REPO_ROOT/scripts/apply-patches.sh" > "$TMP/wpa-first.log"
+[[ "$(grep -c 'LOCAL_MODULE := wpa_passphrase' "$WPA_CM12/external/wpa_supplicant_8/wpa_supplicant/Android.mk")" == 1 ]]
+CM12="$WPA_CM12" PATCH_DIR="$WPA_PATCH_DIR" "$REPO_ROOT/scripts/apply-patches.sh" > "$TMP/wpa-repeat.log"
+grep -qx 'SKIP already applied cm12-biscuit-wpa-passphrase.patch' "$TMP/wpa-repeat.log"
+
 echo 'PASS CM12 patch series is ordered, repeatable, and rejects conflicts'
