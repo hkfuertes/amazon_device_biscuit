@@ -49,12 +49,7 @@ docker run -d \
   "$IMAGE" \
   bash -lc "
     if [[ '$CLEAN_BISCUIT_OUT' == 1 ]]; then
-      rm -rf \
-        '$OUT_DIR/target/product/biscuit/system' \
-        '$OUT_DIR/target/product/biscuit/symbols/system/lib/hw/audio.primary.mt8163.so' \
-        '$OUT_DIR/target/product/biscuit/obj/PACKAGING' \
-        '$OUT_DIR/target/product/biscuit/obj/lib/audio.primary.mt8163.so' \
-        '$OUT_DIR/target/product/biscuit/obj/SHARED_LIBRARIES/audio.primary.mt8163_intermediates'
+      rm -rf '$OUT_DIR/target/product/biscuit'
     fi
     source build/envsetup.sh >/dev/null
     lunch '$LUNCH_TARGET' >/tmp/lunch.log

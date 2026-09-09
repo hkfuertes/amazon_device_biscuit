@@ -2,6 +2,8 @@
 # Keep this list explicit: framework packages belong in cm_biscuit, not here.
 
 LOCAL_PATH := device/amazon/biscuit
+BISCUIT_BOOTSTRAP_INIT_RC ?= $(LOCAL_PATH)/rootdir/init.biscuit.bootstrap.rc
+BISCUIT_INSTALL_LEDCONTROLLER_FALLBACK ?= true
 
 # ponytail: preserve the opaque vendor closure for the first hardware boot; reduce it only after
 # audio, Wi-Fi, and HCI probes identify the blobs actually used.
@@ -54,13 +56,17 @@ PRODUCT_COPY_FILES += \
     system/core/rootdir/etc/hosts:system/etc/hosts \
     external/dhcpcd/android.conf:system/etc/dhcpcd/dhcpcd.conf \
     $(LOCAL_PATH)/rootdir/fstab.mt8163:root/fstab.mt8163 \
-    $(LOCAL_PATH)/rootdir/init.biscuit.bootstrap.rc:root/init.biscuit.bootstrap.rc \
+    $(BISCUIT_BOOTSTRAP_INIT_RC):root/init.biscuit.bootstrap.rc \
     $(LOCAL_PATH)/rootdir/init.biscuit.usb.rc:root/init.biscuit.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.usb.rc:root/init.mt8163.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc \
     $(LOCAL_PATH)/rootdir/wifi-bootstrap.sh:system/bin/wifi-bootstrap.sh \
-    $(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller \
     $(LOCAL_PATH)/cacerts.pem:system/etc/security/cacerts.pem
+
+ifeq ($(BISCUIT_INSTALL_LEDCONTROLLER_FALLBACK),true)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller
+endif
 
 TARGET_BOARD_PLATFORM := mt8163
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
