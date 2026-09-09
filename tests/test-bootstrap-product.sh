@@ -6,11 +6,12 @@ PRODUCT="$ROOT/device/amazon/biscuit/biscuit_bootstrap.mk"
 DEVICE="$ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
 INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
 ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
+USB_INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.usb.rc"
 WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
 LEDCONTROLLER="$ROOT/device/amazon/biscuit/rootdir/ledcontroller"
 BUILD="$ROOT/scripts/build.sh"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
@@ -28,6 +29,14 @@ done
 grep -Fq '    init.environ.rc \' "$DEVICE"
 ! grep -Fq 'init.environ.rc:root/init.environ.rc' "$DEVICE"
 grep -Fq 'system/core/rootdir/init.usb.rc:root/init.usb.rc' "$DEVICE"
+grep -Fq 'setprop service.adb.tcp.port 5555' "$USB_INIT"
+awk '
+    $0 == "on boot" { in_boot = 1; next }
+    /^on / { in_boot = 0 }
+    in_boot && $0 == "    setprop service.adb.tcp.port 5555" { tcp = 1 }
+    in_boot && $0 == "    setprop sys.usb.config adb" { if (!tcp) exit 1; usb = 1 }
+    END { exit !(tcp && usb) }
+' "$USB_INIT"
 grep -Fq 'system/core/rootdir/ueventd.rc:root/ueventd.rc' "$DEVICE"
 grep -Fq 'system/core/rootdir/etc/hosts:system/etc/hosts' "$DEVICE"
 grep -Fq 'external/dhcpcd/android.conf:system/etc/dhcpcd/dhcpcd.conf' "$DEVICE"
