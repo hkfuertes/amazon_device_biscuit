@@ -7,9 +7,9 @@ DEVICE="$ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
 INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
 ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
 WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
-LED_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/led-bootstrap.sh"
+LEDCONTROLLER="$ROOT/device/amazon/biscuit/rootdir/ledcontroller"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$WIFI_BOOTSTRAP" "$LED_BOOTSTRAP"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
@@ -91,7 +91,19 @@ awk '
     }
     END { exit !(parent && child) }
 ' "$INIT"
-grep -Fq '$(LOCAL_PATH)/rootdir/led-bootstrap.sh:system/bin/led-bootstrap.sh' "$DEVICE"
+grep -Fq '$(LOCAL_PATH)/rootdir/ledcontroller:system/bin/ledcontroller' "$DEVICE"
+grep -Fq '    start ledcontroller' "$INIT"
+grep -Fq 'service ledcontroller /system/bin/ledcontroller' "$INIT"
+awk '
+    /^service ledcontroller / { in_service = 1; seen = 1; next }
+    in_service && /^(service |on )/ { in_service = 0 }
+    in_service && /^[[:space:]]*oneshot$/ { bad = 1 }
+    END { exit !(seen && !bad) }
+' "$INIT"
+grep -Fq 'without consuming CPU' "$LEDCONTROLLER"
+grep -Fq 'without modifying boot.img or the ramdisk' "$LEDCONTROLLER"
+grep -Fq 'exec /system/bin/sleep 2147483647' "$LEDCONTROLLER"
+[[ -x "$LEDCONTROLLER" ]]
 grep -Fq 'chown wifi:wifi "$config"' "$WIFI_BOOTSTRAP"
 grep -Fq 'radio_settle_seconds=5' "$WIFI_BOOTSTRAP"
 grep -Fq 'sleep "$radio_settle_seconds"' "$WIFI_BOOTSTRAP"
@@ -99,12 +111,12 @@ grep -Fq 'until /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets scan' "$WI
 grep -Fq "wpa_state=COMPLETED" "$WIFI_BOOTSTRAP"
 grep -Fq 'setprop ctl.restart dhcpcd_wlan0' "$WIFI_BOOTSTRAP"
 [[ -x "$WIFI_BOOTSTRAP" ]]
-grep -Fq 'start led_bootstrap' "$INIT"
-grep -Fq 'service led_bootstrap /system/bin/sh /system/bin/led-bootstrap.sh' "$INIT"
-grep -Fq '/sys/bus/i2c/devices/0-003f/boot_animation' "$LED_BOOTSTRAP"
-grep -Fq '/sys/bus/i2c/devices/0-003f/frame' "$LED_BOOTSTRAP"
-! grep -Fq 'biscuit-ledd' "$DEVICE" "$INIT" "$LED_BOOTSTRAP"
-[[ -x "$LED_BOOTSTRAP" ]]
+grep -Fq '/sys/bus/i2c/devices/0-003f/boot_animation' "$LEDCONTROLLER"
+grep -Fq '/sys/bus/i2c/devices/0-003f/frame' "$LEDCONTROLLER"
+grep -Fq "printf '%s' \"\$green\" > \"\$frame\"" "$LEDCONTROLLER"
+grep -Fq "printf '%s' \"\$black\" > \"\$frame\"" "$LEDCONTROLLER"
+! grep -Fq 'led_bootstrap' "$DEVICE" "$INIT"
+! grep -Fq 'biscuit-ledd' "$DEVICE" "$INIT" "$LEDCONTROLLER"
 grep -Fq 'service wifi_events /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets -a/system/bin/wifi-bootstrap.sh' "$INIT"
 grep -Fq '    -iwlan0 -Dnl80211' "$INIT"
 # Android wpa_supplicant preserves NET_ADMIN/NET_RAW only when init starts it as root.

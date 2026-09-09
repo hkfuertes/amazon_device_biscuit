@@ -24,6 +24,8 @@ on post-fs-data
     mkdir /data/wifi 0771 wifi wifi
 
     start audio_init
+    # Keep a stock-compatible daemon slot available to system-only add-ons.
+    start ledcontroller
 
 on property:ro.product.device=biscuit
     chmod 0660 /dev/stpwmt
@@ -36,7 +38,6 @@ on property:ro.product.device=biscuit
     start conn_launcher
 
 on boot
-    start led_bootstrap
     start wifi_bootstrap
 
 on property:sys.biscuit.wifi.ready=1
@@ -66,10 +67,11 @@ service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
     group root system
     disabled
 
-service led_bootstrap /system/bin/sh /system/bin/led-bootstrap.sh
+# The base target blocks harmlessly; a TWRP add-on may replace it with a daemon.
+# Do not mark oneshot: init must supervise the replacement process.
+service ledcontroller /system/bin/ledcontroller
     user root
-    group root
-    oneshot
+    group shell system
     disabled
 
 service wifi_bootstrap /system/bin/logwrapper /system/bin/sh /system/bin/wifi-bootstrap.sh

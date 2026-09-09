@@ -1,5 +1,13 @@
 #!/system/bin/sh
-# Stop the kernel boot animation, show green briefly, then leave the ring off.
+# Reserved stock-compatible init target for the framework-free Biscuit base.
+#
+# Init starts the ledcontroller service on every boot. In the bare base this
+# script stops the kernel spinner, shows green briefly, leaves the ring black,
+# then sleeps without consuming CPU.
+#
+# A TWRP system add-on replaces this file without modifying boot.img or the ramdisk.
+# Its daemon takes ownership of the ring at startup.
+# This service is deliberately not oneshot so init supervises the replacement.
 set -eu
 
 boot=/sys/bus/i2c/devices/0-003f/boot_animation
@@ -21,3 +29,4 @@ printf 0 > "$boot"
 printf '%s' "$green" > "$frame"
 sleep 1
 printf '%s' "$black" > "$frame"
+exec /system/bin/sleep 2147483647
