@@ -8,13 +8,16 @@ INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
 ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
 WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
 LEDCONTROLLER="$ROOT/device/amazon/biscuit/rootdir/ledcontroller"
+BUILD="$ROOT/scripts/build.sh"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
 ! grep -Eq 'inherit-product.*(full_base|core_minimal|core_tiny|vendor/cm/config/common)' "$PRODUCT" "$DEVICE"
 grep -Fq 'PRODUCT_NAME         := biscuit_bootstrap' "$PRODUCT"
+grep -Fq "rm -rf '\$OUT_DIR/target/product/biscuit'" "$BUILD"
+! grep -Fq "'\$OUT_DIR/target/product/biscuit/system'" "$BUILD"
 ! grep -Fqi 'echolocal' "$PRODUCT" "$INIT"
 grep -Fq 'wpa_supplicant' "$DEVICE"
 grep -Fq 'dhcpcd' "$DEVICE"
