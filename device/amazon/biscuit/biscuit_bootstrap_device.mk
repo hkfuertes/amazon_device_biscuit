@@ -62,7 +62,8 @@ PRODUCT_COPY_FILES += \
     device/amazon/mt8163-common/rootdir/etc/init.mt8163.usb.rc:root/init.mt8163.usb.rc \
     device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc \
     $(LOCAL_PATH)/rootdir/wifi-bootstrap.sh:system/bin/wifi-bootstrap.sh \
-    $(LOCAL_PATH)/cacerts.pem:system/etc/security/cacerts.pem
+    $(LOCAL_PATH)/cacerts.pem:system/etc/security/cacerts.pem \
+    $(LOCAL_PATH)/cacerts.pem:system/etc/ssl/certs/ca-certificates.crt
 
 ifeq ($(BISCUIT_ENABLE_LED_BOOTSTRAP),true)
 PRODUCT_COPY_FILES += \
