@@ -93,6 +93,17 @@ The OTA is written under:
 workspace/cm12/out-docker/target/product/biscuit/
 ```
 
+### Minimal Wi-Fi provisioning
+
+`biscuit_minimal` includes a root-ADB-only WPA helper; the full product keeps its Android `biscuit_service` flow.
+
+```sh
+adb shell wpa_connect '<ssid>' '<psk-or-passphrase>'
+adb shell wpa_connect status
+```
+
+It accepts a 64-character hexadecimal PSK directly or derives one from an 8–63-character passphrase. It stores the derived key rather than the plaintext passphrase.
+
 ### Incremental builds
 
 For ordinary CM12/device changes with an existing valid kernel:
