@@ -1,4 +1,5 @@
-# ponytail: runtime persist mirrors the TWRP hotfix; never put this in default.prop or it becomes adb,adb.
+# ponytail: runtime properties avoid adb,adb in default.prop; set TCP before USB starts adbd.
 on boot
+    setprop service.adb.tcp.port 5555
     setprop persist.sys.usb.config adb
     setprop sys.usb.config adb

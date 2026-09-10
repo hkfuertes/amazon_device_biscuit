@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# Apply tracked CM12 patches. Safe to re-run: skips already-applied patches.
+# Apply tracked product-scoped patches. Safe to re-run: skips already-applied patches.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="${CM12:-$REPO_ROOT/workspace/cm12}"
-PATCH_DIR="${PATCH_DIR:-$REPO_ROOT/patches/cm12}"
+PATCH_PROFILE="${PATCH_PROFILE:-full}"
+case "$PATCH_PROFILE" in
+  full|minimal) ;;
+  *) echo "ERROR: unsupported PATCH_PROFILE '$PATCH_PROFILE' (expected full or minimal)" >&2; exit 1 ;;
+esac
+PATCH_DIR="${PATCH_DIR:-$REPO_ROOT/patches/$PATCH_PROFILE}"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
 [[ -d "$PATCH_DIR" ]] || { echo "ERROR: CM12 patch series missing at $PATCH_DIR" >&2; exit 1; }

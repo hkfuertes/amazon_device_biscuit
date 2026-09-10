@@ -1,0 +1,132 @@
+#!/system/bin/sh
+# Root-ADB WPA provisioning for the framework-free Biscuit product.
+set -eu
+
+BB=/system/xbin/busybox
+WPA_CLI=/system/bin/wpa_cli
+WPA_PASSPHRASE=/system/bin/wpa_passphrase
+WPA_SOCKETS=/data/misc/wifi/sockets
+SETPROP=/system/bin/setprop
+
+fail() {
+    printf 'wpa_connect: %s\n' "$*" >&2
+    exit 1
+}
+
+[ -x "$BB" ] || fail 'missing BusyBox'
+[ -x "$WPA_CLI" ] || fail 'missing wpa_cli'
+[ -x "$WPA_PASSPHRASE" ] || fail 'missing wpa_passphrase'
+[ "$("$BB" id -u)" = 0 ] || fail 'requires root ADB'
+
+wifi_cli() {
+    output=$("$WPA_CLI" -iwlan0 -p"$WPA_SOCKETS" "$@" 2>&1) || {
+        printf '%s\n' "$output" >&2
+        return 1
+    }
+    case "$output" in
+        *FAIL*) printf '%s\n' "$output" >&2; return 1 ;;
+    esac
+    printf '%s\n' "$output"
+    # CM12 mksh needs an explicit success result after a non-FAIL response.
+    return 0
+}
+
+wifi_ok() {
+    wifi_cli "$@" >/dev/null
+}
+
+status_value() {
+    printf '%s\n' "$1" |
+        "$BB" awk -F= -v wanted="$2" '$1 == wanted { sub(/^[^=]*=/, ""); print; exit }'
+}
+
+wifi_status() {
+    status=$(wifi_cli status) || fail 'cannot read Wi-Fi status'
+    for field in wpa_state ssid ip_address; do
+        value=$(status_value "$status" "$field")
+        [ -z "$value" ] || printf '%s=%s\n' "$field" "$value"
+    done
+}
+
+remove_ssid() {
+    networks=$(wifi_cli list_networks) || fail 'cannot list saved networks'
+    ids=$(printf '%s\n' "$networks" |
+        "$BB" awk -F '\t' -v wanted="$1" 'NR > 1 && $2 == wanted { print $1 }')
+    for network_id in $ids; do
+        wifi_ok remove_network "$network_id" || fail 'could not remove existing network'
+    done
+}
+
+cleanup() {
+    wifi_cli remove_network "$network_id" >/dev/null 2>&1 || true
+    wifi_cli save_config >/dev/null 2>&1 || true
+    fail "$1"
+}
+
+is_hex_key() {
+    [ "${#1}" -eq 64 ] || return 1
+    case "$1" in *[!0123456789abcdefABCDEF]*) return 1 ;; esac
+}
+
+connect() {
+    ssid=$1
+    credential=$2
+    [ -n "$ssid" ] || fail 'SSID must not be empty'
+
+    ssid_hex=$(printf '%s' "$ssid" | "$BB" hexdump -v -e '1/1 "%02x"') ||
+        fail 'could not encode SSID'
+    if is_hex_key "$credential"; then
+        psk=$credential
+    else
+        [ "${#credential}" -ge 8 ] && [ "${#credential}" -le 63 ] ||
+            fail 'WPA passphrase must contain 8 to 63 characters'
+        psk=$(printf '%s\n' "$credential" | "$WPA_PASSPHRASE" "$ssid" |
+            "$BB" awk '$1 ~ /^psk=/ { sub(/^psk=/, "", $1); print $1; exit }')
+    fi
+    unset credential
+    is_hex_key "$psk" || fail 'could not derive WPA key'
+
+    remove_ssid "$ssid"
+    network_id=$(wifi_cli add_network | "$BB" awk 'NF { id = $0 } END { print id }') ||
+        fail 'could not add network'
+    case "$network_id" in ''|*[!0-9]*) fail 'wpa_cli returned an invalid network id' ;; esac
+
+    wifi_ok set_network "$network_id" ssid "$ssid_hex" || cleanup 'could not set SSID'
+    wifi_ok set_network "$network_id" scan_ssid 1 || cleanup 'could not configure scanning'
+    wifi_ok set_network "$network_id" key_mgmt WPA-PSK || cleanup 'could not configure WPA-PSK'
+    wifi_ok set_network "$network_id" psk "$psk" || cleanup 'could not set WPA key'
+    unset psk
+    wifi_ok enable_network "$network_id" || cleanup 'could not enable network'
+    wifi_ok select_network "$network_id" || cleanup 'could not select network'
+    wifi_ok save_config || cleanup 'could not save network'
+
+    attempts=0
+    while [ "$attempts" -lt 30 ]; do
+        status=$(wifi_cli status) || cleanup 'cannot read Wi-Fi status'
+        [ "$(status_value "$status" wpa_state)" = COMPLETED ] &&
+            [ "$(status_value "$status" ssid)" = "$ssid" ] && break
+        attempts=$((attempts + 1))
+        sleep 1
+    done
+    [ "$(status_value "$status" wpa_state)" = COMPLETED ] || cleanup 'association timed out'
+
+    "$SETPROP" ctl.restart dhcpcd_wlan0
+    attempts=0
+    while [ "$attempts" -lt 15 ]; do
+        status=$(wifi_cli status) || cleanup 'cannot read Wi-Fi status'
+        ip_address=$(status_value "$status" ip_address)
+        [ -n "$ip_address" ] && {
+            printf 'connected: %s (%s)\n' "$ssid" "$ip_address"
+            return 0
+        }
+        attempts=$((attempts + 1))
+        sleep 1
+    done
+    cleanup 'DHCP timed out'
+}
+
+case "${1:-}" in
+    status) [ "$#" -eq 1 ] || fail 'usage: wpa_connect status | wpa_connect <ssid> <psk-or-passphrase>'; wifi_status ;;
+    '') fail 'usage: wpa_connect status | wpa_connect <ssid> <psk-or-passphrase>' ;;
+    *) [ "$#" -eq 2 ] || fail 'usage: wpa_connect status | wpa_connect <ssid> <psk-or-passphrase>'; connect "$1" "$2" ;;
+esac

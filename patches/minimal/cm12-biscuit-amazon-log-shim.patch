@@ -1,0 +1,13 @@
+diff --git a/system/core/liblog/Android.mk b/system/core/liblog/Android.mk
+--- a/system/core/liblog/Android.mk
++++ b/system/core/liblog/Android.mk
+@@ -75,6 +75,9 @@ ifeq ($(TARGET_USES_MOTOROLA_LOG),true)
+ LIBLOG_CFLAGS := -DMOTOROLA_LOG
+ endif
+ 
++# ponytail: Amazon MTK display blobs reference lab126_log_write from liblog.
++LIBLOG_CFLAGS += -DAMAZON_LOG
++
+ # Shared and static library for target
+ # ========================================================
+ include $(CLEAR_VARS)

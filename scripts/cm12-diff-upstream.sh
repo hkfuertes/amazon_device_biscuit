@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# Show CM12 changes that must be represented by patches/cm12/*.patch.
+# Show CM12 changes that must be represented by one product patch profile.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="${CM12:-$REPO_ROOT/workspace/cm12}"
-PATCH_DIR="${PATCH_DIR:-$REPO_ROOT/patches/cm12}"
+PATCH_PROFILE="${PATCH_PROFILE:-full}"
+case "$PATCH_PROFILE" in
+  full|minimal) ;;
+  *) echo "ERROR: unsupported PATCH_PROFILE '$PATCH_PROFILE' (expected full or minimal)" >&2; exit 1 ;;
+esac
+PATCH_DIR="${PATCH_DIR:-$REPO_ROOT/patches/$PATCH_PROFILE}"
 CM12_DIFF_JOBS="${CM12_DIFF_JOBS:-4}"
 export LC_ALL=C
 

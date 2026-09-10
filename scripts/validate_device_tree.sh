@@ -30,6 +30,7 @@ echo ""
 echo "-- Required files --"
 check "AndroidProducts.mk exists"   "[[ -f '$TREE/AndroidProducts.mk' ]]"
 check "cm_biscuit.mk exists"        "[[ -f '$TREE/cm_biscuit.mk' ]]"
+check "biscuit_minimal.mk exists"   "[[ -f '$TREE/biscuit_minimal.mk' ]]"
 check "device.mk exists"            "[[ -f '$TREE/device.mk' ]]"
 check "BoardConfig.mk exists"       "[[ -f '$TREE/BoardConfig.mk' ]]"
 check "fstab.mt8163 exists"         "[[ -f '$TREE/recovery/root/etc/fstab.mt8163' ]]"
@@ -39,6 +40,8 @@ echo ""
 echo "-- AndroidProducts.mk content --"
 check "PRODUCT_MAKEFILES references cm.mk" \
   "grep -q 'cm.mk' '$TREE/AndroidProducts.mk'"
+check "PRODUCT_MAKEFILES references biscuit_minimal.mk" \
+  "grep -q 'biscuit_minimal.mk' '$TREE/AndroidProducts.mk'"
 
 echo ""
 echo "-- cm_biscuit.mk content --"
@@ -48,6 +51,15 @@ check "PRODUCT_DEVICE := biscuit" \
   "grep -q 'PRODUCT_DEVICE.*biscuit' '$TREE/cm_biscuit.mk'"
 check "includes device.mk" \
   "grep -q 'device/amazon/biscuit/device.mk' '$TREE/cm_biscuit.mk'"
+
+echo ""
+echo "-- biscuit_minimal.mk content --"
+check "PRODUCT_NAME := biscuit_minimal" \
+  "grep -q 'PRODUCT_NAME.*biscuit_minimal' '$TREE/biscuit_minimal.mk'"
+check "PRODUCT_DEVICE := biscuit" \
+  "grep -q 'PRODUCT_DEVICE.*biscuit' '$TREE/biscuit_minimal.mk'"
+check "inherits biscuit_minimal_device.mk" \
+  "grep -q 'biscuit_minimal_device.mk' '$TREE/biscuit_minimal.mk'"
 
 echo ""
 echo "-- BoardConfig.mk content --"
