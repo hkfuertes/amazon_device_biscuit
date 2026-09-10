@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PRODUCT="$ROOT/device/amazon/biscuit/biscuit_bootstrap.mk"
-DEVICE="$ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
+PRODUCT="$ROOT/device/amazon/biscuit/biscuit_minimal.mk"
+DEVICE="$ROOT/device/amazon/biscuit/biscuit_minimal_device.mk"
 INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
 ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
 USB_INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.usb.rc"
@@ -17,9 +17,20 @@ for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTR
 done
 
 ! grep -Eq 'inherit-product.*(full_base|core_minimal|core_tiny|vendor/cm/config/common)' "$PRODUCT" "$DEVICE"
-grep -Fq 'PRODUCT_NAME         := biscuit_bootstrap' "$PRODUCT"
+grep -Fq 'PRODUCT_NAME         := biscuit_minimal' "$PRODUCT"
 grep -Fq "rm -rf '\$OUT_DIR/target/product/biscuit'" "$BUILD"
 ! grep -Fq "'\$OUT_DIR/target/product/biscuit/system'" "$BUILD"
+grep -Fq 'LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"' "$BUILD"
+grep -Fq 'if [[ "$BUILD_TARGET" == otapackage ]]; then' "$BUILD"
+grep -Fq 'cm_biscuit-userdebug)      CANONICAL_NAME="ota_biscuit_${BUILD_DATE}-${BUILD_SHA}.zip"' "$BUILD"
+grep -Fq 'biscuit_minimal-userdebug) CANONICAL_NAME="ota_biscuit_minimal_${BUILD_DATE}-${BUILD_SHA}.zip"' "$BUILD"
+grep -Fq 'unsupported LUNCH_TARGET' "$BUILD"
+grep -Fq 'expected exactly one *-ota-*.zip' "$BUILD"
+
+MAKEFILE="$ROOT/Makefile"
+[[ -f "$MAKEFILE" ]] || { echo "missing: $MAKEFILE" >&2; exit 1; }
+grep -Fq 'LUNCH_TARGET=cm_biscuit-userdebug CLEAN_BISCUIT_OUT=1 ./scripts/build.sh' "$MAKEFILE"
+grep -Fq 'LUNCH_TARGET=biscuit_minimal-userdebug CLEAN_BISCUIT_OUT=1 ./scripts/build.sh' "$MAKEFILE"
 ! grep -Fqi 'echolocal' "$PRODUCT" "$INIT"
 grep -Fq 'wpa_supplicant' "$DEVICE"
 grep -Fq 'wpa_passphrase' "$DEVICE"

@@ -125,15 +125,11 @@ Methods:
 
 Native local builds fail due to legacy Python 2. Use Docker.
 
-To build/generate an OTA in the background, always use detached Docker so the user can keep typing and monitor it:
+To build/generate an OTA in the background, always use detached Docker so the user can keep typing and monitor it. Use the root `Makefile` wrapper, which runs `scripts/build.sh` in the existing detached `cm12-biscuit-build` container:
 
 ```sh
-docker rm -f cm12-biscuit-build >/dev/null 2>&1 || true
-docker run -d --name cm12-biscuit-build \
-  -v "$PWD:$PWD" \
-  -w "$PWD/workspace/cm12" \
-  cm12-ubuntu14:latest \
-  bash -lc 'source build/envsetup.sh >/dev/null && lunch cm_biscuit-userdebug && export OUT_DIR="$PWD/out-docker" && export PATH="$OUT_DIR/host/linux-x86/bin:$PATH" && make -j$(nproc) otapackage'
+make full      # cm_biscuit-userdebug, full CM12 image
+make minimal   # biscuit_minimal-userdebug, frameworkless base
 ```
 
 Notes:
