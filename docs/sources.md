@@ -59,7 +59,8 @@ device/amazon/biscuit/
 device/amazon/mt8163-common/
 hardware/amazon/
 hardware/mediatek/
-patches/cm12/
+patches/full/
+patches/minimal/
 patches/kernel/
 patches/vendor/
 scripts/

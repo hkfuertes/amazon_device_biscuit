@@ -1,5 +1,5 @@
 # Biscuit: broadcast real microphone mute changes for LED feedback.
-# Apply from repo root with: patch -d workspace/cm12 -p1 < workspace/patches/cm12-biscuit-microphone-mute-broadcast.patch
+# Apply from repo root with: patch -d workspace/cm12 -p1 < patches/full/cm12-biscuit-microphone-mute-broadcast.patch
 
 --- a/frameworks/base/media/java/android/media/AudioService.java
 +++ b/frameworks/base/media/java/android/media/AudioService.java

@@ -10,7 +10,7 @@ USB_INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.usb.rc"
 WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
 LEDCONTROLLER="$ROOT/device/amazon/biscuit/rootdir/ledcontroller"
 BUILD="$ROOT/scripts/build.sh"
-WPA_PASSPHRASE_PATCH="$ROOT/patches/cm12/cm12-biscuit-wpa-passphrase.patch"
+WPA_PASSPHRASE_PATCH="$ROOT/patches/minimal/cm12-biscuit-wpa-passphrase.patch"
 
 for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD" "$WPA_PASSPHRASE_PATCH"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
@@ -21,9 +21,11 @@ grep -Fq 'PRODUCT_NAME         := biscuit_minimal' "$PRODUCT"
 grep -Fq "rm -rf '\$OUT_DIR/target/product/biscuit'" "$BUILD"
 ! grep -Fq "'\$OUT_DIR/target/product/biscuit/system'" "$BUILD"
 grep -Fq 'LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"' "$BUILD"
+grep -Fq 'PATCH_PROFILE=full' "$BUILD"
+grep -Fq 'PATCH_PROFILE=minimal' "$BUILD"
+grep -Fq 'PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' "$BUILD"
+grep -Fq 'CANONICAL_NAME="${OTA_PREFIX}_${BUILD_DATE}-${BUILD_SHA}.zip"' "$BUILD"
 grep -Fq 'if [[ "$BUILD_TARGET" == otapackage ]]; then' "$BUILD"
-grep -Fq 'cm_biscuit-userdebug)      CANONICAL_NAME="ota_biscuit_${BUILD_DATE}-${BUILD_SHA}.zip"' "$BUILD"
-grep -Fq 'biscuit_minimal-userdebug) CANONICAL_NAME="ota_biscuit_minimal_${BUILD_DATE}-${BUILD_SHA}.zip"' "$BUILD"
 grep -Fq 'unsupported LUNCH_TARGET' "$BUILD"
 grep -Fq 'expected exactly one *-ota-*.zip' "$BUILD"
 

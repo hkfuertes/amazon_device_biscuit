@@ -14,19 +14,29 @@ LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"
 CLEAN_BISCUIT_OUT="${CLEAN_BISCUIT_OUT:-0}"
 BUILD_KERNEL="${BUILD_KERNEL:-0}"
 
+# --- product-scoped patch profile ---
+case "$LUNCH_TARGET" in
+  cm_biscuit-userdebug)
+    PATCH_PROFILE=full
+    OTA_PREFIX=ota_biscuit
+    ;;
+  biscuit_minimal-userdebug)
+    PATCH_PROFILE=minimal
+    OTA_PREFIX=ota_biscuit_minimal
+    ;;
+  *)
+    echo "ERROR: unsupported LUNCH_TARGET '$LUNCH_TARGET' (expected cm_biscuit-userdebug or biscuit_minimal-userdebug)" >&2
+    exit 1
+    ;;
+esac
+PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"
+
 # --- canonical OTA zip name for OTA builds (fail fast, before Docker) ---
 CANONICAL_NAME=
 if [[ "$BUILD_TARGET" == otapackage ]]; then
   BUILD_DATE="$(date -u +%Y%m%d)"
   BUILD_SHA="$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
-  case "$LUNCH_TARGET" in
-    cm_biscuit-userdebug)      CANONICAL_NAME="ota_biscuit_${BUILD_DATE}-${BUILD_SHA}.zip" ;;
-    biscuit_minimal-userdebug) CANONICAL_NAME="ota_biscuit_minimal_${BUILD_DATE}-${BUILD_SHA}.zip" ;;
-    *)
-      echo "ERROR: unsupported LUNCH_TARGET '$LUNCH_TARGET' (expected cm_biscuit-userdebug or biscuit_minimal-userdebug)" >&2
-      exit 1
-      ;;
-  esac
+  CANONICAL_NAME="${OTA_PREFIX}_${BUILD_DATE}-${BUILD_SHA}.zip"
 fi
 
 if [[ "$BUILD_KERNEL" == 1 ]]; then
@@ -35,7 +45,7 @@ fi
 
 # --- preflight: source tree must match tracked inputs ---
 "$REPO_ROOT/scripts/stage-tree.sh"
-"$REPO_ROOT/scripts/apply-patches.sh"
+PATCH_PROFILE="$PATCH_PROFILE" PATCH_DIR="$PATCH_DIR" "$REPO_ROOT/scripts/apply-patches.sh"
 
 # --- preflight: image must exist ---
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
