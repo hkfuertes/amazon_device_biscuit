@@ -6,8 +6,9 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="${CM12:-$REPO_ROOT/workspace/cm12}"
 CA_CERTS_DIR="${CA_CERTS_DIR:-$REPO_ROOT/workspace/cacerts}"
 CA_CERTS_BUNDLE="${CA_CERTS_BUNDLE:-$REPO_ROOT/workspace/cacerts.pem}"
+WEBVIEW_PREBUILT="${WEBVIEW_PREBUILT:-yes}"
 WEBVIEW_PREBUILT_REL="prebuilts/android_prebuilts_webview_chromium_arm"
-WEBVIEW_PREBUILT="$REPO_ROOT/$WEBVIEW_PREBUILT_REL"
+WEBVIEW_PREBUILT_DIR="$REPO_ROOT/$WEBVIEW_PREBUILT_REL"
 WEBVIEW_PREBUILT_STAGE="$CM12/vendor/hkfuertes/webview-prebuilt"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
@@ -40,11 +41,23 @@ copy_file() {
 }
 
 stage_webview_prebuilt() {
-  git -C "$REPO_ROOT" submodule update --init -- "$WEBVIEW_PREBUILT_REL"
-  [[ -x "$WEBVIEW_PREBUILT/verify.sh" ]] || { echo "ERROR: missing WebView prebuilt at $WEBVIEW_PREBUILT" >&2; exit 1; }
-  git -C "$WEBVIEW_PREBUILT" lfs pull
-  "$WEBVIEW_PREBUILT/verify.sh"
-  copy_dir "$WEBVIEW_PREBUILT" "$WEBVIEW_PREBUILT_STAGE" "CM12 WebView prebuilt"
+  case "$WEBVIEW_PREBUILT" in
+    yes)
+      git -C "$REPO_ROOT" submodule update --init -- "$WEBVIEW_PREBUILT_REL"
+      [[ -x "$WEBVIEW_PREBUILT_DIR/verify.sh" ]] || { echo "ERROR: missing WebView prebuilt at $WEBVIEW_PREBUILT_DIR" >&2; exit 1; }
+      git -C "$WEBVIEW_PREBUILT_DIR" lfs pull
+      "$WEBVIEW_PREBUILT_DIR/verify.sh"
+      copy_dir "$WEBVIEW_PREBUILT_DIR" "$WEBVIEW_PREBUILT_STAGE" "CM12 WebView prebuilt"
+      ;;
+    no)
+      rm -rf "$WEBVIEW_PREBUILT_STAGE"
+      echo "SKIP CM12 WebView prebuilt: source build selected"
+      ;;
+    *)
+      echo "ERROR: WEBVIEW_PREBUILT must be yes or no" >&2
+      exit 1
+      ;;
+  esac
 }
 
 copy_dir "$REPO_ROOT/device/amazon/biscuit" \

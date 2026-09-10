@@ -93,6 +93,16 @@ The OTA is written under:
 workspace/cm12/out-docker/target/product/biscuit/
 ```
 
+### Full WebView mode
+
+Full builds use the pinned Chromium WebView prebuilt by default. To compile WebView from the checked-out CM12 sources instead, use:
+
+```sh
+make full WEBVIEW_PREBUILT=no
+```
+
+Source mode does not fetch or stage the prebuilt and removes any stale staged copy before the build. It is deliberately explicit because it produces a different, much slower artifact.
+
 ### Minimal Wi-Fi provisioning
 
 `biscuit_minimal` includes a root-ADB-only WPA helper; the full product keeps its Android `biscuit_service` flow.

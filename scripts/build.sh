@@ -13,6 +13,7 @@ BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
 LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"
 CLEAN_BISCUIT_OUT="${CLEAN_BISCUIT_OUT:-0}"
 BUILD_KERNEL="${BUILD_KERNEL:-0}"
+WEBVIEW_PREBUILT="${WEBVIEW_PREBUILT:-yes}"
 
 # --- product-scoped patch profile ---
 case "$LUNCH_TARGET" in
@@ -23,9 +24,17 @@ case "$LUNCH_TARGET" in
   biscuit_minimal-userdebug)
     PATCH_PROFILE=minimal
     OTA_PREFIX=ota_biscuit_minimal
+    WEBVIEW_PREBUILT=no
     ;;
   *)
     echo "ERROR: unsupported LUNCH_TARGET '$LUNCH_TARGET' (expected cm_biscuit-userdebug or biscuit_minimal-userdebug)" >&2
+    exit 1
+    ;;
+esac
+case "$WEBVIEW_PREBUILT" in
+  yes|no) ;;
+  *)
+    echo "ERROR: WEBVIEW_PREBUILT must be yes or no" >&2
     exit 1
     ;;
 esac
@@ -44,7 +53,8 @@ if [[ "$BUILD_KERNEL" == 1 ]]; then
 fi
 
 # --- preflight: source tree must match tracked inputs ---
-"$REPO_ROOT/scripts/stage-tree.sh"
+echo "WebView prebuilt: $WEBVIEW_PREBUILT"
+WEBVIEW_PREBUILT="$WEBVIEW_PREBUILT" "$REPO_ROOT/scripts/stage-tree.sh"
 PATCH_PROFILE="$PATCH_PROFILE" PATCH_DIR="$PATCH_DIR" "$REPO_ROOT/scripts/apply-patches.sh"
 
 # --- preflight: image must exist ---
@@ -72,6 +82,7 @@ docker run -d \
   -v "$REPO_ROOT:$REPO_ROOT" \
   -w "$CM12_DIR" \
   -e CANONICAL_NAME="$CANONICAL_NAME" \
+  -e BISCUIT_PREBUILT_WEBVIEW="$WEBVIEW_PREBUILT" \
   "$IMAGE" \
   bash -lc "
     set -e

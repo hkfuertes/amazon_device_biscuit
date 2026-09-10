@@ -22,4 +22,6 @@ for path in \
 done
 
 "$CM12/vendor/hkfuertes/webview-prebuilt/verify.sh"
+WEBVIEW_PREBUILT=no CM12="$CM12" "$REPO_ROOT/scripts/stage-tree.sh" >/dev/null
+[[ ! -e "$CM12/vendor/hkfuertes/webview-prebuilt" ]] || { echo "source mode retained staged WebView prebuilt" >&2; exit 1; }
 echo "PASS canonical trees staged"
