@@ -142,7 +142,7 @@ Notes:
 
 - `../cm12-biscuit` is read/learn-only. Do not dirty it.
 - Do not copy anything as-is from `../cm12-biscuit` without explicit permission from the user.
-- Private CM12.1 ARM WebView prebuilt: `../android_prebuilts_webview_chromium_arm` (`https://github.com/hkfuertes/android_prebuilts_webview_chromium_arm`), validated tag `cm12.1-webview-39-24441a182c-arm`. It is not integrated yet; test it only in a future clean full build.
+- Public CM12.1 ARM WebView prebuilt: `../android_prebuilts_webview_chromium_arm` (`https://github.com/hkfuertes/android_prebuilts_webview_chromium_arm`), validated tag `cm12.1-webview-39-24441a182c-arm`. It is consumed as a pinned submodule only by the full CM12 product.
 
 ## Recommended flashing
 

@@ -15,8 +15,11 @@ for path in \
   device/amazon/biscuit/AndroidProducts.mk \
   device/amazon/mt8163-common/mt8163-common.mk \
   hardware/amazon/audio/Android.mk \
-  hardware/mediatek/wlan/wifi_hal/Android.mk; do
+  hardware/mediatek/wlan/wifi_hal/Android.mk \
+  vendor/hkfuertes/webview-prebuilt/Android.mk \
+  vendor/hkfuertes/webview-prebuilt/prebuilt/arm/webview.apk; do
   [[ -f "$CM12/$path" ]] || { echo "missing staged $path" >&2; exit 1; }
 done
 
+"$CM12/vendor/hkfuertes/webview-prebuilt/verify.sh"
 echo "PASS canonical trees staged"

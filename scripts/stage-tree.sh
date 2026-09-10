@@ -6,6 +6,9 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM12="${CM12:-$REPO_ROOT/workspace/cm12}"
 CA_CERTS_DIR="${CA_CERTS_DIR:-$REPO_ROOT/workspace/cacerts}"
 CA_CERTS_BUNDLE="${CA_CERTS_BUNDLE:-$REPO_ROOT/workspace/cacerts.pem}"
+WEBVIEW_PREBUILT_REL="prebuilts/android_prebuilts_webview_chromium_arm"
+WEBVIEW_PREBUILT="$REPO_ROOT/$WEBVIEW_PREBUILT_REL"
+WEBVIEW_PREBUILT_STAGE="$CM12/vendor/hkfuertes/webview-prebuilt"
 
 [[ -d "$CM12/build" ]] || { echo "ERROR: CM12 not synced at $CM12" >&2; exit 1; }
 
@@ -36,6 +39,14 @@ copy_file() {
   echo "STAGED $label -> ${dst#$REPO_ROOT/}"
 }
 
+stage_webview_prebuilt() {
+  git -C "$REPO_ROOT" submodule update --init -- "$WEBVIEW_PREBUILT_REL"
+  [[ -x "$WEBVIEW_PREBUILT/verify.sh" ]] || { echo "ERROR: missing WebView prebuilt at $WEBVIEW_PREBUILT" >&2; exit 1; }
+  git -C "$WEBVIEW_PREBUILT" lfs pull
+  "$WEBVIEW_PREBUILT/verify.sh"
+  copy_dir "$WEBVIEW_PREBUILT" "$WEBVIEW_PREBUILT_STAGE" "CM12 WebView prebuilt"
+}
+
 copy_dir "$REPO_ROOT/device/amazon/biscuit" \
          "$CM12/device/amazon/biscuit" \
          "device/amazon/biscuit"
@@ -51,6 +62,7 @@ copy_dir "$REPO_ROOT/hardware/mediatek" \
 copy_dir "$REPO_ROOT/workspace/vendor/amazon" \
          "$CM12/vendor/amazon" \
          "vendor/amazon"
+stage_webview_prebuilt
 copy_files_from_dir "$CA_CERTS_DIR" \
                     "$CM12/libcore/luni/src/main/files/cacerts" \
                     "libcore cacerts"

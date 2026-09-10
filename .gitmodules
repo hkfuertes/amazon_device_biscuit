@@ -1,0 +1,3 @@
+[submodule "prebuilts/android_prebuilts_webview_chromium_arm"]
+	path = prebuilts/android_prebuilts_webview_chromium_arm
+	url = https://github.com/hkfuertes/android_prebuilts_webview_chromium_arm.git
