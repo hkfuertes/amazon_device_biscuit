@@ -85,13 +85,24 @@ The commands have distinct responsibilities:
 | `scripts/bootstrap-workspace.sh` | Syncs the pinned CM12 manifest, verifies/extracts the unmodified Amazon kernel base, materializes the pinned CA bundle, prepares the stock system image, extracts and vendor-patches blobs, then stages tracked trees and CM12 patches. |
 | `scripts/build-kernel.sh` | Copies the verified kernel base to a disposable stage, applies `patches/kernel/`, builds `Image.gz-dtb` with the dedicated toolchain container, and places the generated prebuilt under ignored `workspace/`. It creates `biscuit-kernel-builder:latest` if needed. |
 | `scripts/preflight.sh` | Performs no download, sync, build, or flash. It fails with a specific missing-input command if the workspace is incomplete. Run it explicitly before every OTA build. |
-| `scripts/build.sh` | Re-stages tracked `device/` and `hardware/` trees, vendor inputs, CA files, and `patches/cm12/`; then starts `make otapackage` in detached `cm12-biscuit-build`. It does **not** run `preflight.sh` itself. |
+| `scripts/build.sh` | Re-stages tracked `device/` and `hardware/` trees, vendor inputs and CA files; applies `patches/full/` for full or `patches/minimal/` for minimal; then starts `make otapackage` in detached `cm12-biscuit-build`. It does **not** run `preflight.sh` itself. |
 
 The OTA is written under:
 
 ```txt
 workspace/cm12/out-docker/target/product/biscuit/
 ```
+
+### Minimal Wi-Fi provisioning
+
+`biscuit_minimal` includes a root-ADB-only WPA helper; the full product keeps its Android `biscuit_service` flow.
+
+```sh
+adb shell wpa_connect '<ssid>' '<psk-or-passphrase>'
+adb shell wpa_connect status
+```
+
+It accepts a 64-character hexadecimal PSK directly or derives one from an 8–63-character passphrase. It stores the derived key rather than the plaintext passphrase.
 
 ### Incremental builds
 

@@ -2,27 +2,44 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-PRODUCT="$ROOT/device/amazon/biscuit/biscuit_bootstrap.mk"
-DEVICE="$ROOT/device/amazon/biscuit/biscuit_bootstrap_device.mk"
+PRODUCT="$ROOT/device/amazon/biscuit/biscuit_minimal.mk"
+DEVICE="$ROOT/device/amazon/biscuit/biscuit_minimal_device.mk"
 INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.bootstrap.rc"
 ROOT_INIT="$ROOT/device/amazon/biscuit/rootdir/init.bootstrap.rc"
 USB_INIT="$ROOT/device/amazon/biscuit/rootdir/init.biscuit.usb.rc"
 WIFI_BOOTSTRAP="$ROOT/device/amazon/biscuit/rootdir/wifi-bootstrap.sh"
+WPA_CONNECT="$ROOT/device/amazon/biscuit/rootdir/wpa_connect"
 LEDCONTROLLER="$ROOT/device/amazon/biscuit/rootdir/ledcontroller"
 BUILD="$ROOT/scripts/build.sh"
-WPA_PASSPHRASE_PATCH="$ROOT/patches/cm12/cm12-biscuit-wpa-passphrase.patch"
+WPA_PASSPHRASE_PATCH="$ROOT/patches/minimal/cm12-biscuit-wpa-passphrase.patch"
 
-for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTRAP" "$LEDCONTROLLER" "$BUILD" "$WPA_PASSPHRASE_PATCH"; do
+for file in "$PRODUCT" "$DEVICE" "$INIT" "$ROOT_INIT" "$USB_INIT" "$WIFI_BOOTSTRAP" "$WPA_CONNECT" "$LEDCONTROLLER" "$BUILD" "$WPA_PASSPHRASE_PATCH"; do
   [[ -f "$file" ]] || { echo "missing: $file" >&2; exit 1; }
 done
 
 ! grep -Eq 'inherit-product.*(full_base|core_minimal|core_tiny|vendor/cm/config/common)' "$PRODUCT" "$DEVICE"
-grep -Fq 'PRODUCT_NAME         := biscuit_bootstrap' "$PRODUCT"
+grep -Fq 'PRODUCT_NAME         := biscuit_minimal' "$PRODUCT"
 grep -Fq "rm -rf '\$OUT_DIR/target/product/biscuit'" "$BUILD"
 ! grep -Fq "'\$OUT_DIR/target/product/biscuit/system'" "$BUILD"
-! grep -Fqi 'echolocal' "$PRODUCT" "$INIT"
+grep -Fq 'LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"' "$BUILD"
+grep -Fq 'PATCH_PROFILE=full' "$BUILD"
+grep -Fq 'PATCH_PROFILE=minimal' "$BUILD"
+grep -Fq 'PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' "$BUILD"
+grep -Fq 'CANONICAL_NAME="${OTA_PREFIX}_${BUILD_DATE}-${BUILD_SHA}.zip"' "$BUILD"
+grep -Fq 'if [[ "$BUILD_TARGET" == otapackage ]]; then' "$BUILD"
+grep -Fq 'unsupported LUNCH_TARGET' "$BUILD"
+grep -Fq 'expected exactly one *-ota-*.zip' "$BUILD"
+
+MAKEFILE="$ROOT/Makefile"
+[[ -f "$MAKEFILE" ]] || { echo "missing: $MAKEFILE" >&2; exit 1; }
+grep -Fq 'LUNCH_TARGET=cm_biscuit-userdebug CLEAN_BISCUIT_OUT=1 ./scripts/build.sh' "$MAKEFILE"
+grep -Fq 'LUNCH_TARGET=biscuit_minimal-userdebug CLEAN_BISCUIT_OUT=1 ./scripts/build.sh' "$MAKEFILE"
 grep -Fq 'wpa_supplicant' "$DEVICE"
 grep -Fq 'wpa_passphrase' "$DEVICE"
+grep -Fq '    busybox \' "$DEVICE"
+grep -Fq '$(LOCAL_PATH)/rootdir/wpa_connect:system/bin/wpa_connect' "$DEVICE"
+[[ -x "$WPA_CONNECT" ]]
+! grep -Fq 'wpa_connect' "$ROOT/device/amazon/biscuit/device.mk"
 grep -Fq 'LOCAL_MODULE := wpa_passphrase' "$WPA_PASSPHRASE_PATCH"
 grep -Fq 'LOCAL_SHARED_LIBRARIES := libc libcutils liblog libcrypto' "$WPA_PASSPHRASE_PATCH"
 grep -Fq 'LOCAL_SRC_FILES := $(OBJS_p)' "$WPA_PASSPHRASE_PATCH"

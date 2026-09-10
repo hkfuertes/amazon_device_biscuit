@@ -1,1 +1,2 @@
 add_lunch_combo cm_biscuit-userdebug
+add_lunch_combo biscuit_minimal-userdebug

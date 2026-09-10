@@ -3,7 +3,7 @@
 ## Goal
 
 Add one small native C daemon, `/system/bin/biscuitd`, to the framework-free
-`biscuit_bootstrap` product. It will own the direct hardware behavior formerly
+`biscuit_minimal` product. It will own the direct hardware behavior formerly
 split between Android `BiscuitService` and `biscuit-ledd`:
 
 - silence and write the LED ring;
@@ -58,7 +58,7 @@ device/amazon/biscuit/biscuitd/
 ```
 
 Add `biscuitd` and its existing native dependency closure to
-`biscuit_bootstrap_device.mk`, then define one root init service in
+`biscuit_minimal_device.mk`, then define one root init service in
 `init.biscuit.bootstrap.rc`. The daemon must start after the audio bootstrap
 has configured the codec and must tolerate input, mixer, or LED sysfs nodes
 appearing late.

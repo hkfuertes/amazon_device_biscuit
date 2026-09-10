@@ -3,6 +3,11 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+[[ "$(find "$REPO_ROOT/patches/full" -maxdepth 1 -name '*.patch' | wc -l)" == 20 ]]
+[[ "$(find "$REPO_ROOT/patches/minimal" -maxdepth 1 -name '*.patch' | wc -l)" == 5 ]]
+for patch in cm12-biscuit-amazon-log-shim.patch cm12-biscuit-libcutils-atrace-body.patch cm12-biscuit-use-stock-tinycompress.patch cm12-biscuit-wifi-sta-userspace.patch; do
+  [[ -f "$REPO_ROOT/patches/full/$patch" && -f "$REPO_ROOT/patches/minimal/$patch" ]]
+done
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 CM12="$TMP/cm12"
@@ -51,7 +56,7 @@ grep -q 'ERROR: patch does not apply cleanly: 10-incompatible.patch' "$TMP/bad.l
 WPA_CM12="$TMP/wpa-cm12"
 WPA_PATCH_DIR="$TMP/wpa-patches"
 mkdir -p "$WPA_CM12/build" "$WPA_CM12/external/wpa_supplicant_8/wpa_supplicant" "$WPA_PATCH_DIR"
-cp "$REPO_ROOT/patches/cm12/cm12-biscuit-wpa-passphrase.patch" "$WPA_PATCH_DIR/"
+cp "$REPO_ROOT/patches/minimal/cm12-biscuit-wpa-passphrase.patch" "$WPA_PATCH_DIR/"
 cat > "$WPA_CM12/external/wpa_supplicant_8/wpa_supplicant/Android.mk" <<'MK'
 LOCAL_MODULE := wpa_cli
 LOCAL_MODULE_TAGS := debug

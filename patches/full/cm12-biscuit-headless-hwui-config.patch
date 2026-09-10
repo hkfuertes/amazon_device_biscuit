@@ -1,5 +1,5 @@
 # Biscuit headless HWUI/EGL config for CM12
-# Apply from workspace/cm12 with: patch -p1 < ../patches/cm12-biscuit-headless-hwui-config.patch
+# Apply from workspace/cm12 with: patch -p1 < ../../patches/full/cm12-biscuit-headless-hwui-config.patch
 
 diff --git a/frameworks/base/core/java/android/content/pm/PackageParser.java b/frameworks/base/core/java/android/content/pm/PackageParser.java
 --- a/frameworks/base/core/java/android/content/pm/PackageParser.java

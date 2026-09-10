@@ -1,0 +1,2 @@
+patches/full/*.patch -whitespace
+patches/minimal/*.patch -whitespace
