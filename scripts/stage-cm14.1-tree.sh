@@ -68,6 +68,7 @@ grep -qE '^/dev/block/platform/bootdevice/by-name/system[[:space:]]+/system.*slo
 grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotselect' "$FSTAB"
 ! grep -qE 'boot_[ab]_x' "$FSTAB"
 ! grep -q '/dev/block/platform/soc/' "$FSTAB"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet2-bcb-slotselect.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
