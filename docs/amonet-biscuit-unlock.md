@@ -70,8 +70,11 @@ A legacy edify/block recovery OTA does not invoke fs_mgr, so `slotselect` alone
 cannot select its write target. The live v2 TWRP fstab defines
 `/dev/block/current-system` and `/dev/block/current-boot`; generated CM14
 recovery OTAs must use those aliases. TWRP's `bcbtool` updates them from the
-active BCB slot. Verify the slot before each of the two installations rather
-than assuming that rebooting recovery changes it automatically.
+active BCB slot. CM14's legacy updater reads an empty device property during
+TWRP 3.7 sideload, so its generated `E3004` `getprop` assertion must be
+replaced with a fail-closed BCB/current-alias assertion. Verify the slot before
+each of the two installations rather than assuming that rebooting recovery
+changes it automatically.
 
 Do not use `boot_a_x`, `boot_b_x`, `_amonet` aliases, or v1 GPT assumptions.
 Do not assume a single custom recovery-OTA installation fills both slots:
