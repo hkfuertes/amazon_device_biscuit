@@ -66,6 +66,13 @@ CM14 uses Android's standard `slotselect` fstab flag with the native base paths
 appends `ro.boot.slot_suffix` at runtime, yielding `system_a`/`boot_a` or
 `system_b`/`boot_b` without an amonet-specific remapping layer.
 
+A legacy edify/block recovery OTA does not invoke fs_mgr, so `slotselect` alone
+cannot select its write target. The live v2 TWRP fstab defines
+`/dev/block/current-system` and `/dev/block/current-boot`; generated CM14
+recovery OTAs must use those aliases. TWRP's `bcbtool` updates them from the
+active BCB slot. Verify the slot before each of the two installations rather
+than assuming that rebooting recovery changes it automatically.
+
 Do not use `boot_a_x`, `boot_b_x`, `_amonet` aliases, or v1 GPT assumptions.
 Do not assume a single custom recovery-OTA installation fills both slots:
 preflight its updater script and follow the v2 two-install rule only when that

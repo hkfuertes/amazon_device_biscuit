@@ -1,6 +1,9 @@
 # CM14.1 compile baseline for Amazon Biscuit.
 LOCAL_PATH := device/amazon/biscuit
 
+# Legacy recovery OTAs must use amonet v2 TWRP's current-slot aliases.
+TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)
+
 include device/amazon/mt8163-common/BoardConfigCommon.mk
 
 TARGET_BOOTLOADER_BOARD_NAME := biscuit

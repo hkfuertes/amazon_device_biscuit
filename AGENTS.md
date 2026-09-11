@@ -71,7 +71,7 @@ Notes:
 - Use confirmed TWRP sideload for ROM updates. amonet v2 has no verified project fastboot workflow.
 - Do not touch GPT/preloader/LK/TZ/recovery/userdata/cache/persist/misc unless explicitly requested.
 - amonet v2 leaves the GPT native: ROM slots are `boot_a` / `boot_b` and `system_a` / `system_b`; `boot_a_x` / `boot_b_x` do not exist.
-- CM fstab must use `slotselect` and `/dev/block/platform/bootdevice/by-name/{boot,system}`. Do not hard-code a v1 alias or assume one recovery ZIP populates both slots.
+- CM runtime fstab must use `slotselect` and `/dev/block/platform/bootdevice/by-name/{boot,system}`. Legacy recovery block OTAs must instead target TWRP's live `/dev/block/current-boot` and `/dev/block/current-system` aliases; edify does not apply `slotselect`. Do not hard-code a v1 alias or assume one recovery ZIP populates both slots.
 - The official v2 Fire OS procedure installs the ROM twice. Confirm the current slot and inspect the OTA updater before every custom-ROM installation.
 - If a kernel does not boot and enters a bootloop, the manual-method “unplug and plug back in” step may be resolved by waiting for the next boot cycle.
 
