@@ -19,15 +19,13 @@ Rules for agents in this repo.
   - Use only to compare/extract small ideas from `wlan/wpa_supplicant_8_lib/mediatek_driver_cmd_nl80211.c` (`lib_driver_cmd_mt66xx`): `COUNTRY`, `GET_STA_STATISTICS`, start/stop/AP if needed.
   - Do not wholesale-replace our Amazon/CM12 helper: its `DRIVER MACADDR` also dereferences `priv` before replying and does not fix the SIGSEGV as-is.
 - Biscuit full OTA 272.6.4.1: https://d1s31zyz7dcc2d.cloudfront.net/8811a0fc982bf3331dc54f5aec45d936/update-kindle-full_biscuit-272.6.4.1_user_641575220.bin
-- Biscuit amonet notes: `docs/amonet-biscuit-unlock.md`
-- Local amonet ignored by git: `workspace/tools/amonet-biscuit-v1.1.0/amonet`
-- Root-owned amonet with sudo NOPASSWD only for boot: `/opt/amonet-biscuit-v1.1.0/amonet`
+- Biscuit amonet v2 notes and observed TWRP contract: `docs/amonet-biscuit-unlock.md`
+- amonet v1.1.0 helper paths and GPT aliases are historical only; do not use them with v2.
 
 ## Agent workflow
 
 - Before every operational action, explicitly say what I am going to do, what I am not going to do, and why.
-- Agents may run `sudo -n ./boot-recovery.sh` or `sudo -n ./boot-fastboot.sh` only from `/opt/amonet-biscuit-v1.1.0/amonet`, for a user-authorized device operation. Use only these existing root-owned scripts, never wildcards. This exception does not authorize sudoers changes or expand flashing/wiping permissions.
-- For all other operations requiring `sudo` or root permissions, do not run them: show the exact command for the user to run manually.
+- Do not run `sudo` or any host-root operation. Show the exact command for the user to run manually.
 - On this device, `adb wait-for-device` can hang or be a poor progress signal. Prefer explicit checks with `adb devices -l`, visual LED/TWRP state, and short timeouts; if ADB does not appear, stop and report.
 - Unless explicitly requested by the user, do not poll or wait for long periods. Long builds/flashes/reboots must be launched detached or as a single concrete action, with instructions for monitoring, then return control so the user can ask between steps.
 - Any change under `workspace/cm12` must be reproducible from tracked repo files: prefer `patches/*.patch`, `scripts/stage-tree.sh`, `scripts/apply-patches.sh`, or equivalent scripts. Do not leave manual-only changes in `workspace/cm12`.
@@ -70,54 +68,20 @@ Notes:
 - Never write partitions with `dd` from Android/ADB. No:
   - `adb shell dd of=/dev/block/...`
   - `adb exec-in dd of=/dev/block/...`
-- To flash boot/system, use only TWRP or amonet hacked fastboot.
-- Do not use stock fastboot for ROMs: it may be restricted and does not remap amonet partitions.
+- Use confirmed TWRP sideload for ROM updates. amonet v2 has no verified project fastboot workflow.
 - Do not touch GPT/preloader/LK/TZ/recovery/userdata/cache/persist/misc unless explicitly requested.
-- In amonet, the real ROM boot slots are `boot_a_x` / `boot_b_x`; `boot_a` / `boot_b` contain the exploit. TWRP/hacked fastboot do the remapping.
-- The user granted sudo NOPASSWD only for `/opt/amonet-biscuit-v1.1.0/amonet/boot-recovery.sh` and `boot-fastboot.sh`. Do not assume permissions for `brick.sh`, `bootrom-step.sh`, `fastboot-step.sh`, or `gpt-fix.sh`.
-- Launch authorized amonet boot helpers detached, with stdin closed and logs redirected so tmux is not broken: `nohup sudo -n ./boot-recovery.sh </dev/null >/tmp/amonet-boot-recovery.log 2>&1 &`. Use `/tmp/amonet-boot-fastboot.log` for `boot-fastboot.sh`; return control instead of waiting for USB in the foreground.
+- amonet v2 leaves the GPT native: ROM slots are `boot_a` / `boot_b` and `system_a` / `system_b`; `boot_a_x` / `boot_b_x` do not exist.
+- CM fstab must use `slotselect` and `/dev/block/platform/bootdevice/by-name/{boot,system}`. Do not hard-code a v1 alias or assume one recovery ZIP populates both slots.
+- The official v2 Fire OS procedure installs the ROM twice. Confirm the current slot and inspect the OTA updater before every custom-ROM installation.
 - If a kernel does not boot and enters a bootloop, the manual-method “unplug and plug back in” step may be resolved by waiting for the next boot cycle.
 
 ## Enter TWRP
 
 TWRP is indicated by a blinking/pulsing cyan LED.
 
-Methods:
-
-1. From powered off/unplugged: plug in and, when the blue LED appears, hold the mute/microphone button for about 5s.
-2. From Linux with amonet:
-   ```sh
-   cd /opt/amonet-biscuit-v1.1.0/amonet
-   sudo -n ./boot-recovery.sh </dev/null >/tmp/amonet-boot-recovery.log 2>&1
-   ```
-   Then plug in the device.
-3. From hacked fastboot:
-   ```sh
-   fastboot oem reboot-recovery
-   ```
-4. From an OS with working ADB:
-   ```sh
-   adb reboot recovery
-   ```
-
-## Enter hacked fastboot
-
-Hacked fastboot is indicated by a rotating rainbow ring.
-
-Methods:
-
-1. From powered off/unplugged: plug in and, about 3s after the blue LED, hold the action/circle button for about 5s.
-2. From TWRP:
-   ```sh
-   adb shell reboot-amonet
-   ```
-   Important: `adb reboot` does not work for this.
-3. From Linux with amonet:
-   ```sh
-   cd /opt/amonet-biscuit-v1.1.0/amonet
-   sudo -n ./boot-fastboot.sh </dev/null >/tmp/amonet-boot-fastboot.log 2>&1
-   ```
-   Then plug in the device.
+- From an OS with working ADB: `adb reboot recovery`.
+- The v2 announcement says that, with USB connected, holding only MUTE while connecting power enters Preloader USBDL recovery. Consult the upstream Important Notes for its complete procedure.
+- Do not use v1 `boot-recovery.sh`, `boot-fastboot.sh`, `reboot-amonet`, fastboot, or old button timing instructions with v2.
 
 ## Build CM12
 
@@ -147,25 +111,18 @@ Notes:
 
 ## Recommended flashing
 
-Always prefer sideload from TWRP. First confirm that ADB sees `recovery` and that `/sbin/twrp` exists; do not rely only on `adb wait-for-device`.
+Always prefer sideload from confirmed amonet v2 TWRP. First confirm recovery,
+TWRP version, and the active slot; do not rely only on `adb wait-for-device`.
 
 ```sh
 adb devices -l
-adb shell 'command -v twrp; getprop ro.twrp.version'
+adb shell 'command -v twrp; getprop ro.twrp.version; getprop ro.boot.slot_suffix'
 adb shell twrp sideload
 adb sideload update.zip
 ```
 
-Or confirmed hacked fastboot, for a boot-only operation on the verified active slot `a`:
-
-```sh
-fastboot getvar all
-# Require amonet identification, current-slot: a, and boot_a_x size 0x1000000.
-fastboot flash boot_a_x boot.img
-```
-
-Biscuit amonet 1.1.0 does not support `fastboot boot` or the bare `boot` partition alias. The explicit `boot_a_x` command above has been installed and readback-verified; do not substitute an unverified slot or partition name. Keep system updates on the recommended TWRP sideload path unless a separate authorized operation verifies its actual target.
-
-Do not use `boot_a_amonet` or `boot_b_amonet` for ROM images: those aliases bypass ROM remapping and write the exploit partitions.
-
-Only if `getvar all` confirms amonet/hacked fastboot. If it looks stock/restricted, stop.
+Do not use fastboot or a v1 partition alias. Before any custom-ROM install,
+inspect the generated updater and confirm it contains no GPT, preloader, LK,
+TZ, recovery, userdata, cache, persist, or misc operation. The v2 official ROM
+procedure uses two installations to populate both slots; do not claim the same
+behavior for a custom OTA until it is verified.
