@@ -84,6 +84,7 @@ install -m 0644 "$SOURCE_DIR/prebuilt/include/generated/trapz_generated_kernel.h
   "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h"
 printf '%s  %s\n' "$VERITY_KEY_SHA256" "$KERNEL_SUPPORT/verity-keys" | sha256sum -c -
 apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-netfilter-xt-compat-percpu.patch"
+apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-force-ramdisk-root-a-test.patch"
 
 [[ -f "$KERNEL_DEST/Makefile" && \
    -f "$KERNEL_DEST/arch/arm/configs/biscuit_defconfig" && \
