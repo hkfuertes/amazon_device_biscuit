@@ -3,6 +3,8 @@ LOCAL_PATH := device/amazon/biscuit
 
 # Legacy recovery OTAs must use amonet v2 TWRP's current-slot aliases.
 TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)
+# Headless bring-up intentionally permits root, unauthenticated USB ADB.
+TARGET_FORCE_INSECURE_ADB := true
 
 include device/amazon/mt8163-common/BoardConfigCommon.mk
 

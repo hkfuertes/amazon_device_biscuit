@@ -69,6 +69,7 @@ grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotsel
 ! grep -qE 'boot_[ab]_x' "$FSTAB"
 ! grep -q '/dev/block/platform/soc/' "$FSTAB"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
@@ -84,7 +85,7 @@ install -m 0644 "$SOURCE_DIR/prebuilt/include/generated/trapz_generated_kernel.h
   "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h"
 printf '%s  %s\n' "$VERITY_KEY_SHA256" "$KERNEL_SUPPORT/verity-keys" | sha256sum -c -
 apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-netfilter-xt-compat-percpu.patch"
-apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-force-ramdisk-root-a-test.patch"
+apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-force-ramdisk-root.patch"
 
 [[ -f "$KERNEL_DEST/Makefile" && \
    -f "$KERNEL_DEST/arch/arm/configs/biscuit_defconfig" && \
