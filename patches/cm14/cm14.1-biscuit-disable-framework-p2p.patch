@@ -1,0 +1,22 @@
+--- a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
++++ b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
+@@ -1074 +1074 @@
+-        mP2pSupported = mContext.getPackageManager().hasSystemFeature(
++        boolean p2pSupported = mContext.getPackageManager().hasSystemFeature(
+@@ -1075,0 +1076,4 @@
++        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {
++            p2pSupported = false;
++        }
++        mP2pSupported = p2pSupported;
+--- a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/p2p/WifiP2pServiceImpl.java
++++ b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/p2p/WifiP2pServiceImpl.java
+@@ -60,0 +61 @@
++import android.os.SystemProperties;
+@@ -367 +368 @@
+-        mP2pSupported = mContext.getPackageManager().hasSystemFeature(
++        boolean p2pSupported = mContext.getPackageManager().hasSystemFeature(
+@@ -368,0 +370,4 @@
++        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {
++            p2pSupported = false;
++        }
++        mP2pSupported = p2pSupported;

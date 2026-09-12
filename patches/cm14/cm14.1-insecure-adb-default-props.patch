@@ -1,0 +1,15 @@
+--- a/build/core/Makefile
++++ b/build/core/Makefile
+@@ -79,4 +79,12 @@
+ ADDITIONAL_DEFAULT_PROPERTIES += \
+     $(call collapse-pairs, $(PRODUCT_DEFAULT_PROPERTY_OVERRIDES))
++ifeq ($(TARGET_FORCE_INSECURE_ADB),true)
++# Headless bring-up may explicitly opt into root, unauthenticated USB ADB.
++ADDITIONAL_DEFAULT_PROPERTIES := $(filter-out ro.adb.secure=% ro.secure=% cm.service.adb.root=%,$(ADDITIONAL_DEFAULT_PROPERTIES))
++ADDITIONAL_DEFAULT_PROPERTIES += \
++    ro.adb.secure=0 \
++    ro.secure=0 \
++    cm.service.adb.root=1
++endif
+ ADDITIONAL_DEFAULT_PROPERTIES := $(call uniq-pairs-by-first-component, \
+     $(ADDITIONAL_DEFAULT_PROPERTIES),=)

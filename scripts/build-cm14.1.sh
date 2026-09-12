@@ -12,6 +12,8 @@ KERNEL_SUPPORT="$CM14/device/amazon/biscuit/kernel-build-support"
 KERNEL_OUT="$OUT_DIR/target/product/biscuit/obj/KERNEL_OBJ"
 BUILD_TARGET="${BUILD_TARGET:-otapackage}"
 BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
+CCACHE_DIR="${CCACHE_DIR:-$REPO_ROOT/workspace/ccache}"
+CCACHE_MAXSIZE="${CCACHE_MAXSIZE:-50G}"
 
 "$REPO_ROOT/scripts/stage-cm14.1-tree.sh"
 [[ -f "$KERNEL_SOURCE/Makefile" && \
@@ -22,10 +24,36 @@ BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
   exit 1
 }
 
-mkdir -p "$KERNEL_OUT/include/generated"
-install -m 0644 "$KERNEL_SUPPORT/verity-keys" "$KERNEL_OUT/verity-keys"
-install -m 0644 "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h" \
+install_if_changed() {
+  local src="$1" dst="$2"
+  mkdir -p "$(dirname "$dst")"
+  if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+    return 0
+  fi
+  install -m 0644 "$src" "$dst"
+}
+
+install_if_changed "$KERNEL_SUPPORT/verity-keys" "$KERNEL_OUT/verity-keys"
+install_if_changed "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h" \
   "$KERNEL_OUT/include/generated/trapz_generated_kernel.h"
+
+# ponytail: incremental Android builds do not delete files removed from PRODUCT_COPY_FILES.
+for stale in \
+  system/bin/6620_launcher \
+  system/bin/linker64 \
+  system/bin/wmt_loader \
+  system/etc/firmware/ROMv2_lm_patch_1_0_hdr.bin \
+  system/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin \
+  system/etc/firmware/WIFI_RAM_CODE_8163 \
+  system/lib64/libc.so \
+  system/lib64/libcutils.so \
+  system/lib64/libdl.so \
+  system/lib64/liblog.so \
+  system/lib64/libm.so \
+  system/lib64/libstdc++.so; do
+  rm -f "$OUT_DIR/target/product/biscuit/$stale"
+done
+rmdir "$OUT_DIR/target/product/biscuit/system/lib64" 2>/dev/null || true
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "ERROR: Docker image '$IMAGE' not found." >&2
@@ -35,6 +63,7 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
 fi
 
 ln -sfn out-docker "$CM14/out"
+mkdir -p "$CCACHE_DIR"
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 
 docker run -d \
@@ -46,6 +75,9 @@ docker run -d \
     set -e
     source build/envsetup.sh >/dev/null
     export OUT_DIR='$OUT_DIR'
+    export USE_CCACHE=1
+    export CCACHE_DIR='$CCACHE_DIR'
+    prebuilts/misc/linux-x86/ccache/ccache -M '$CCACHE_MAXSIZE' >/dev/null || true
     export PATH=\"\$OUT_DIR/host/linux-x86/bin:\$PATH\"
     lunch cm_biscuit-userdebug >/tmp/lunch.log
     make -j'$BUILD_JOBS' '$BUILD_TARGET'

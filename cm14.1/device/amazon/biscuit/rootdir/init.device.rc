@@ -1,0 +1,9 @@
+on property:sys.boot_completed=1
+    start biscuit-ledd
+
+service biscuit-ledd /system/bin/biscuit-ledd
+    class main
+    user root
+    group system
+    socket biscuit-ledd stream 0660 system system
+    disabled

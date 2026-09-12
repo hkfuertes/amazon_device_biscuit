@@ -35,10 +35,15 @@ apply_patch() {
 
 copy_dir() {
   local src="$1" dst="$2"
-  rm -rf "$dst"
-  mkdir -p "$(dirname "$dst")"
-  cp -a "$src" "$dst"
-  find "$dst" \( -name .git -o -name .repo \) -prune -exec rm -rf {} +
+  mkdir -p "$dst"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete --exclude .git --exclude .repo "$src/" "$dst/"
+  else
+    rm -rf "$dst"
+    mkdir -p "$(dirname "$dst")"
+    cp -a "$src" "$dst"
+    find "$dst" \( -name .git -o -name .repo \) -prune -exec rm -rf {} +
+  fi
 }
 
 mkdir -p "$(dirname "$ARCHIVE")" "$(dirname "$SOURCE_DIR")"
@@ -58,19 +63,97 @@ fi
 copy_dir "$OVERLAY/device/amazon/biscuit" "$CM14/device/amazon/biscuit"
 copy_dir "$OVERLAY/vendor/amazon" "$CM14/vendor/amazon"
 FSTAB="$CM14/device/amazon/mt8163-common/rootdir/etc/fstab.mt8163"
-if grep -qE '^/dev/block/platform/soc/by-name/system_a[[:space:]]+/system' "$FSTAB" && \
-   grep -qE '^/dev/block/platform/soc/by-name/boot_a_x[[:space:]]+/boot' "$FSTAB"; then
-  echo "Amonet fstab already staged."
+if grep -qE '^/dev/block/platform/bootdevice/by-name/system[[:space:]]+/system.*slotselect' "$FSTAB" && \
+   grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotselect' "$FSTAB"; then
+  echo "Amonet v2 slotselect fstab already staged."
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab.patch"
-  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet-fstab-live-path.patch"
 fi
-grep -qE '^/dev/block/platform/soc/by-name/system_a[[:space:]]+/system' "$FSTAB"
-grep -qE '^/dev/block/platform/soc/by-name/boot_a_x[[:space:]]+/boot' "$FSTAB"
-! grep -q 'soc/11230000\.mmc/by-name' "$FSTAB"
-apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
+grep -qE '^/dev/block/platform/bootdevice/by-name/system[[:space:]]+/system.*slotselect' "$FSTAB"
+grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotselect' "$FSTAB"
+! grep -qE 'boot_[ab]_x' "$FSTAB"
+! grep -q '/dev/block/platform/soc/' "$FSTAB"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet2-bcb-slotselect.patch"
+LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"
+if grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' "$LIBLOG_WRITE"; then
+  echo "Amazon liblog shim already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
+fi
+SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"
+if grep -Fqx '#ro.hardware.gralloc=mt8163.mali' "$SYSTEM_PROP" && \
+   grep -Fqx 'ro.build.configuration=headless' "$SYSTEM_PROP"; then
+  echo "Headless system properties already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
+fi
+if grep -Fqx 'ro.config.no_gpu=true' "$SYSTEM_PROP"; then
+  echo "Headless no-GPU property already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
+fi
+if grep -Fqx 'wifi.interface=wlan0' "$SYSTEM_PROP"; then
+  echo "MT8163 Wi-Fi interface property already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-mt8163-wifi-interface-property.patch"
+fi
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
+HWC1="$CM14/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"
+if grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary display");' "$HWC1"; then
+  echo "Headless HWC1 fake display already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwc1-fake-display.patch"
+fi
+MT8163_INIT="$CM14/device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc"
+if grep -Fqx 'service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/' "$MT8163_INIT"; then
+  python3 - "$MT8163_INIT" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+text = path.read_text()
+old = '''service wmtLoader /system/bin/wmt_loader
+    user root
+    group root
+    oneshot
+    disabled
+
+service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
+    user root
+    group root system
+    disabled
+
+on property:ro.product.device=biscuit
+    chmod 0660 /dev/stpwmt
+    chmod 0660 /dev/wmtWifi
+    chmod 0660 /dev/stpbt
+    chown system system /dev/stpwmt
+    chown system system /dev/wmtWifi
+    chown bluetooth bluetooth /dev/stpbt
+    start wmtLoader
+    start conn_launcher
+
+'''
+if old not in text:
+    raise SystemExit('legacy Biscuit radio block not found')
+path.write_text(text.replace(old, '', 1))
+PY
+  echo "Removed obsolete 64-bit Biscuit radio launchers."
+fi
+if grep -Fqx 'service wmt_launcher /vendor/bin/wmt_launcher -p /vendor/firmware/' "$MT8163_INIT"; then
+  echo "Fire OS 6 Biscuit radio launchers already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
+fi
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
+WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"
+if grep -Fqx '        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {' "$WIFI_STATE_MACHINE"; then
+  echo "Biscuit framework P2P disable already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
 CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 
@@ -84,6 +167,7 @@ install -m 0644 "$SOURCE_DIR/prebuilt/include/generated/trapz_generated_kernel.h
   "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h"
 printf '%s  %s\n' "$VERITY_KEY_SHA256" "$KERNEL_SUPPORT/verity-keys" | sha256sum -c -
 apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-netfilter-xt-compat-percpu.patch"
+apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-force-ramdisk-root.patch"
 
 [[ -f "$KERNEL_DEST/Makefile" && \
    -f "$KERNEL_DEST/arch/arm/configs/biscuit_defconfig" && \
