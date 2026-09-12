@@ -101,8 +101,32 @@ grep -Fqx 'system/vendor/lib/libbluetooth_mtk.so:vendor/lib/libbluetooth_mtk.so:
 grep -Fqx '# ponytail: CM14 Biscuit uses STA only; P2P-only fields make STA-only wpa_supplicant abort.' \
   "$ROOT/cm14.1/device/amazon/biscuit/wpa_supplicant_overlay.conf"
 ! grep -Fq 'p2p_no_group_iface' "$ROOT/cm14.1/device/amazon/biscuit/wpa_supplicant_overlay.conf"
-grep -Fqx '    device/amazon/biscuit/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf' \
+grep -Fqx '    biscuit-ledd \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit-ledctl' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    device/amazon/biscuit/rootdir/init.device.rc:root/init.device.rc \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    device/amazon/biscuit/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    device/amazon/biscuit/biscuit-service/animations/boot-complete-green.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/boot-complete-green.animation' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx 'service biscuit-ledd /system/bin/biscuit-ledd' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+grep -Fqx '    socket biscuit-ledd stream 0660 system system' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+! grep -Eq 'boot_[ab]_x|/dev/block|mount_all|swapon_all|symlink /dev/block' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+grep -Fqx 'LOCAL_MODULE := biscuit-ledd' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit-ledctl' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+! grep -Fq 'stlport' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+! grep -Fq 'BiscuitService' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx '    write_file(LED_BOOT, "0");' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
 grep -Fqx 'ro.config.no_gpu=true' "$WORK/device/amazon/mt8163-common/system.prop"
