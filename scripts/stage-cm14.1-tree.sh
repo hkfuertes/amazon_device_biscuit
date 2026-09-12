@@ -69,6 +69,7 @@ grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotsel
 ! grep -qE 'boot_[ab]_x' "$FSTAB"
 ! grep -q '/dev/block/platform/soc/' "$FSTAB"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet2-bcb-slotselect.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"
 if grep -Fqx '#ro.hardware.gralloc=mt8163.mali' "$SYSTEM_PROP" && \
    grep -Fqx 'ro.build.configuration=headless' "$SYSTEM_PROP"; then
@@ -76,7 +77,11 @@ if grep -Fqx '#ro.hardware.gralloc=mt8163.mali' "$SYSTEM_PROP" && \
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-system-props.patch"
 fi
-apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
+if grep -Fqx 'ro.config.no_gpu=true' "$SYSTEM_PROP"; then
+  echo "Headless no-GPU property already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"

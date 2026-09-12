@@ -9,11 +9,13 @@ HWC_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-headless-hwc-file
 PROP_PATCH="$ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
 HWC_PATCH="$ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
 WIFI_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
+LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
 for file in \
+  system/core/liblog/logger_write.c \
   frameworks/base/core/java/android/content/pm/PackageParser.java \
   frameworks/base/core/java/android/view/ThreadedRenderer.java \
   frameworks/base/core/java/android/view/ViewRootImpl.java \
@@ -39,6 +41,7 @@ apply_from_base() {
   fi
 }
 
+apply_from_base "$LOG_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$HWC_PATCH"
 apply_from_base "$WIFI_PATCH"
@@ -59,10 +62,14 @@ grep -Fqx '# L_CFLAGS += -DANDROID_P2P' \
   "$WORK/device/amazon/mt8163-common/mt8163-common.mk"
 grep -Fqx 'lib/hw/hwcomposer.mt8163.so:lib/hw/hwcomposer.mt8163.so:ec66527090a97538914a5d883cf5b43013aea69905f29c9e4af490eb8a48e79a:13568' \
   "$HWC_MANIFEST"
+grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
+  "$WORK/system/core/liblog/logger_write.c"
 grep -Fqx 'ro.config.no_gpu=true' "$WORK/device/amazon/mt8163-common/system.prop"
+grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"' "$STAGE"
 grep -Fqx 'SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"' "$STAGE"
 grep -Fqx '  echo "Headless system properties already staged."' "$STAGE"
-grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"' "$STAGE"
+grep -Fqx '  echo "Headless no-GPU property already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"' "$STAGE"
 grep -Fq 'STOCK_HWC_SYSTEM_SHA256="bd928aa5087b8d8c40095c784dfc159cc2555ed4130d617b258bfd0a06659f7c"' "$EXTRACTOR"
