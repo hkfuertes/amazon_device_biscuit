@@ -15,6 +15,7 @@ STOCK_HWC_SYSTEM_SHA256="bd928aa5087b8d8c40095c784dfc159cc2555ed4130d617b258bfd0
 STOCK_HWC_OTA_SHA256="28bc050e4a2af79c9ca66e251de7bf04c42ce8d7934dd97673d3d04f5fa0917b"
 HWC_MANIFEST="$REPO_ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"
 RADIO_MANIFEST="$REPO_ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-radio-files.txt"
+BT_MANIFEST="$REPO_ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-bluetooth-files.txt"
 COMMON_OUT="$CM14/vendor/amazon/mt8163-common"
 PROP="$COMMON_OUT/proprietary"
 mkdir -p "$REPO_ROOT/workspace/tmp"
@@ -40,6 +41,7 @@ fi
 [[ -f "$MANIFEST" ]] || { echo "ERROR: missing audio manifest: $MANIFEST" >&2; exit 1; }
 [[ -f "$HWC_MANIFEST" ]] || { echo "ERROR: missing headless HWC manifest: $HWC_MANIFEST" >&2; exit 1; }
 [[ -f "$RADIO_MANIFEST" ]] || { echo "ERROR: missing Biscuit radio manifest: $RADIO_MANIFEST" >&2; exit 1; }
+[[ -f "$BT_MANIFEST" ]] || { echo "ERROR: missing Biscuit Bluetooth manifest: $BT_MANIFEST" >&2; exit 1; }
 
 mkdir -p "$(dirname "$OTA")" "$(dirname "$SYSTEM_IMG")" "$REPO_ROOT/workspace/tmp"
 if [[ ! -f "$OTA" ]]; then
@@ -116,6 +118,17 @@ while IFS=: read -r source destination expected_sha expected_size; do
 done < "$RADIO_MANIFEST"
 [[ "$radio_count" == 7 ]] || { echo "ERROR: expected 7 radio files, got $radio_count" >&2; exit 1; }
 
+bt_count=0
+while IFS=: read -r source destination expected_sha expected_size; do
+  [[ -z "$source" || "$source" == \#* ]] && continue
+  [[ "$destination" != /* && "$destination" != *".."* ]] || {
+    echo "ERROR: unsafe destination in Bluetooth manifest: $destination" >&2; exit 1;
+  }
+  extract_file "$SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"
+  ((bt_count += 1))
+done < "$BT_MANIFEST"
+[[ "$bt_count" == 2 ]] || { echo "ERROR: expected 2 Bluetooth files, got $bt_count" >&2; exit 1; }
+
 for config in \
   etc/a2dp_audio_policy_configuration.xml \
   etc/audio_device.xml \
@@ -177,4 +190,4 @@ PRODUCT_COPY_FILES += \
 MK
 } > "$COMMON_OUT/mt8163-common-vendor.mk"
 
-echo "Staged $audio_count verified Fire OS 6 audio blobs, 40 algorithm files, $hwc_count headless HWC blob, and $radio_count Biscuit radio files."
+echo "Staged $audio_count verified Fire OS 6 audio blobs, 40 algorithm files, $hwc_count headless HWC blob, $radio_count Biscuit radio files, and $bt_count Bluetooth files."

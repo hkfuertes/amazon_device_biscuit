@@ -8,6 +8,7 @@ STAGE="$ROOT/scripts/stage-cm14.1-tree.sh"
 BUILD_SCRIPT="$ROOT/scripts/build-cm14.1.sh"
 HWC_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"
 RADIO_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-radio-files.txt"
+BT_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-bluetooth-files.txt"
 PROP_PATCH="$ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
 WIFI_IFACE_PATCH="$ROOT/patches/cm14/cm14.1-mt8163-wifi-interface-property.patch"
 HWC_PATCH="$ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
@@ -93,6 +94,10 @@ grep -Fqx 'system/vendor/bin/wmt_launcher:vendor/bin/wmt_launcher:1f34425d727ea6
   "$RADIO_MANIFEST"
 grep -Fqx 'system/etc/wifi/wpa_supplicant.conf:etc/wifi/wpa_supplicant.conf:3559d1767cb6e3f0ad55230690476e01c892dbe5c9f4edcda8dea8de7ddb1fd2:118' \
   "$RADIO_MANIFEST"
+grep -Fqx 'system/vendor/lib/libbt-vendor.so:vendor/lib/libbt-vendor.so:aab202280e09941a812983c7b7fb259fcb48bf43912f05f8cf7e47e32380ec87:13844' \
+  "$BT_MANIFEST"
+grep -Fqx 'system/vendor/lib/libbluetooth_mtk.so:vendor/lib/libbluetooth_mtk.so:12e24abe8fcaaf9423fa143e432165b6877fab88222d8de55305bfeb364bdaa0:30268' \
+  "$BT_MANIFEST"
 grep -Fqx '# ponytail: CM14 Biscuit uses STA only; P2P-only fields make STA-only wpa_supplicant abort.' \
   "$ROOT/cm14.1/device/amazon/biscuit/wpa_supplicant_overlay.conf"
 ! grep -Fq 'p2p_no_group_iface' "$ROOT/cm14.1/device/amazon/biscuit/wpa_supplicant_overlay.conf"
@@ -128,8 +133,10 @@ grep -Fq 'system/etc/firmware/WIFI_RAM_CODE_8163' "$BUILD_SCRIPT"
 grep -Fq 'STOCK_HWC_SYSTEM_SHA256="bd928aa5087b8d8c40095c784dfc159cc2555ed4130d617b258bfd0a06659f7c"' "$EXTRACTOR"
 grep -Fq 'HWC_MANIFEST=' "$EXTRACTOR"
 grep -Fq 'RADIO_MANIFEST=' "$EXTRACTOR"
+grep -Fq 'BT_MANIFEST=' "$EXTRACTOR"
 grep -Fq 'extract_file "$SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"' "$EXTRACTOR"
 grep -Fq '[[ "$radio_count" == 7 ]]' "$EXTRACTOR"
+grep -Fq '[[ "$bt_count" == 2 ]]' "$EXTRACTOR"
 grep -Fq 'bin/*|vendor/bin/*) mode=0755 ;;' "$EXTRACTOR"
 bash -n "$EXTRACTOR" "$STAGE"
 
