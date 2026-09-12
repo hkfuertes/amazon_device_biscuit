@@ -14,6 +14,7 @@ STOCK_HWC_SYSTEM_IMG="$REPO_ROOT/workspace/extracted/biscuit-stock-272.6.4.1/sys
 STOCK_HWC_SYSTEM_SHA256="bd928aa5087b8d8c40095c784dfc159cc2555ed4130d617b258bfd0a06659f7c"
 STOCK_HWC_OTA_SHA256="28bc050e4a2af79c9ca66e251de7bf04c42ce8d7934dd97673d3d04f5fa0917b"
 HWC_MANIFEST="$REPO_ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"
+RADIO_MANIFEST="$REPO_ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-radio-files.txt"
 COMMON_OUT="$CM14/vendor/amazon/mt8163-common"
 PROP="$COMMON_OUT/proprietary"
 mkdir -p "$REPO_ROOT/workspace/tmp"
@@ -38,6 +39,7 @@ if ! command -v patchelf >/dev/null; then
 fi
 [[ -f "$MANIFEST" ]] || { echo "ERROR: missing audio manifest: $MANIFEST" >&2; exit 1; }
 [[ -f "$HWC_MANIFEST" ]] || { echo "ERROR: missing headless HWC manifest: $HWC_MANIFEST" >&2; exit 1; }
+[[ -f "$RADIO_MANIFEST" ]] || { echo "ERROR: missing Biscuit radio manifest: $RADIO_MANIFEST" >&2; exit 1; }
 
 mkdir -p "$(dirname "$OTA")" "$(dirname "$SYSTEM_IMG")" "$REPO_ROOT/workspace/tmp"
 if [[ ! -f "$OTA" ]]; then
@@ -74,7 +76,11 @@ extract_file() {
   [[ "$(sha256sum "$extracted" | awk '{print $1}')" == "$expected_sha" ]] || {
     echo "ERROR: SHA-256 mismatch: $source" >&2; exit 1;
   }
-  install -D -m 0644 "$extracted" "$PROP/$destination"
+  local mode=0644
+  case "$destination" in
+    bin/*) mode=0755 ;;
+  esac
+  install -D -m "$mode" "$extracted" "$PROP/$destination"
   copy_files+=("vendor/amazon/mt8163-common/proprietary/$destination:\$(TARGET_COPY_OUT_SYSTEM)/$destination")
   ((blob_count += 1))
 }
@@ -86,6 +92,7 @@ while IFS=: read -r source destination expected_sha expected_size; do
   }
   extract_file "$SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"
 done < "$MANIFEST"
+audio_count="$blob_count"
 
 hwc_count=0
 while IFS=: read -r source destination expected_sha expected_size; do
@@ -97,6 +104,17 @@ while IFS=: read -r source destination expected_sha expected_size; do
   ((hwc_count += 1))
 done < "$HWC_MANIFEST"
 [[ "$hwc_count" == 1 ]] || { echo "ERROR: expected one headless HWC blob, got $hwc_count" >&2; exit 1; }
+
+radio_count=0
+while IFS=: read -r source destination expected_sha expected_size; do
+  [[ -z "$source" || "$source" == \#* ]] && continue
+  [[ "$destination" != /* && "$destination" != *".."* ]] || {
+    echo "ERROR: unsafe destination in radio manifest: $destination" >&2; exit 1;
+  }
+  extract_file "$STOCK_HWC_SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"
+  ((radio_count += 1))
+done < "$RADIO_MANIFEST"
+[[ "$radio_count" == 14 ]] || { echo "ERROR: expected 14 radio blobs, got $radio_count" >&2; exit 1; }
 
 for config in \
   etc/a2dp_audio_policy_configuration.xml \
@@ -159,4 +177,4 @@ PRODUCT_COPY_FILES += \
 MK
 } > "$COMMON_OUT/mt8163-common-vendor.mk"
 
-echo "Staged $blob_count verified Fire OS 6 audio blobs, 40 algorithm files, and $hwc_count headless HWC blob."
+echo "Staged $audio_count verified Fire OS 6 audio blobs, 40 algorithm files, $hwc_count headless HWC blob, and $radio_count Biscuit radio files."

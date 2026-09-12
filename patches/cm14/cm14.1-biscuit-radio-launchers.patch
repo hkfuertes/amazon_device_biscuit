@@ -1,0 +1,24 @@
+--- a/device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc
++++ b/device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc
+@@ -505,0 +506,21 @@
++service wmtLoader /system/bin/wmt_loader
++    user root
++    group root
++    oneshot
++    disabled
++
++service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
++    user root
++    group root system
++    disabled
++
++on property:ro.product.device=biscuit
++    chmod 0660 /dev/stpwmt
++    chmod 0660 /dev/wmtWifi
++    chmod 0660 /dev/stpbt
++    chown system system /dev/stpwmt
++    chown system system /dev/wmtWifi
++    chown bluetooth bluetooth /dev/stpbt
++    start wmtLoader
++    start conn_launcher
++

@@ -97,6 +97,12 @@ if grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwc1-fake-display.patch"
 fi
+MT8163_INIT="$CM14/device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc"
+if grep -Fqx 'service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/' "$MT8163_INIT"; then
+  echo "Biscuit radio launchers already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
 CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
