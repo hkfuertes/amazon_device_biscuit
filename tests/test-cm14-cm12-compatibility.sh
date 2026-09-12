@@ -8,6 +8,7 @@ STAGE="$ROOT/scripts/stage-cm14.1-tree.sh"
 HWC_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"
 PROP_PATCH="$ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
 HWC_PATCH="$ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
+HWC1_PATCH="$ROOT/patches/cm14/cm14.1-headless-hwc1-fake-display.patch"
 WIFI_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
@@ -16,6 +17,7 @@ trap 'rm -rf "$WORK"' EXIT
 
 for file in \
   system/core/liblog/logger_write.c \
+  frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp \
   frameworks/base/core/java/android/content/pm/PackageParser.java \
   frameworks/base/core/java/android/view/ThreadedRenderer.java \
   frameworks/base/core/java/android/view/ViewRootImpl.java \
@@ -44,7 +46,11 @@ apply_from_base() {
 apply_from_base "$LOG_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$HWC_PATCH"
+apply_from_base "$HWC1_PATCH"
 apply_from_base "$WIFI_PATCH"
+
+grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary display");' \
+  "$WORK/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"
 
 for file in \
   frameworks/base/core/java/android/content/pm/PackageParser.java \
@@ -73,6 +79,9 @@ grep -Fqx '  echo "Headless system properties already staged."' "$STAGE"
 grep -Fqx '  echo "Headless no-GPU property already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"' "$STAGE"
+grep -Fqx 'HWC1="$CM14/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"' "$STAGE"
+grep -Fqx '  echo "Headless HWC1 fake display already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwc1-fake-display.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"' "$STAGE"
 grep -Fq 'STOCK_HWC_SYSTEM_SHA256="bd928aa5087b8d8c40095c784dfc159cc2555ed4130d617b258bfd0a06659f7c"' "$EXTRACTOR"
 grep -Fq 'HWC_MANIFEST=' "$EXTRACTOR"

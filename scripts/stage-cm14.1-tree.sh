@@ -91,6 +91,12 @@ apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
+HWC1="$CM14/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"
+if grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary display");' "$HWC1"; then
+  echo "Headless HWC1 fake display already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwc1-fake-display.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
 CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
