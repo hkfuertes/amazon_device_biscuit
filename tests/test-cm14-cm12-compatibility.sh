@@ -65,7 +65,9 @@ grep -Fqx 'lib/hw/hwcomposer.mt8163.so:lib/hw/hwcomposer.mt8163.so:ec66527090a97
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
 grep -Fqx 'ro.config.no_gpu=true' "$WORK/device/amazon/mt8163-common/system.prop"
-grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"' "$STAGE"
+grep -Fqx 'LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"' "$STAGE"
+grep -Fqx '  echo "Amazon liblog shim already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"' "$STAGE"
 grep -Fqx 'SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"' "$STAGE"
 grep -Fqx '  echo "Headless system properties already staged."' "$STAGE"
 grep -Fqx '  echo "Headless no-GPU property already staged."' "$STAGE"

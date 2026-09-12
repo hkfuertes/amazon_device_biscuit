@@ -69,7 +69,12 @@ grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotsel
 ! grep -qE 'boot_[ab]_x' "$FSTAB"
 ! grep -q '/dev/block/platform/soc/' "$FSTAB"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet2-bcb-slotselect.patch"
-apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
+LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"
+if grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' "$LIBLOG_WRITE"; then
+  echo "Amazon liblog shim already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
+fi
 SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"
 if grep -Fqx '#ro.hardware.gralloc=mt8163.mali' "$SYSTEM_PROP" && \
    grep -Fqx 'ro.build.configuration=headless' "$SYSTEM_PROP"; then
