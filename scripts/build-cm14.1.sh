@@ -37,8 +37,10 @@ install_if_changed "$KERNEL_SUPPORT/verity-keys" "$KERNEL_OUT/verity-keys"
 install_if_changed "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h" \
   "$KERNEL_OUT/include/generated/trapz_generated_kernel.h"
 
-# ponytail: incremental Android builds do not delete files removed from PRODUCT_COPY_FILES.
+# ponytail: incremental Android builds do not delete files removed from product manifests.
 for stale in \
+  cache.img \
+  userdata.img \
   system/bin/6620_launcher \
   system/bin/linker64 \
   system/bin/wmt_loader \
@@ -54,6 +56,43 @@ for stale in \
   rm -f "$OUT_DIR/target/product/biscuit/$stale"
 done
 rmdir "$OUT_DIR/target/product/biscuit/system/lib64" 2>/dev/null || true
+for stale_app in \
+  AudioFX \
+  BasicDreams \
+  Browser \
+  Browser2 \
+  Calculator \
+  Calendar \
+  Camera2 \
+  CMFileManager \
+  CMWallpapers \
+  CMUpdater \
+  CyanogenSetupWizard \
+  DeskClock \
+  Development \
+  Eleven \
+  Email \
+  ExactCalculator \
+  Exchange2 \
+  Gallery2 \
+  Jelly \
+  Launcher2 \
+  Launcher3 \
+  LineageSetupWizard \
+  LiveWallpapersPicker \
+  LockClock \
+  PhotoTable \
+  PrintSpooler \
+  SetupWizard \
+  Terminal \
+  ThemeChooser \
+  Trebuchet \
+  Updater \
+  WallpaperCropper \
+  WallpaperPicker; do
+  rm -rf "$OUT_DIR/target/product/biscuit/system/app/$stale_app" \
+         "$OUT_DIR/target/product/biscuit/system/priv-app/$stale_app"
+done
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "ERROR: Docker image '$IMAGE' not found." >&2

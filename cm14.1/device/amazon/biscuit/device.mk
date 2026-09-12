@@ -3,18 +3,70 @@ LOCAL_PATH := $(call my-dir)
 # Use the CM14.1 MT8163 common tree; keep Biscuit additions native/minimal.
 $(call inherit-product, device/amazon/mt8163-common/mt8163-common.mk)
 
+# Headless HOME plus explicit removal of inherited screen apps.
+# ponytail: LOCAL_OVERRIDES_PACKAGES is not enough for this CM14 product inheritance chain.
+BISCUIT_NO_SCREEN_PACKAGES := \
+    AudioFX \
+    BasicDreams \
+    Browser \
+    Browser2 \
+    Calculator \
+    Calendar \
+    Camera2 \
+    CMFileManager \
+    CMWallpapers \
+    CMUpdater \
+    CyanogenSetupWizard \
+    DeskClock \
+    Development \
+    Eleven \
+    Email \
+    ExactCalculator \
+    Exchange2 \
+    Gallery2 \
+    Jelly \
+    Launcher2 \
+    Launcher3 \
+    LineageSetupWizard \
+    LiveWallpapersPicker \
+    LockClock \
+    PhotoTable \
+    PrintSpooler \
+    SetupWizard \
+    Terminal \
+    ThemeChooser \
+    Trebuchet \
+    Updater \
+    WallpaperCropper \
+    WallpaperPicker
+PRODUCT_PACKAGES := $(filter-out $(BISCUIT_NO_SCREEN_PACKAGES),$(PRODUCT_PACKAGES))
+PRODUCT_PACKAGES += \
+    BiscuitEmptyLauncher
+
 # FireOS 6 ships this software driver on its headless Biscuit product; build ours from source.
 PRODUCT_PACKAGES += \
     audio.primary.mt8163 \
+    audio_effects.conf \
     libGLES_android \
     libtinyalsa \
     libtinyalsa_shim \
-    libtinycompress
+    libtinycompress \
+    sensors.mt8163 \
+    tinymix \
+    tinyplay \
+    tinycap \
+    tinypcminfo
 
-# Native LED ring controller; Java bridge stays out until a real UI/API needs it.
+# Replace inherited generic effects config with Biscuit's AOSP/WebRTC AGC config.
+PRODUCT_COPY_FILES_OVERRIDES += \
+    system/etc/audio_effects.conf
+
+# Native LED ring controller plus framework bridge for shell volume/mute/Wi-Fi/BT commands.
 PRODUCT_PACKAGES += \
     biscuit-ledd \
-    biscuit-ledctl
+    biscuit-ledctl \
+    biscuit_service \
+    BiscuitService
 
 PRODUCT_COPY_FILES += \
     device/amazon/biscuit/rootdir/init.device.rc:root/init.device.rc \

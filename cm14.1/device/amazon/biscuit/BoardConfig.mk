@@ -11,6 +11,9 @@ include device/amazon/mt8163-common/BoardConfigCommon.mk
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
+# Amonet 2 TWRP OTAs write only boot/system; do not waste time on unused data images.
+TARGET_SKIP_CACHEIMAGE := true
+TARGET_SKIP_USERDATAIMAGE := true
 
 # Build the exact FireOS 6.5.7.1 Biscuit kernel source inside CM14.1.
 TARGET_KERNEL_SOURCE := kernel/amazon/biscuit

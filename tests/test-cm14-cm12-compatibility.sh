@@ -18,6 +18,8 @@ WIFI_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 P2P_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
+SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
+MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -25,10 +27,14 @@ trap 'rm -rf "$WORK"' EXIT
 for file in \
   system/core/liblog/logger_write.c \
   build/core/Makefile \
+  build/tools/releasetools/add_img_to_target_files.py \
+  frameworks/base/data/keyboards/Generic.kl \
   frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp \
   frameworks/base/core/java/android/content/pm/PackageParser.java \
   frameworks/base/core/java/android/view/ThreadedRenderer.java \
   frameworks/base/core/java/android/view/ViewRootImpl.java \
+  frameworks/base/services/core/java/com/android/server/audio/AudioService.java \
+  frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java \
   device/amazon/mt8163-common/system.prop \
   device/amazon/mt8163-common/mt8163-common.mk \
   device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc \
@@ -55,6 +61,7 @@ apply_from_base() {
 
 apply_from_base "$LOG_PATCH"
 apply_from_base "$INSECURE_ADB_PATCH"
+apply_from_base "$SKIP_IMAGES_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$WIFI_IFACE_PATCH"
 apply_from_base "$HWC_PATCH"
@@ -62,6 +69,7 @@ apply_from_base "$HWC1_PATCH"
 apply_from_base "$RADIO_PATCH"
 apply_from_base "$WIFI_PATCH"
 apply_from_base "$P2P_PATCH"
+apply_from_base "$MIC_MUTE_PATCH"
 
 grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary display");' \
   "$WORK/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"
@@ -72,6 +80,22 @@ grep -Fqx '        if ("biscuit".equals(SystemProperties.get("ro.product.device"
   "$WORK/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"
 grep -Fqx '        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {' \
   "$WORK/frameworks/opt/net/wifi/service/java/com/android/server/wifi/p2p/WifiP2pServiceImpl.java"
+grep -Fqx 'key 113   MUTE' "$WORK/frameworks/base/data/keyboards/Generic.kl"
+grep -Fqx 'key 138   HELP' "$WORK/frameworks/base/data/keyboards/Generic.kl"
+grep -Fqx '                    audioManager.setMicrophoneMute(!audioManager.isMicrophoneMute());' \
+  "$WORK/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java"
+grep -Fqx '        Intent intent = new Intent("com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED");' \
+  "$WORK/frameworks/base/services/core/java/com/android/server/audio/AudioService.java"
+grep -Fqx 'ifeq ($(TARGET_SKIP_CACHEIMAGE),true)' "$WORK/build/core/Makefile"
+grep -Fqx 'ifeq ($(TARGET_SKIP_USERDATAIMAGE),true)' "$WORK/build/core/Makefile"
+grep -Fqx '$(if $(filter true,$(TARGET_SKIP_CACHEIMAGE)),$(hide) echo "skip_cache_image=true" >> $(1))' \
+  "$WORK/build/core/Makefile"
+grep -Fqx '$(if $(filter true,$(TARGET_SKIP_USERDATAIMAGE)),$(hide) echo "skip_userdata_image=true" >> $(1))' \
+  "$WORK/build/core/Makefile"
+grep -Fqx '    if OPTIONS.info_dict.get("skip_userdata_image") != "true":' \
+  "$WORK/build/tools/releasetools/add_img_to_target_files.py"
+grep -Fqx '    if OPTIONS.info_dict.get("skip_cache_image") != "true":' \
+  "$WORK/build/tools/releasetools/add_img_to_target_files.py"
 
 for file in \
   frameworks/base/core/java/android/content/pm/PackageParser.java \
@@ -104,9 +128,39 @@ grep -Fqx 'system/vendor/lib/libbluetooth_mtk.so:vendor/lib/libbluetooth_mtk.so:
 grep -Fqx '# ponytail: CM14 Biscuit uses STA only; P2P-only fields make STA-only wpa_supplicant abort.' \
   "$ROOT/cm14.1/device/amazon/biscuit/wpa_supplicant_overlay.conf"
 ! grep -Fq 'p2p_no_group_iface' "$ROOT/cm14.1/device/amazon/biscuit/wpa_supplicant_overlay.conf"
+grep -Fqx 'BISCUIT_NO_SCREEN_PACKAGES := \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx 'PRODUCT_PACKAGES := $(filter-out $(BISCUIT_NO_SCREEN_PACKAGES),$(PRODUCT_PACKAGES))' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    BiscuitEmptyLauncher' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    audio_effects.conf \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    sensors.mt8163 \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    tinymix \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    tinyplay \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    tinycap \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    tinypcminfo' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    system/etc/audio_effects.conf' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx 'LOCAL_MODULE := audio_effects.conf' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio/Android.mk"
+grep -Fqx 'LOCAL_MODULE := sensors.mt8163' \
+  "$ROOT/cm14.1/device/amazon/biscuit/sensors/Android.mk"
+grep -Fqx '    .name = "Biscuit ambient light",' \
+  "$ROOT/cm14.1/device/amazon/biscuit/sensors/sensors_biscuit.c"
 grep -Fqx '    biscuit-ledd \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
-grep -Fqx '    biscuit-ledctl' \
+grep -Fqx '    biscuit-ledctl \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_service \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    BiscuitService' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    device/amazon/biscuit/rootdir/init.device.rc:root/init.device.rc \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
@@ -124,10 +178,22 @@ grep -Fqx 'LOCAL_MODULE := biscuit-ledd' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 grep -Fqx 'LOCAL_MODULE := biscuit-ledctl' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_service' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx 'LOCAL_PACKAGE_NAME := BiscuitService' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 ! grep -Fq 'stlport' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
-! grep -Fq 'BiscuitService' \
-  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx 'LOCAL_PACKAGE_NAME := BiscuitEmptyLauncher' \
+  "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
+grep -Fqx '    LineageSetupWizard \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
+grep -Fqx '    Jelly \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
+grep -Fqx '    Updater \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
+grep -Fqx '    WallpaperPicker' \
+  "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
 grep -Fqx '    write_file(LED_BOOT, "0");' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
@@ -140,6 +206,7 @@ grep -Fq 'rsync -a --delete --exclude .git --exclude .repo "$src/" "$dst/"' "$ST
 grep -Fqx 'LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"' "$STAGE"
 grep -Fqx '  echo "Amazon liblog shim already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"' "$STAGE"
+grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"' "$STAGE"
 grep -Fqx 'SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"' "$STAGE"
 grep -Fqx '  echo "Headless system properties already staged."' "$STAGE"
 grep -Fqx '  echo "Headless no-GPU property already staged."' "$STAGE"
@@ -153,18 +220,29 @@ grep -Fqx '  echo "Removed obsolete 64-bit Biscuit radio launchers."' "$STAGE"
 grep -Fqx '  echo "Fire OS 6 Biscuit radio launchers already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"' "$STAGE"
+grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"' "$STAGE"
 grep -Fqx 'WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"' "$STAGE"
 grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
+! grep -Fqx 'TARGET_NO_RECOVERY := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"
+grep -Fqx 'TARGET_SKIP_CACHEIMAGE := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"
+grep -Fqx 'TARGET_SKIP_USERDATAIMAGE := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"
 grep -Fq 'CCACHE_DIR="${CCACHE_DIR:-$REPO_ROOT/workspace/ccache}"' "$BUILD_SCRIPT"
 grep -Fq 'export USE_CCACHE=1' "$BUILD_SCRIPT"
 grep -Fq 'prebuilts/misc/linux-x86/ccache/ccache -M' "$BUILD_SCRIPT"
 grep -Fq 'install_if_changed "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h" \' "$BUILD_SCRIPT"
-grep -Fq 'incremental Android builds do not delete files removed from PRODUCT_COPY_FILES' "$BUILD_SCRIPT"
+grep -Fq 'incremental Android builds do not delete files removed from product manifests' "$BUILD_SCRIPT"
+grep -Fq '  cache.img \' "$BUILD_SCRIPT"
+grep -Fq '  userdata.img \' "$BUILD_SCRIPT"
 grep -Fq 'system/bin/6620_launcher' "$BUILD_SCRIPT"
 grep -Fq 'system/lib64/libc.so' "$BUILD_SCRIPT"
 grep -Fq 'system/etc/firmware/WIFI_RAM_CODE_8163' "$BUILD_SCRIPT"
+grep -Fq 'for stale_app in \' "$BUILD_SCRIPT"
+grep -Fq '  LineageSetupWizard \' "$BUILD_SCRIPT"
+grep -Fq '  Trebuchet \' "$BUILD_SCRIPT"
+grep -Fq '  Jelly \' "$BUILD_SCRIPT"
+grep -Fq 'system/priv-app/$stale_app' "$BUILD_SCRIPT"
 grep -Fq 'STOCK_HWC_SYSTEM_SHA256="bd928aa5087b8d8c40095c784dfc159cc2555ed4130d617b258bfd0a06659f7c"' "$EXTRACTOR"
 grep -Fq 'HWC_MANIFEST=' "$EXTRACTOR"
 grep -Fq 'RADIO_MANIFEST=' "$EXTRACTOR"

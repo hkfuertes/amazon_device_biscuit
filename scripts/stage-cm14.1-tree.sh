@@ -74,6 +74,7 @@ grep -qE '^/dev/block/platform/bootdevice/by-name/boot[[:space:]]+/boot.*slotsel
 ! grep -qE 'boot_[ab]_x' "$FSTAB"
 ! grep -q '/dev/block/platform/soc/' "$FSTAB"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amonet2-bcb-slotselect.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"
 if grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' "$LIBLOG_WRITE"; then
   echo "Amazon liblog shim already staged."
@@ -148,6 +149,7 @@ else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
 fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
 WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"
 if grep -Fqx '        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {' "$WIFI_STATE_MACHINE"; then
   echo "Biscuit framework P2P disable already staged."
