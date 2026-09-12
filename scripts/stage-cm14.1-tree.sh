@@ -87,6 +87,11 @@ if grep -Fqx 'ro.config.no_gpu=true' "$SYSTEM_PROP"; then
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
 fi
+if grep -Fqx 'wifi.interface=wlan0' "$SYSTEM_PROP"; then
+  echo "MT8163 Wi-Fi interface property already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-mt8163-wifi-interface-property.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"

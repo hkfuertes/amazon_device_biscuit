@@ -9,6 +9,7 @@ BUILD_SCRIPT="$ROOT/scripts/build-cm14.1.sh"
 HWC_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"
 RADIO_MANIFEST="$ROOT/cm14.1/vendor/amazon/mt8163-common/biscuit-radio-files.txt"
 PROP_PATCH="$ROOT/patches/cm14/cm14.1-headless-no-gpu-property.patch"
+WIFI_IFACE_PATCH="$ROOT/patches/cm14/cm14.1-mt8163-wifi-interface-property.patch"
 HWC_PATCH="$ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
 HWC1_PATCH="$ROOT/patches/cm14/cm14.1-headless-hwc1-fake-display.patch"
 RADIO_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
@@ -51,6 +52,7 @@ apply_from_base() {
 
 apply_from_base "$LOG_PATCH"
 apply_from_base "$PROP_PATCH"
+apply_from_base "$WIFI_IFACE_PATCH"
 apply_from_base "$HWC_PATCH"
 apply_from_base "$HWC1_PATCH"
 apply_from_base "$RADIO_PATCH"
@@ -73,6 +75,8 @@ for file in \
   frameworks/base/core/java/android/view/ViewRootImpl.java; do
   grep -Fq 'ro.config.no_gpu' "$WORK/$file"
 done
+grep -Fqx 'wifi.interface=wlan0' \
+  "$WORK/device/amazon/mt8163-common/system.prop"
 grep -Fq '<bool name="def_wifi_on">true</bool>' \
   "$WORK/frameworks/base/packages/SettingsProvider/res/values/defaults.xml"
 grep -Fqx '# CONFIG_P2P=y' \
@@ -114,6 +118,7 @@ grep -Fqx '  echo "Fire OS 6 Biscuit radio launchers already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"' "$STAGE"
 grep -Fqx 'WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"' "$STAGE"
+grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
 grep -Fq 'incremental Android builds do not delete files removed from PRODUCT_COPY_FILES' "$BUILD_SCRIPT"
