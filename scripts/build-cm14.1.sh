@@ -27,6 +27,24 @@ install -m 0644 "$KERNEL_SUPPORT/verity-keys" "$KERNEL_OUT/verity-keys"
 install -m 0644 "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h" \
   "$KERNEL_OUT/include/generated/trapz_generated_kernel.h"
 
+# ponytail: incremental Android builds do not delete files removed from PRODUCT_COPY_FILES.
+for stale in \
+  system/bin/6620_launcher \
+  system/bin/linker64 \
+  system/bin/wmt_loader \
+  system/etc/firmware/ROMv2_lm_patch_1_0_hdr.bin \
+  system/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin \
+  system/etc/firmware/WIFI_RAM_CODE_8163 \
+  system/lib64/libc.so \
+  system/lib64/libcutils.so \
+  system/lib64/libdl.so \
+  system/lib64/liblog.so \
+  system/lib64/libm.so \
+  system/lib64/libstdc++.so; do
+  rm -f "$OUT_DIR/target/product/biscuit/$stale"
+done
+rmdir "$OUT_DIR/target/product/biscuit/system/lib64" 2>/dev/null || true
+
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "ERROR: Docker image '$IMAGE' not found." >&2
   echo "Build it first:" >&2

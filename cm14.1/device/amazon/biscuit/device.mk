@@ -10,4 +10,8 @@ PRODUCT_PACKAGES += \
     libtinyalsa \
     libtinyalsa_shim \
     libtinycompress
+
+PRODUCT_COPY_FILES += \
+    device/amazon/biscuit/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf
+
 PRODUCT_CHARACTERISTICS := nosdcard,headless

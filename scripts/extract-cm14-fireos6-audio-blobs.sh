@@ -78,7 +78,7 @@ extract_file() {
   }
   local mode=0644
   case "$destination" in
-    bin/*) mode=0755 ;;
+    bin/*|vendor/bin/*) mode=0755 ;;
   esac
   install -D -m "$mode" "$extracted" "$PROP/$destination"
   copy_files+=("vendor/amazon/mt8163-common/proprietary/$destination:\$(TARGET_COPY_OUT_SYSTEM)/$destination")
@@ -111,10 +111,10 @@ while IFS=: read -r source destination expected_sha expected_size; do
   [[ "$destination" != /* && "$destination" != *".."* ]] || {
     echo "ERROR: unsafe destination in radio manifest: $destination" >&2; exit 1;
   }
-  extract_file "$STOCK_HWC_SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"
+  extract_file "$SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"
   ((radio_count += 1))
 done < "$RADIO_MANIFEST"
-[[ "$radio_count" == 14 ]] || { echo "ERROR: expected 14 radio blobs, got $radio_count" >&2; exit 1; }
+[[ "$radio_count" == 7 ]] || { echo "ERROR: expected 7 radio files, got $radio_count" >&2; exit 1; }
 
 for config in \
   etc/a2dp_audio_policy_configuration.xml \

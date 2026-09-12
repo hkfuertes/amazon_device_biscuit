@@ -99,11 +99,51 @@ else
 fi
 MT8163_INIT="$CM14/device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc"
 if grep -Fqx 'service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/' "$MT8163_INIT"; then
-  echo "Biscuit radio launchers already staged."
+  python3 - "$MT8163_INIT" <<'PY'
+from pathlib import Path
+import sys
+path = Path(sys.argv[1])
+text = path.read_text()
+old = '''service wmtLoader /system/bin/wmt_loader
+    user root
+    group root
+    oneshot
+    disabled
+
+service conn_launcher /system/bin/6620_launcher -p /system/etc/firmware/
+    user root
+    group root system
+    disabled
+
+on property:ro.product.device=biscuit
+    chmod 0660 /dev/stpwmt
+    chmod 0660 /dev/wmtWifi
+    chmod 0660 /dev/stpbt
+    chown system system /dev/stpwmt
+    chown system system /dev/wmtWifi
+    chown bluetooth bluetooth /dev/stpbt
+    start wmtLoader
+    start conn_launcher
+
+'''
+if old not in text:
+    raise SystemExit('legacy Biscuit radio block not found')
+path.write_text(text.replace(old, '', 1))
+PY
+  echo "Removed obsolete 64-bit Biscuit radio launchers."
+fi
+if grep -Fqx 'service wmt_launcher /vendor/bin/wmt_launcher -p /vendor/firmware/' "$MT8163_INIT"; then
+  echo "Fire OS 6 Biscuit radio launchers already staged."
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
 fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
+WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"
+if grep -Fqx '        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {' "$WIFI_STATE_MACHINE"; then
+  echo "Biscuit framework P2P disable already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
 CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 
