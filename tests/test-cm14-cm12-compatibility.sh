@@ -17,12 +17,14 @@ RADIO_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
 WIFI_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 P2P_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
+INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
 for file in \
   system/core/liblog/logger_write.c \
+  build/core/Makefile \
   frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp \
   frameworks/base/core/java/android/content/pm/PackageParser.java \
   frameworks/base/core/java/android/view/ThreadedRenderer.java \
@@ -52,6 +54,7 @@ apply_from_base() {
 }
 
 apply_from_base "$LOG_PATCH"
+apply_from_base "$INSECURE_ADB_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$WIFI_IFACE_PATCH"
 apply_from_base "$HWC_PATCH"
@@ -129,7 +132,11 @@ grep -Fqx '    write_file(LED_BOOT, "0");' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
+[[ "$(grep -c 'TARGET_FORCE_INSECURE_ADB' "$WORK/build/core/Makefile")" == 1 ]]
+grep -Fq 'PRODUCT_DEFAULT_PROPERTY_OVERRIDES' "$INSECURE_ADB_PATCH"
+! grep -Fq '@@ -80,0 ' "$INSECURE_ADB_PATCH"
 grep -Fqx 'ro.config.no_gpu=true' "$WORK/device/amazon/mt8163-common/system.prop"
+grep -Fq 'rsync -a --delete --exclude .git --exclude .repo "$src/" "$dst/"' "$STAGE"
 grep -Fqx 'LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"' "$STAGE"
 grep -Fqx '  echo "Amazon liblog shim already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"' "$STAGE"
@@ -150,6 +157,10 @@ grep -Fqx 'WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/an
 grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
+grep -Fq 'CCACHE_DIR="${CCACHE_DIR:-$REPO_ROOT/workspace/ccache}"' "$BUILD_SCRIPT"
+grep -Fq 'export USE_CCACHE=1' "$BUILD_SCRIPT"
+grep -Fq 'prebuilts/misc/linux-x86/ccache/ccache -M' "$BUILD_SCRIPT"
+grep -Fq 'install_if_changed "$KERNEL_SUPPORT/include/generated/trapz_generated_kernel.h" \' "$BUILD_SCRIPT"
 grep -Fq 'incremental Android builds do not delete files removed from PRODUCT_COPY_FILES' "$BUILD_SCRIPT"
 grep -Fq 'system/bin/6620_launcher' "$BUILD_SCRIPT"
 grep -Fq 'system/lib64/libc.so' "$BUILD_SCRIPT"
@@ -159,6 +170,9 @@ grep -Fq 'HWC_MANIFEST=' "$EXTRACTOR"
 grep -Fq 'RADIO_MANIFEST=' "$EXTRACTOR"
 grep -Fq 'BT_MANIFEST=' "$EXTRACTOR"
 grep -Fq 'extract_file "$SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$expected_size"' "$EXTRACTOR"
+grep -Fq 'STAGED_PROP="$TMP/proprietary"' "$EXTRACTOR"
+grep -Fq 'install_if_changed "$VENDOR_MK_TMP" "$COMMON_OUT/mt8163-common-vendor.mk"' "$EXTRACTOR"
+grep -Fq 'rsync -a --no-times --checksum --delete "$STAGED_PROP/" "$PROP/"' "$EXTRACTOR"
 grep -Fq '[[ "$radio_count" == 7 ]]' "$EXTRACTOR"
 grep -Fq '[[ "$bt_count" == 2 ]]' "$EXTRACTOR"
 grep -Fq 'bin/*|vendor/bin/*) mode=0755 ;;' "$EXTRACTOR"

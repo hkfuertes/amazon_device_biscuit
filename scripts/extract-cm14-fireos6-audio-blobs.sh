@@ -20,6 +20,8 @@ COMMON_OUT="$CM14/vendor/amazon/mt8163-common"
 PROP="$COMMON_OUT/proprietary"
 mkdir -p "$REPO_ROOT/workspace/tmp"
 TMP="$(mktemp -d "$REPO_ROOT/workspace/tmp/cm14-fireos6-audio.XXXXXXXXXX")"
+STAGED_PROP="$TMP/proprietary"
+VENDOR_MK_TMP="$TMP/mt8163-common-vendor.mk"
 trap 'rm -rf "$TMP"' EXIT
 
 for tool in 7z curl python3 readelf sha256sum stat unzip; do
@@ -63,10 +65,30 @@ if [[ ! -f "$STOCK_HWC_SYSTEM_IMG" ]] || ! printf '%s  %s\n' "$STOCK_HWC_SYSTEM_
 fi
 printf '%s  %s\n' "$STOCK_HWC_SYSTEM_SHA256" "$STOCK_HWC_SYSTEM_IMG" | sha256sum -c -
 
-rm -rf "$PROP"
-mkdir -p "$PROP"
+rm -rf "$STAGED_PROP"
+mkdir -p "$STAGED_PROP"
 copy_files=()
 blob_count=0
+
+install_if_changed() {
+  local src="$1" dst="$2"
+  mkdir -p "$(dirname "$dst")"
+  if [[ -f "$dst" ]] && cmp -s "$src" "$dst"; then
+    return 0
+  fi
+  install -m 0644 "$src" "$dst"
+}
+
+sync_proprietary_tree() {
+  mkdir -p "$PROP"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --no-times --checksum --delete "$STAGED_PROP/" "$PROP/"
+  else
+    rm -rf "$PROP"
+    mkdir -p "$(dirname "$PROP")"
+    cp -a "$STAGED_PROP" "$PROP"
+  fi
+}
 
 extract_file() {
   local image="$1" source="$2" destination="$3" expected_sha="$4" expected_size="$5"
@@ -82,7 +104,7 @@ extract_file() {
   case "$destination" in
     bin/*|vendor/bin/*) mode=0755 ;;
   esac
-  install -D -m "$mode" "$extracted" "$PROP/$destination"
+  install -D -m "$mode" "$extracted" "$STAGED_PROP/$destination"
   copy_files+=("vendor/amazon/mt8163-common/proprietary/$destination:\$(TARGET_COPY_OUT_SYSTEM)/$destination")
   ((blob_count += 1))
 }
@@ -140,7 +162,7 @@ for config in \
   rm -rf "$TMP/unpack"
   7z x -y -o"$TMP/unpack" "$SYSTEM_IMG" "system/$config" >/dev/null 2>&1 || true
   [[ -f "$TMP/unpack/system/$config" ]] || { echo "ERROR: missing Fire OS audio config: $config" >&2; exit 1; }
-  install -D -m 0644 "$TMP/unpack/system/$config" "$PROP/$config"
+  install -D -m 0644 "$TMP/unpack/system/$config" "$STAGED_PROP/$config"
   copy_files+=("vendor/amazon/mt8163-common/proprietary/$config:\$(TARGET_COPY_OUT_SYSTEM)/$config")
 done
 
@@ -152,16 +174,16 @@ algorithm_count="$(find "$algorithm_dir" -type f -printf . | wc -c | tr -d '[:sp
 [[ "$algorithm_count" == 40 ]] || {
   echo "ERROR: unexpected Fire OS audio algorithm count" >&2; exit 1;
 }
-install -d "$PROP/vendor/etc"
-cp -a "$algorithm_dir" "$PROP/vendor/etc/audio-algorithms"
+install -d "$STAGED_PROP/vendor/etc"
+cp -a "$algorithm_dir" "$STAGED_PROP/vendor/etc/audio-algorithms"
 
-hal="$PROP/lib/hw/audio.primary_amazon.mt8163.so"
+hal="$STAGED_PROP/lib/hw/audio.primary_amazon.mt8163.so"
 add_needed() {
   if command -v patchelf >/dev/null; then
     patchelf --add-needed "$1" "$hal"
   else
     docker run --rm --network none --user "$(id -u):$(id -g)" \
-      -v "$PROP:/blobs" --entrypoint patchelf cm14.1-ubuntu20:latest \
+      -v "$STAGED_PROP:/blobs" --entrypoint patchelf cm14.1-ubuntu20:latest \
       --add-needed "$1" /blobs/lib/hw/audio.primary_amazon.mt8163.so
   fi
 }
@@ -188,6 +210,9 @@ MK
 PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,$(LOCAL_PATH)/proprietary/vendor/etc/audio-algorithms,$(TARGET_COPY_OUT_SYSTEM)/vendor/etc/audio-algorithms)
 MK
-} > "$COMMON_OUT/mt8163-common-vendor.mk"
+} > "$VENDOR_MK_TMP"
+
+sync_proprietary_tree
+install_if_changed "$VENDOR_MK_TMP" "$COMMON_OUT/mt8163-common-vendor.mk"
 
 echo "Staged $audio_count verified Fire OS 6 audio blobs, 40 algorithm files, $hwc_count headless HWC blob, $radio_count Biscuit radio files, and $bt_count Bluetooth files."

@@ -35,10 +35,15 @@ apply_patch() {
 
 copy_dir() {
   local src="$1" dst="$2"
-  rm -rf "$dst"
-  mkdir -p "$(dirname "$dst")"
-  cp -a "$src" "$dst"
-  find "$dst" \( -name .git -o -name .repo \) -prune -exec rm -rf {} +
+  mkdir -p "$dst"
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete --exclude .git --exclude .repo "$src/" "$dst/"
+  else
+    rm -rf "$dst"
+    mkdir -p "$(dirname "$dst")"
+    cp -a "$src" "$dst"
+    find "$dst" \( -name .git -o -name .repo \) -prune -exec rm -rf {} +
+  fi
 }
 
 mkdir -p "$(dirname "$ARCHIVE")" "$(dirname "$SOURCE_DIR")"
