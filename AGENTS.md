@@ -14,6 +14,8 @@ Rules for agents in this repo.
 - Biscuit/Puffin Fire OS 6.5.7.4 audio blob source: https://d1s31zyz7dcc2d.cloudfront.net/2026/8/3/f49aaff7-dd63-4d9c-9e9a-c17498267de5/update-kindle-biscuit_puffin-NS6574_user_7623_0013121734532.bin
 - MT8163 frameworks/av FLAC/OMX patch reference: https://github.com/mt8173-dev/android_device_amazon_sloane/raw/7a41e2f9314b0b20f49538718e5e515824c2f97d/patches/frameworks/av/0001-mt8163-frameworks-av-add-required-changes-for-mt8163.patch
 - Amazon OSS MT8163 common: https://github.com/amazon-oss/android_device_amazon_mt8163-common
+- MT8163-dev CM14 common reference: https://github.com/mt8163-dev/android_device_amazon_mt8163-common/tree/cm-14.1
+  - Prefer it over ad-hoc CM14 Wi-Fi patches when it provides native MTK board flags or package contracts, especially `WIFI_DRIVER_STATE_CTRL_PARAM=/dev/wmtWifi` and `lib_driver_cmd_mt66xx`.
 - Amazon OSS hardware helpers: https://github.com/amazon-oss/android_hardware_amazon/tree/cm-12.1
 - MTK hardware helper reference: https://github.com/lbule/android_hardware_mediatek
   - Use only to compare/extract small ideas from `wlan/wpa_supplicant_8_lib/mediatek_driver_cmd_nl80211.c` (`lib_driver_cmd_mt66xx`): `COUNTRY`, `GET_STA_STATISTICS`, start/stop/AP if needed.
