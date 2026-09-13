@@ -48,6 +48,7 @@ PRODUCT_PACKAGES += \
     audio.primary.mt8163 \
     audio_effects.conf \
     libGLES_android \
+    libstagefright_soft_flacdec \
     libtinyalsa \
     libtinyalsa_shim \
     libtinycompress \

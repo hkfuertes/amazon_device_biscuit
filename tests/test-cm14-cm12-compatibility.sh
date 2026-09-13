@@ -22,6 +22,7 @@ SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
 BT_HEADLESS_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"
 HOSTNAME_MDNS_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"
+FLAC_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-flac-decoder.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -39,6 +40,14 @@ for file in \
   frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java \
   frameworks/base/services/core/java/com/android/server/ConnectivityService.java \
   frameworks/base/services/core/java/com/android/server/NsdService.java \
+  frameworks/av/media/libstagefright/ACodec.cpp \
+  frameworks/av/media/libstagefright/codecs/flac/dec/Android.mk \
+  frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.cpp \
+  frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.h \
+  frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml \
+  frameworks/av/media/libstagefright/flac/dec/FLACDecoder.cpp \
+  frameworks/av/media/libstagefright/flac/dec/FLACDecoder.h \
+  frameworks/av/media/libstagefright/omx/SoftOMXPlugin.cpp \
   external/mdnsresponder/mDNSShared/uds_daemon.c \
   packages/apps/Bluetooth/res/values/config.xml \
   packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java \
@@ -54,6 +63,9 @@ for file in \
   mkdir -p "$WORK/$(dirname "$file")"
   cp "$CM14/$file" "$WORK/$file"
 done
+mkdir -p \
+  "$WORK/frameworks/av/media/libstagefright/codecs/flac/dec" \
+  "$WORK/frameworks/av/media/libstagefright/flac/dec"
 
 apply_from_base() {
   local patch_file="$1"
@@ -73,6 +85,7 @@ apply_from_base "$PROP_PATCH"
 apply_from_base "$WIFI_IFACE_PATCH"
 apply_from_base "$BT_HEADLESS_PATCH"
 apply_from_base "$HOSTNAME_MDNS_PATCH"
+apply_from_base "$FLAC_PATCH"
 apply_from_base "$HWC_PATCH"
 apply_from_base "$HWC1_PATCH"
 apply_from_base "$RADIO_PATCH"
@@ -132,6 +145,16 @@ grep -Fqx '                mNativeConnector.execute("mdnssd", "sethostname", get
   "$WORK/frameworks/base/services/core/java/com/android/server/NsdService.java"
 grep -Fqx '			&& hostName[len] != '\''.'\'') len++;' \
   "$WORK/external/mdnsresponder/mDNSShared/uds_daemon.c"
+grep -Fqx 'LOCAL_MODULE := libstagefright_soft_flacdec' \
+  "$WORK/frameworks/av/media/libstagefright/codecs/flac/dec/Android.mk"
+grep -Fqx 'struct SoftFlacDecoder : public SimpleSoftOMXComponent {' \
+  "$WORK/frameworks/av/media/libstagefright/codecs/flac/dec/SoftFlacDecoder.h"
+grep -Fqx '    { "OMX.google.flac.decoder", "flacdec", "audio_decoder.flac" },' \
+  "$WORK/frameworks/av/media/libstagefright/omx/SoftOMXPlugin.cpp"
+grep -Fqx '        <MediaCodec name="OMX.google.flac.decoder" type="audio/flac">' \
+  "$WORK/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml"
+grep -Fqx '                && !strcmp(mComponentName.c_str(), "OMX.google.flac.decoder")) {' \
+  "$WORK/frameworks/av/media/libstagefright/ACodec.cpp"
 grep -Fq '<bool name="def_wifi_on">true</bool>' \
   "$WORK/frameworks/base/packages/SettingsProvider/res/values/defaults.xml"
 grep -Fqx '# CONFIG_P2P=y' \
@@ -162,6 +185,8 @@ grep -Fqx 'PRODUCT_PACKAGES := $(filter-out $(BISCUIT_NO_SCREEN_PACKAGES),$(PROD
 grep -Fqx '    BiscuitEmptyLauncher' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    audio_effects.conf \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    libstagefright_soft_flacdec \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    sensors.mt8163 \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
@@ -253,6 +278,7 @@ grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
 grep -Fqx '  echo "Biscuit headless Bluetooth speaker behavior already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"' "$STAGE"
+grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-flac-decoder.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
 ! grep -Fqx 'TARGET_NO_RECOVERY := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"

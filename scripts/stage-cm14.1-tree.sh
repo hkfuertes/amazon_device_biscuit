@@ -109,6 +109,10 @@ else
 fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"
+mkdir -p \
+  "$CM14/frameworks/av/media/libstagefright/codecs/flac/dec" \
+  "$CM14/frameworks/av/media/libstagefright/flac/dec"
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-flac-decoder.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-headless-hwui-disable.patch"
