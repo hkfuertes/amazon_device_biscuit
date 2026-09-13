@@ -1,0 +1,67 @@
+diff --git a/fs_mgr/fs_mgr_slotselect.c b/fs_mgr/fs_mgr_slotselect.c
+index ca07b18..9a66d6b 100644
+--- a/system/core/fs_mgr/fs_mgr_slotselect.c
++++ b/system/core/fs_mgr/fs_mgr_slotselect.c
+@@ -34,0 +35,51 @@
++/*
++ * Amonet 2 stores compact slot metadata at /misc+0x360, overlaying the
++ * standard bootloader_message slot_suffix field. The version below is the
++ * BCB format version, not an Amonet version.
++ */
++#define AMONET_BCB_MAGIC "ABB"
++#define AMONET_BCB_MAGIC_SIZE 3
++#define AMONET_BCB_VERSION 1
++#define AMONET_BCB_SLOT_A_OFFSET 5
++#define AMONET_BCB_SLOT_B_OFFSET 6
++#define AMONET_BCB_SLOT_PRIORITY_MASK 0x0f
++#define AMONET_BCB_SLOT_TRIES_MASK 0x70
++#define AMONET_BCB_SLOT_SUCCESS_MASK 0x80
++
++static int get_active_slot_suffix_from_amonet_bcb(
++        const struct bootloader_message *msg, char *out_suffix,
++        size_t suffix_len)
++{
++    const unsigned char *bcb = (const unsigned char *)msg->slot_suffix;
++    int slot = 0;
++    unsigned char metadata;
++
++    if (suffix_len < 3 || bcb[0] != '\0' ||
++            memcmp(bcb + 1, AMONET_BCB_MAGIC, AMONET_BCB_MAGIC_SIZE) != 0 ||
++            bcb[4] != AMONET_BCB_VERSION) {
++        return -1;
++    }
++
++    if ((bcb[AMONET_BCB_SLOT_B_OFFSET] & AMONET_BCB_SLOT_PRIORITY_MASK) >
++            (bcb[AMONET_BCB_SLOT_A_OFFSET] &
++             AMONET_BCB_SLOT_PRIORITY_MASK)) {
++        slot = 1;
++    }
++
++    metadata = bcb[AMONET_BCB_SLOT_A_OFFSET + slot];
++    if (!(metadata & AMONET_BCB_SLOT_SUCCESS_MASK) &&
++            !(metadata & AMONET_BCB_SLOT_TRIES_MASK)) {
++        slot = 1 - slot;
++        metadata = bcb[AMONET_BCB_SLOT_A_OFFSET + slot];
++        if (!(metadata & AMONET_BCB_SLOT_SUCCESS_MASK) &&
++                !(metadata & AMONET_BCB_SLOT_TRIES_MASK)) {
++            return -1;
++        }
++    }
++
++    out_suffix[0] = '_';
++    out_suffix[1] = 'a' + slot;
++    out_suffix[2] = '\0';
++    return 0;
++}
++
+@@ -75,4 +126,6 @@ static int get_active_slot_suffix_from_misc(struct fstab *fstab,
+-    if (msg.slot_suffix[0] == '\0')
+-        return -1;
+-    strncpy(out_suffix, msg.slot_suffix, suffix_len);
+-    return 0;
++    if (msg.slot_suffix[0] != '\0') {
++        strncpy(out_suffix, msg.slot_suffix, suffix_len);
++        return 0;
++    }
++    return get_active_slot_suffix_from_amonet_bcb(&msg, out_suffix,
++                                                   suffix_len);

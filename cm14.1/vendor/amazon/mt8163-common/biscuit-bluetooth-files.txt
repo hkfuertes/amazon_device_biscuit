@@ -1,0 +1,3 @@
+# source:destination:sha256:size
+system/vendor/lib/libbt-vendor.so:vendor/lib/libbt-vendor.so:aab202280e09941a812983c7b7fb259fcb48bf43912f05f8cf7e47e32380ec87:13844
+system/vendor/lib/libbluetooth_mtk.so:vendor/lib/libbluetooth_mtk.so:12e24abe8fcaaf9423fa143e432165b6877fab88222d8de55305bfeb364bdaa0:30268

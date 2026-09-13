@@ -1,5 +1,9 @@
 # Microphone level and wake word (microWakeWord) — Biscuit
 
+> Historical partition references in this document describe amonet v1 only.
+> amonet v2.0.0 leaves the native GPT intact; do not use `boot_a_x`, `boot_b_x`,
+> or v1 block-path assumptions for device operations.
+
 Status: diagnosis complete, partial fix applied, pending validation with real AVA.
 
 Related: `docs/audio-beam-direction.md` (ASP/beam/LED). Do not duplicate its

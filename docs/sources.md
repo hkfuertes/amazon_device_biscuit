@@ -34,7 +34,7 @@
 - Staging: `scripts/stage-cm14.1-tree.sh`
 - Kernel source: disposable `workspace/cm14.1/kernel/amazon/biscuit/`
 - Kernel patch: `patches/kernel/biscuit-kernel-netfilter-xt-compat-percpu.patch`, strict `-p4 --fuzz=0` application only.
-- Device patches: strict `-p1 --fuzz=0` application of `cm14.1-amonet-fstab.patch`, `cm14.1-amonet-fstab-live-path.patch`, and `cm14.1-headless-system-props.patch`; maps the OTA/runtime fstab to `system_a` and `boot_a_x` through the TWRP-verified `/dev/block/platform/soc/by-name` path, then uses FireOS 6 headless properties without a Mali override.
+- Device patches: strict `-p1 --fuzz=0` application of `cm14.1-amonet-fstab.patch` and `cm14.1-headless-system-props.patch`; amonet v2 uses the native GPT, so the fstab uses `/dev/block/platform/bootdevice/by-name/{system,boot}` with standard CM14 `slotselect`, then uses FireOS 6 headless properties without a Mali override.
 - Framework patches: strict `-p1 --fuzz=0` application of `cm14.1-software-egl-fallback.patch` and `cm14.1-hwui-egl-config-fallback.patch`; packages CM14's source-built `libGLES_android.so`, not the FireOS binary.
 
 ## CM14.1 Fire OS 6 audio blobs

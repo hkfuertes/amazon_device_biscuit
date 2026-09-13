@@ -1,0 +1,55 @@
+--- a/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp
++++ b/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp
+@@ -63,0 +64,6 @@
++static bool isHeadlessNoGpu() {
++    char value[PROPERTY_VALUE_MAX];
++    property_get("ro.config.no_gpu", value, "false");
++    return !strcmp(value, "1") || !strcmp(value, "true");
++}
++
+@@ -130 +136,3 @@
+-    // If we have no HWC, or a pre-1.1 HWC, an FB dev is mandatory.
++    const bool headlessNoGpu = isHeadlessNoGpu();
++
++    // If we have no HWC, or a pre-1.1 HWC, an FB dev is normally mandatory.
+@@ -133,3 +141,6 @@
+-        ALOGE("ERROR: failed to open framebuffer (%s), aborting",
+-                strerror(-fberr));
+-        abort();
++        if (!headlessNoGpu) {
++            ALOGE("ERROR: failed to open framebuffer (%s), aborting",
++                    strerror(-fberr));
++            abort();
++        }
++        ALOGW("No framebuffer; using Biscuit headless fake primary display");
+@@ -191,0 +203,12 @@
++    } else if (headlessNoGpu) {
++        DisplayData& disp(mDisplayData[HWC_DISPLAY_PRIMARY]);
++        disp.connected = true;
++        disp.format = HAL_PIXEL_FORMAT_RGBA_8888;
++        DisplayConfig config = DisplayConfig();
++        config.width = 1;
++        config.height = 1;
++        config.xdpi = ACONFIGURATION_DENSITY_TV;
++        config.ydpi = ACONFIGURATION_DENSITY_TV;
++        config.refresh = nsecs_t(1e9 / 60);
++        disp.configs.push_back(config);
++        disp.currentConfig = 0;
+@@ -906 +929 @@
+-    } else {
++    } else if (mFbDev) {
+@@ -907,0 +931,6 @@
++    } else {
++#ifdef USE_BGRA_8888
++        return HAL_PIXEL_FORMAT_BGRA_8888;
++#else
++        return HAL_PIXEL_FORMAT_RGBA_8888;
++#endif
+@@ -920,0 +950,3 @@
++        if (!mFbDev) {
++            return NO_ERROR;
++        }
+@@ -928,0 +961,3 @@
++    if (!mFbDev) {
++        return NO_ERROR;
++    }

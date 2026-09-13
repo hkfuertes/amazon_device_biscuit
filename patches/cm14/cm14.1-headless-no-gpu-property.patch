@@ -1,0 +1,5 @@
+--- a/device/amazon/mt8163-common/system.prop
++++ b/device/amazon/mt8163-common/system.prop
+@@ -4,0 +5,2 @@
++# ponytail: disable HWUI EGL contexts on Biscuit's no-GPU/headless display path.
++ro.config.no_gpu=true

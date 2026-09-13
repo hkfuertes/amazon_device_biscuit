@@ -1,0 +1,451 @@
+--- a/hardware/amazon/audio/audio_wrapper.c
++++ b/hardware/amazon/audio/audio_wrapper.c
+@@ -24,8 +24,33 @@
+ struct wrapper_stream_out {
+     struct audio_stream_out stream;
+     struct audio_stream_out* amazon_stream;
++    bool active;
+ };
+ 
++static struct audio_hw_device* real_dev(struct audio_hw_device* dev) {
++    return ((struct wrapper_audio_device*)dev)->amazon_device;
++}
++
++static const struct audio_hw_device* real_dev_const(const struct audio_hw_device* dev) {
++    return ((const struct wrapper_audio_device*)dev)->amazon_device;
++}
++
++static struct wrapper_stream_out* wrap_out(struct audio_stream_out* stream) {
++    return (struct wrapper_stream_out*)stream;
++}
++
++static const struct wrapper_stream_out* wrap_out_const(const struct audio_stream_out* stream) {
++    return (const struct wrapper_stream_out*)stream;
++}
++
++static struct wrapper_stream_out* wrap_out_common(struct audio_stream* stream) {
++    return (struct wrapper_stream_out*)stream;
++}
++
++static const struct wrapper_stream_out* wrap_out_common_const(const struct audio_stream* stream) {
++    return (const struct wrapper_stream_out*)stream;
++}
++
+ static int route_enum_or_value(struct mixer* mixer, const char* name,
+                                const char* value, int fallback) {
+     struct mixer_ctl* ctl = mixer_get_ctl_by_name(mixer, name);
+@@ -98,6 +123,32 @@
+     mixer_close(mixer);
+ }
+ 
++static uint32_t out_get_sample_rate(const struct audio_stream* stream);
++static int out_set_sample_rate(struct audio_stream* stream, uint32_t rate);
++static size_t out_get_buffer_size(const struct audio_stream* stream);
++static audio_channel_mask_t out_get_channels(const struct audio_stream* stream);
++static audio_format_t out_get_format(const struct audio_stream* stream);
++static int out_set_format(struct audio_stream* stream, audio_format_t format);
++static int out_standby(struct audio_stream* stream);
++static int out_dump(const struct audio_stream* stream, int fd);
++static audio_devices_t out_get_device(const struct audio_stream* stream);
++static int out_set_device(struct audio_stream* stream, audio_devices_t device);
++static int out_set_parameters(struct audio_stream* stream, const char* kv_pairs);
++static char* out_get_parameters(const struct audio_stream* stream, const char* keys);
++static int out_add_audio_effect(const struct audio_stream* stream, effect_handle_t effect);
++static int out_remove_audio_effect(const struct audio_stream* stream, effect_handle_t effect);
++static uint32_t out_get_latency(const struct audio_stream_out* stream);
++static int out_set_volume(struct audio_stream_out* stream, float left, float right);
++static ssize_t out_write(struct audio_stream_out* stream, const void* buffer, size_t bytes);
++static int out_get_render_position(const struct audio_stream_out* stream, uint32_t* dsp_frames);
++static int out_get_next_write_timestamp(const struct audio_stream_out* stream, int64_t* timestamp);
++static int out_set_callback(struct audio_stream_out* stream, stream_callback_t callback, void* cookie);
++static int out_pause(struct audio_stream_out* stream);
++static int out_resume(struct audio_stream_out* stream);
++static int out_drain(struct audio_stream_out* stream, audio_drain_type_t type);
++static int out_flush(struct audio_stream_out* stream);
++static int out_get_presentation_position(const struct audio_stream_out* stream, uint64_t* frames, struct timespec* timestamp);
++
+ static void apply_speaker_route(void) {
+     struct mixer* mixer = mixer_open(CARD);
+ 
+@@ -117,32 +168,60 @@
+     mixer_close(mixer);
+ }
+ 
+-static struct wrapper_stream_out* wrap_out(struct audio_stream_out* stream) {
+-    return (struct wrapper_stream_out*)stream;
++static uint32_t adev_get_supported_devices(const struct audio_hw_device* dev) {
++    const struct audio_hw_device* a = real_dev_const(dev);
++    return a->get_supported_devices(a);
+ }
+ 
+-static struct wrapper_stream_out* wrap_out_common(struct audio_stream* stream) {
+-    return (struct wrapper_stream_out*)stream;
++static int adev_init_check(const struct audio_hw_device* dev) {
++    const struct audio_hw_device* a = real_dev_const(dev);
++    return a->init_check(a);
+ }
+ 
+-static int out_standby(struct audio_stream* stream) {
+-    struct wrapper_stream_out* out = wrap_out_common(stream);
+-    int ret = 0;
++static int adev_set_voice_volume(struct audio_hw_device* dev, float volume) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_voice_volume(a, volume);
++}
+ 
+-    if (out->amazon_stream && out->amazon_stream->common.standby) {
+-        ret = out->amazon_stream->common.standby(&out->amazon_stream->common);
+-    }
+-    set_speaker_amp(false);
+-    return ret;
++static int adev_set_master_volume(struct audio_hw_device* dev, float volume) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_master_volume(a, volume);
+ }
+ 
+-static ssize_t out_write(struct audio_stream_out* stream, const void* buffer,
+-                         size_t bytes) {
+-    struct wrapper_stream_out* out = wrap_out(stream);
++static int adev_get_master_volume(struct audio_hw_device* dev, float* volume) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->get_master_volume(a, volume);
++}
+ 
+-    apply_speaker_route();
+-    set_speaker_amp(true);
+-    return out->amazon_stream->write(out->amazon_stream, buffer, bytes);
++static int adev_set_mode(struct audio_hw_device* dev, audio_mode_t mode) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_mode(a, mode);
++}
++
++static int adev_set_mic_mute(struct audio_hw_device* dev, bool state) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_mic_mute(a, state);
++}
++
++static int adev_get_mic_mute(const struct audio_hw_device* dev, bool* state) {
++    const struct audio_hw_device* a = real_dev_const(dev);
++    return a->get_mic_mute(a, state);
++}
++
++static int adev_set_parameters(struct audio_hw_device* dev, const char* kv_pairs) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_parameters(a, kv_pairs);
++}
++
++static char* adev_get_parameters(const struct audio_hw_device* dev, const char* keys) {
++    const struct audio_hw_device* a = real_dev_const(dev);
++    return a->get_parameters(a, keys);
++}
++
++static size_t adev_get_input_buffer_size(const struct audio_hw_device* dev,
++                                         const struct audio_config* config) {
++    const struct audio_hw_device* a = real_dev_const(dev);
++    return a->get_input_buffer_size(a, config);
+ }
+ 
+ static int adev_open_output_stream(struct audio_hw_device* dev,
+@@ -176,8 +255,34 @@
+ 
+     out->amazon_stream = amazon_stream;
+     out->stream = *amazon_stream;
+-    out->stream.common.standby = out_standby;
+-    out->stream.write = out_write;
++
++    // ponytail: every vendor callback must receive the real Fire OS stream.
++    if (amazon_stream->common.get_sample_rate) out->stream.common.get_sample_rate = out_get_sample_rate;
++    if (amazon_stream->common.set_sample_rate) out->stream.common.set_sample_rate = out_set_sample_rate;
++    if (amazon_stream->common.get_buffer_size) out->stream.common.get_buffer_size = out_get_buffer_size;
++    if (amazon_stream->common.get_channels) out->stream.common.get_channels = out_get_channels;
++    if (amazon_stream->common.get_format) out->stream.common.get_format = out_get_format;
++    if (amazon_stream->common.set_format) out->stream.common.set_format = out_set_format;
++    if (amazon_stream->common.standby) out->stream.common.standby = out_standby;
++    if (amazon_stream->common.dump) out->stream.common.dump = out_dump;
++    if (amazon_stream->common.get_device) out->stream.common.get_device = out_get_device;
++    if (amazon_stream->common.set_device) out->stream.common.set_device = out_set_device;
++    if (amazon_stream->common.set_parameters) out->stream.common.set_parameters = out_set_parameters;
++    if (amazon_stream->common.get_parameters) out->stream.common.get_parameters = out_get_parameters;
++    if (amazon_stream->common.add_audio_effect) out->stream.common.add_audio_effect = out_add_audio_effect;
++    if (amazon_stream->common.remove_audio_effect) out->stream.common.remove_audio_effect = out_remove_audio_effect;
++    if (amazon_stream->get_latency) out->stream.get_latency = out_get_latency;
++    if (amazon_stream->set_volume) out->stream.set_volume = out_set_volume;
++    if (amazon_stream->write) out->stream.write = out_write;
++    if (amazon_stream->get_render_position) out->stream.get_render_position = out_get_render_position;
++    if (amazon_stream->get_next_write_timestamp) out->stream.get_next_write_timestamp = out_get_next_write_timestamp;
++    if (amazon_stream->set_callback) out->stream.set_callback = out_set_callback;
++    if (amazon_stream->pause) out->stream.pause = out_pause;
++    if (amazon_stream->resume) out->stream.resume = out_resume;
++    if (amazon_stream->drain) out->stream.drain = out_drain;
++    if (amazon_stream->flush) out->stream.flush = out_flush;
++    if (amazon_stream->get_presentation_position) out->stream.get_presentation_position = out_get_presentation_position;
++
+     *stream_out = &out->stream;
+     return 0;
+ }
+@@ -193,6 +298,215 @@
+     free(out);
+ }
+ 
++static int adev_open_input_stream(struct audio_hw_device* dev,
++                                  audio_io_handle_t handle,
++                                  audio_devices_t devices,
++                                  struct audio_config* config,
++                                  struct audio_stream_in** stream_in,
++                                  audio_input_flags_t flags,
++                                  const char* address,
++                                  audio_source_t source) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->open_input_stream(a, handle, devices, config, stream_in, flags,
++                                address, source);
++}
++
++static void adev_close_input_stream(struct audio_hw_device* dev,
++                                    struct audio_stream_in* stream_in) {
++    struct audio_hw_device* a = real_dev(dev);
++    a->close_input_stream(a, stream_in);
++}
++
++static int adev_dump(const struct audio_hw_device* dev, int fd) {
++    const struct audio_hw_device* a = real_dev_const(dev);
++    return a->dump(a, fd);
++}
++
++static int adev_set_master_mute(struct audio_hw_device* dev, bool mute) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_master_mute(a, mute);
++}
++
++static int adev_get_master_mute(struct audio_hw_device* dev, bool* mute) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->get_master_mute(a, mute);
++}
++
++static int adev_create_audio_patch(struct audio_hw_device* dev,
++                                   unsigned int num_sources,
++                                   const struct audio_port_config* sources,
++                                   unsigned int num_sinks,
++                                   const struct audio_port_config* sinks,
++                                   audio_patch_handle_t* handle) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->create_audio_patch(a, num_sources, sources, num_sinks, sinks, handle);
++}
++
++static int adev_release_audio_patch(struct audio_hw_device* dev,
++                                    audio_patch_handle_t handle) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->release_audio_patch(a, handle);
++}
++
++static int adev_get_audio_port(struct audio_hw_device* dev,
++                               struct audio_port* port) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->get_audio_port(a, port);
++}
++
++static int adev_set_audio_port_config(struct audio_hw_device* dev,
++                                      const struct audio_port_config* config) {
++    struct audio_hw_device* a = real_dev(dev);
++    return a->set_audio_port_config(a, config);
++}
++
++static uint32_t out_get_sample_rate(const struct audio_stream* stream) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.get_sample_rate(&out->amazon_stream->common);
++}
++
++static int out_set_sample_rate(struct audio_stream* stream, uint32_t rate) {
++    struct wrapper_stream_out* out = wrap_out_common(stream);
++    return out->amazon_stream->common.set_sample_rate(&out->amazon_stream->common, rate);
++}
++
++static size_t out_get_buffer_size(const struct audio_stream* stream) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.get_buffer_size(&out->amazon_stream->common);
++}
++
++static audio_channel_mask_t out_get_channels(const struct audio_stream* stream) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.get_channels(&out->amazon_stream->common);
++}
++
++static audio_format_t out_get_format(const struct audio_stream* stream) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.get_format(&out->amazon_stream->common);
++}
++
++static int out_set_format(struct audio_stream* stream, audio_format_t format) {
++    struct wrapper_stream_out* out = wrap_out_common(stream);
++    return out->amazon_stream->common.set_format(&out->amazon_stream->common, format);
++}
++
++static int out_standby(struct audio_stream* stream) {
++    struct wrapper_stream_out* out = wrap_out_common(stream);
++    int ret = 0;
++
++    if (out->amazon_stream && out->amazon_stream->common.standby) {
++        ret = out->amazon_stream->common.standby(&out->amazon_stream->common);
++    }
++    out->active = false;
++    set_speaker_amp(false);
++    return ret;
++}
++
++static int out_dump(const struct audio_stream* stream, int fd) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.dump(&out->amazon_stream->common, fd);
++}
++
++static audio_devices_t out_get_device(const struct audio_stream* stream) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.get_device(&out->amazon_stream->common);
++}
++
++static int out_set_device(struct audio_stream* stream, audio_devices_t device) {
++    struct wrapper_stream_out* out = wrap_out_common(stream);
++    return out->amazon_stream->common.set_device(&out->amazon_stream->common, device);
++}
++
++static int out_set_parameters(struct audio_stream* stream, const char* kv_pairs) {
++    struct wrapper_stream_out* out = wrap_out_common(stream);
++    return out->amazon_stream->common.set_parameters(&out->amazon_stream->common, kv_pairs);
++}
++
++static char* out_get_parameters(const struct audio_stream* stream, const char* keys) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.get_parameters(&out->amazon_stream->common, keys);
++}
++
++static int out_add_audio_effect(const struct audio_stream* stream,
++                                effect_handle_t effect) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.add_audio_effect(&out->amazon_stream->common, effect);
++}
++
++static int out_remove_audio_effect(const struct audio_stream* stream,
++                                   effect_handle_t effect) {
++    const struct wrapper_stream_out* out = wrap_out_common_const(stream);
++    return out->amazon_stream->common.remove_audio_effect(&out->amazon_stream->common, effect);
++}
++
++static uint32_t out_get_latency(const struct audio_stream_out* stream) {
++    const struct wrapper_stream_out* out = wrap_out_const(stream);
++    return out->amazon_stream->get_latency(out->amazon_stream);
++}
++
++static int out_set_volume(struct audio_stream_out* stream, float left, float right) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++    return out->amazon_stream->set_volume(out->amazon_stream, left, right);
++}
++
++static ssize_t out_write(struct audio_stream_out* stream, const void* buffer,
++                         size_t bytes) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++
++    if (!out->active) {
++        apply_speaker_route();
++        set_speaker_amp(true);
++        out->active = true;
++    }
++    return out->amazon_stream->write(out->amazon_stream, buffer, bytes);
++}
++
++static int out_get_render_position(const struct audio_stream_out* stream,
++                                   uint32_t* dsp_frames) {
++    const struct wrapper_stream_out* out = wrap_out_const(stream);
++    return out->amazon_stream->get_render_position(out->amazon_stream, dsp_frames);
++}
++
++static int out_get_next_write_timestamp(const struct audio_stream_out* stream,
++                                        int64_t* timestamp) {
++    const struct wrapper_stream_out* out = wrap_out_const(stream);
++    return out->amazon_stream->get_next_write_timestamp(out->amazon_stream, timestamp);
++}
++
++static int out_set_callback(struct audio_stream_out* stream,
++                            stream_callback_t callback, void* cookie) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++    return out->amazon_stream->set_callback(out->amazon_stream, callback, cookie);
++}
++
++static int out_pause(struct audio_stream_out* stream) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++    return out->amazon_stream->pause(out->amazon_stream);
++}
++
++static int out_resume(struct audio_stream_out* stream) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++    return out->amazon_stream->resume(out->amazon_stream);
++}
++
++static int out_drain(struct audio_stream_out* stream, audio_drain_type_t type) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++    return out->amazon_stream->drain(out->amazon_stream, type);
++}
++
++static int out_flush(struct audio_stream_out* stream) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++    return out->amazon_stream->flush(out->amazon_stream);
++}
++
++static int out_get_presentation_position(const struct audio_stream_out* stream,
++                                         uint64_t* frames,
++                                         struct timespec* timestamp) {
++    const struct wrapper_stream_out* out = wrap_out_const(stream);
++    return out->amazon_stream->get_presentation_position(out->amazon_stream,
++                                                         frames, timestamp);
++}
++
+ static int adev_close(struct hw_device_t* device) {
+     struct wrapper_audio_device* adev = (struct wrapper_audio_device*)device;
+     int status = 0;
+@@ -206,6 +520,34 @@
+     return status;
+ }
+ 
++static void wrap_device_methods(struct wrapper_audio_device* adev) {
++    struct audio_hw_device* a = adev->amazon_device;
++
++    // ponytail: all vendor device callbacks must receive the real Fire OS HAL.
++    if (a->get_supported_devices) adev->device.get_supported_devices = adev_get_supported_devices;
++    if (a->init_check) adev->device.init_check = adev_init_check;
++    if (a->set_voice_volume) adev->device.set_voice_volume = adev_set_voice_volume;
++    if (a->set_master_volume) adev->device.set_master_volume = adev_set_master_volume;
++    if (a->get_master_volume) adev->device.get_master_volume = adev_get_master_volume;
++    if (a->set_mode) adev->device.set_mode = adev_set_mode;
++    if (a->set_mic_mute) adev->device.set_mic_mute = adev_set_mic_mute;
++    if (a->get_mic_mute) adev->device.get_mic_mute = adev_get_mic_mute;
++    if (a->set_parameters) adev->device.set_parameters = adev_set_parameters;
++    if (a->get_parameters) adev->device.get_parameters = adev_get_parameters;
++    if (a->get_input_buffer_size) adev->device.get_input_buffer_size = adev_get_input_buffer_size;
++    if (a->open_output_stream) adev->device.open_output_stream = adev_open_output_stream;
++    if (a->close_output_stream) adev->device.close_output_stream = adev_close_output_stream;
++    if (a->open_input_stream) adev->device.open_input_stream = adev_open_input_stream;
++    if (a->close_input_stream) adev->device.close_input_stream = adev_close_input_stream;
++    if (a->dump) adev->device.dump = adev_dump;
++    if (a->set_master_mute) adev->device.set_master_mute = adev_set_master_mute;
++    if (a->get_master_mute) adev->device.get_master_mute = adev_get_master_mute;
++    if (a->create_audio_patch) adev->device.create_audio_patch = adev_create_audio_patch;
++    if (a->release_audio_patch) adev->device.release_audio_patch = adev_release_audio_patch;
++    if (a->get_audio_port) adev->device.get_audio_port = adev_get_audio_port;
++    if (a->set_audio_port_config) adev->device.set_audio_port_config = adev_set_audio_port_config;
++}
++
+ static int adev_open(const struct hw_module_t* module, const char* name,
+                      struct hw_device_t** device) {
+     struct wrapper_audio_device* adev;
+@@ -240,12 +582,11 @@
+         goto fail;
+     }
+ 
+-    // ponytail: wrap only speaker routing; FireOS HAL still owns real playback.
++    // ponytail: wrap only routing; FireOS HAL still owns real playback.
+     adev->device = *adev->amazon_device;
+     adev->device.common.module = (struct hw_module_t*)module;
+     adev->device.common.close = adev_close;
+-    adev->device.open_output_stream = adev_open_output_stream;
+-    adev->device.close_output_stream = adev_close_output_stream;
++    wrap_device_methods(adev);
+     *device = &adev->device.common;
+     return 0;
+ 

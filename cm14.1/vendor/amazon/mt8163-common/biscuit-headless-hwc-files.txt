@@ -1,0 +1,3 @@
+# source:destination:sha256:size
+# Proven CM12 headless HWC from stock Biscuit 272.6.4.1. No Mali/GPU closure.
+lib/hw/hwcomposer.mt8163.so:lib/hw/hwcomposer.mt8163.so:ec66527090a97538914a5d883cf5b43013aea69905f29c9e4af490eb8a48e79a:13568

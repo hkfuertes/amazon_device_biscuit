@@ -1,0 +1,28 @@
+--- a/frameworks/base/core/java/android/content/pm/PackageParser.java
++++ b/frameworks/base/core/java/android/content/pm/PackageParser.java
+@@ -40,0 +41 @@
++import android.os.SystemProperties;
+@@ -2979 +2980,2 @@
+-                owner.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH);
++                owner.applicationInfo.targetSdkVersion >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
++                && !SystemProperties.getBoolean("ro.config.no_gpu", false);
+@@ -3620 +3622,2 @@
+-                    hardwareAccelerated)) {
++                    hardwareAccelerated)
++                    && !SystemProperties.getBoolean("ro.config.no_gpu", false)) {
+--- a/frameworks/base/core/java/android/view/ThreadedRenderer.java
++++ b/frameworks/base/core/java/android/view/ThreadedRenderer.java
+@@ -34,0 +35 @@
++import android.os.SystemProperties;
+@@ -241 +242,3 @@
+-        return DisplayListCanvas.isAvailable();
++        // ponytail: Biscuit is headless/no-GPU; never create HWUI EGL contexts.
++        return !SystemProperties.getBoolean("ro.config.no_gpu", false)
++                && DisplayListCanvas.isAvailable();
+--- a/frameworks/base/core/java/android/view/ViewRootImpl.java
++++ b/frameworks/base/core/java/android/view/ViewRootImpl.java
+@@ -835 +835,3 @@
+-        if (mTranslator != null) return;
++        if (mTranslator != null || SystemProperties.getBoolean("ro.config.no_gpu", false)) {
++            return;
++        }

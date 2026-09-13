@@ -1,0 +1,51 @@
+--- a/system/core/liblog/logger_write.c
++++ b/system/core/liblog/logger_write.c
+@@ -392,6 +392,11 @@
+     return __android_log_write(prio, tag, msg ? msg : "");
+ }
+ 
++// ponytail: Fire OS 6 libacehal_log references this legacy liblog API.
++LIBLOG_ABI_PUBLIC void android_logger_flush(void)
++{
++}
++
+ LIBLOG_ABI_PUBLIC int __android_log_buf_write(int bufID, int prio,
+                                               const char *tag, const char *msg)
+ {
+--- a/system/core/libutils/RefBase.cpp
++++ b/system/core/libutils/RefBase.cpp
+@@ -56,6 +56,12 @@
+ 
+ namespace android {
+ 
++// ponytail: legacy Amazon blobs reference this old libutils debug hook.
++void sp_report_race()
++{
++    ALOGW("sp<> assignment race reported by legacy vendor blob");
++}
++
+ // Usage, invariants, etc:
+ 
+ // It is normally OK just to keep weak pointers to an object.  The object will
+--- a/external/tinyalsa/pcm.c
++++ b/external/tinyalsa/pcm.c
+@@ -479,6 +479,19 @@
+     return 0;
+ }
+ 
++// ponytail: Fire OS 6 audio HAL expects legacy TinyALSA helpers.
++int pcm_get_xrun(struct pcm *pcm)
++{
++    return pcm ? pcm->underruns : 0;
++}
++
++int pcm_get_trigger_tstamp(struct pcm *pcm, struct timespec *timestamp)
++{
++    unsigned int available;
++
++    return pcm_get_htimestamp(pcm, &available, timestamp);
++}
++
+ int pcm_write(struct pcm *pcm, const void *data, unsigned int count)
+ {
+     struct snd_xferi x;

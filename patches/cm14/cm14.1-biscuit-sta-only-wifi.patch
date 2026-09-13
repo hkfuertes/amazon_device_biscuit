@@ -1,0 +1,76 @@
+--- a/device/amazon/mt8163-common/mt8163-common.mk
++++ b/device/amazon/mt8163-common/mt8163-common.mk
+@@ -107 +106,0 @@
+-    frameworks/native/data/etc/android.hardware.wifi.direct.xml:$(TARGET_COPY_OUT_SYSTEM)/etc/permissions/android.hardware.wifi.direct.xml \
+@@ -108,0 +108 @@
++# ponytail: Biscuit is STA-only; omitting Wi-Fi Direct prevents unsupported MTK P2P startup.
+--- a/external/wpa_supplicant_8/wpa_supplicant/Android.mk
++++ b/external/wpa_supplicant_8/wpa_supplicant/Android.mk
+@@ -28,2 +28,2 @@
+-# Set Android extended P2P functionality
+-L_CFLAGS += -DANDROID_P2P
++# ponytail: Biscuit uses MTK STA only; Android P2P hooks crash before association.
++# L_CFLAGS += -DANDROID_P2P
+--- a/external/wpa_supplicant_8/wpa_supplicant/android.config
++++ b/external/wpa_supplicant_8/wpa_supplicant/android.config
+@@ -143 +143,2 @@
+-CONFIG_WPS=y
++# ponytail: Biscuit bring-up is STA-only; re-enable WPS after verified support.
++# CONFIG_WPS=y
+@@ -145 +146,2 @@
+-CONFIG_WPS_ER=y
++# ponytail: Biscuit bring-up is STA-only; re-enable WPS_ER after verified support.
++# CONFIG_WPS_ER=y
+@@ -150 +152,2 @@
+-CONFIG_WPS_NFC=y
++# ponytail: Biscuit bring-up is STA-only; re-enable WPS_NFC after verified support.
++# CONFIG_WPS_NFC=y
+@@ -437 +440,2 @@
+-CONFIG_INTERWORKING=y
++# ponytail: Biscuit bring-up is STA-only; re-enable INTERWORKING after verified support.
++# CONFIG_INTERWORKING=y
+@@ -440 +444,2 @@
+-CONFIG_HS20=y
++# ponytail: Biscuit bring-up is STA-only; re-enable HS20 after verified support.
++# CONFIG_HS20=y
+@@ -450 +455,2 @@
+-CONFIG_AP=y
++# ponytail: Biscuit bring-up is STA-only; re-enable AP after verified support.
++# CONFIG_AP=y
+@@ -455 +461,2 @@
+-CONFIG_P2P=y
++# ponytail: Biscuit bring-up is STA-only; re-enable P2P after verified support.
++# CONFIG_P2P=y
+@@ -463 +470,2 @@
+-CONFIG_WIFI_DISPLAY=y
++# ponytail: Biscuit bring-up is STA-only; re-enable WIFI_DISPLAY after verified support.
++# CONFIG_WIFI_DISPLAY=y
+--- a/external/wpa_supplicant_8/wpa_supplicant/ctrl_iface.c
++++ b/external/wpa_supplicant_8/wpa_supplicant/ctrl_iface.c
+@@ -6991,0 +6992 @@
++#ifdef CONFIG_P2P
+@@ -7001,0 +7003 @@
++#endif /* CONFIG_P2P */
+--- a/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
++++ b/frameworks/base/packages/SettingsProvider/res/values/defaults.xml
+@@ -51 +51 @@
+-    <bool name="def_wifi_on">false</bool>
++    <bool name="def_wifi_on">true</bool>
+--- a/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
++++ b/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java
+@@ -4621 +4621,4 @@
+-                    initializeWpsDetails();
++                    if (mP2pSupported) {
++                        initializeWpsDetails();
++                        mWifiNative.setP2pDisable();
++                    }
+@@ -4624 +4626,0 @@
+-                    mWifiNative.setP2pDisable();
+@@ -4672 +4674,2 @@
+-            mWifiNative.setExternalSim(true);
++            // ponytail: Biscuit has no SIM; MTK's external-SIM path breaks STA bring-up.
++            // mWifiNative.setExternalSim(true);
+@@ -4677 +4680,2 @@
+-            setRandomMacOui();
++            // ponytail: MTK STA works without randomized scan MACs.
++            // setRandomMacOui();

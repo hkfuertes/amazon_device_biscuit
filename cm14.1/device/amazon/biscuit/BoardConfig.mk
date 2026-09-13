@@ -1,11 +1,19 @@
 # CM14.1 compile baseline for Amazon Biscuit.
 LOCAL_PATH := device/amazon/biscuit
 
+# Legacy recovery OTAs must use amonet v2 TWRP's current-slot aliases.
+TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)
+# Headless bring-up intentionally permits root, unauthenticated USB ADB.
+TARGET_FORCE_INSECURE_ADB := true
+
 include device/amazon/mt8163-common/BoardConfigCommon.mk
 
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
+# Amonet 2 TWRP OTAs write only boot/system; do not waste time on unused data images.
+TARGET_SKIP_CACHEIMAGE := true
+TARGET_SKIP_USERDATAIMAGE := true
 
 # Build the exact FireOS 6.5.7.1 Biscuit kernel source inside CM14.1.
 TARGET_KERNEL_SOURCE := kernel/amazon/biscuit
@@ -37,7 +45,7 @@ BOARD_BOOTIMAGE_PARTITION_SIZE := 16777216
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 805306368
 BOARD_CACHEIMAGE_PARTITION_SIZE := 822083584
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 1258291200
+BOARD_USERDATAIMAGE_PARTITION_SIZE := 1325383168
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 BOARD_HAS_NO_SELECT_BUTTON := true

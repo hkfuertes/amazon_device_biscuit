@@ -1,0 +1,131 @@
+--- a/frameworks/base/services/core/java/com/android/server/ConnectivityService.java
++++ b/frameworks/base/services/core/java/com/android/server/ConnectivityService.java
+@@ -175,7 +175,6 @@
+ import java.util.Objects;
+ import java.util.SortedSet;
+ import java.util.TreeSet;
+-import java.util.Random;
+ 
+ /**
+  * @hide
+@@ -734,21 +733,16 @@
+         // setup our unique device name
+         // either to (in order): DEVICE_HOSTNAME
+         //                       current net.hostname
+-        //                       android-ANDROID_ID
+-        //                       android-r-RANDOM_NUMBER
++        //                       product-model-last3id
+         String hostname = CMSettings.Secure.getString(context.getContentResolver(),
+                 CMSettings.Secure.DEVICE_HOSTNAME);
+         if (TextUtils.isEmpty(SystemProperties.get("net.hostname"))
+                 || !TextUtils.isEmpty(hostname)) {
+-            String id = Settings.Secure.getString(context.getContentResolver(),
+-                    Settings.Secure.ANDROID_ID);
+             if (!TextUtils.isEmpty(hostname)) {
+                 SystemProperties.set("net.hostname", hostname);
+-            } else if (!TextUtils.isEmpty(id)) {
+-                String name = new String("android-").concat(id);
+-                SystemProperties.set("net.hostname", name);
+             } else {
+-                SystemProperties.set("net.hostname", "android-r-" + new Random().nextInt());
++                String name = makeBiscuitHostname(context);
++                if (!TextUtils.isEmpty(name)) SystemProperties.set("net.hostname", name);
+             }
+         }
+ 
+@@ -938,6 +932,58 @@
+         mSettingsObserver.observe(
+                 Settings.Global.getUriFor(Settings.Global.MOBILE_DATA_ALWAYS_ON),
+                 EVENT_CONFIGURE_MOBILE_DATA_ALWAYS_ON);
++    }
++
++    private static String makeBiscuitHostname(Context context) {
++        String id = SystemProperties.get("ro.serialno", "");
++        if (!usableHostnameId(id)) id = SystemProperties.get("ro.boot.serialno", "");
++        if (!usableHostnameId(id)) {
++            id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
++        }
++        String suffix = hostnameSuffix(id);
++        String model = hostnameToken(SystemProperties.get("ro.product.model", "biscuit"));
++        return TextUtils.isEmpty(suffix) ? null : model + "-" + suffix;
++    }
++
++    private static String hostnameToken(String value) {
++        if (value == null) return "biscuit";
++        StringBuilder out = new StringBuilder();
++        boolean dash = false;
++        for (int i = 0; i < value.length(); i++) {
++            char ch = value.charAt(i);
++            if (ch >= '0' && ch <= '9') {
++                out.append(ch);
++                dash = false;
++            } else if (ch >= 'a' && ch <= 'z') {
++                out.append(ch);
++                dash = false;
++            } else if (ch >= 'A' && ch <= 'Z') {
++                out.append((char) (ch - 'A' + 'a'));
++                dash = false;
++            } else if (out.length() > 0 && !dash) {
++                out.append('-');
++                dash = true;
++            }
++        }
++        if (dash) out.setLength(out.length() - 1);
++        return out.length() == 0 ? "biscuit" : out.toString();
++    }
++
++    private static boolean usableHostnameId(String value) {
++        return !TextUtils.isEmpty(value) && !"unknown".equals(value.toLowerCase());
++    }
++
++    private static String hostnameSuffix(String value) {
++        if (value == null) return null;
++        StringBuilder out = new StringBuilder();
++        for (int i = 0; i < value.length(); i++) {
++            char ch = value.charAt(i);
++            if (ch >= '0' && ch <= '9') out.append(ch);
++            else if (ch >= 'a' && ch <= 'z') out.append(ch);
++            else if (ch >= 'A' && ch <= 'Z') out.append((char) (ch - 'A' + 'a'));
++        }
++        if (out.length() == 0) return null;
++        return out.substring(Math.max(0, out.length() - 3));
+     }
+ 
+     private synchronized int nextNetworkRequestId() {
+--- a/frameworks/base/services/core/java/com/android/server/NsdService.java
++++ b/frameworks/base/services/core/java/com/android/server/NsdService.java
+@@ -28,8 +28,10 @@
+ import android.os.Binder;
+ import android.os.Message;
+ import android.os.Messenger;
++import android.os.SystemProperties;
+ import android.os.UserHandle;
+ import android.provider.Settings;
++import android.text.TextUtils;
+ import android.util.Base64;
+ import android.util.Slog;
+ import android.util.SparseArray;
+@@ -685,6 +687,10 @@
+         if (DBG) Slog.d(TAG, "startMDnsDaemon");
+         try {
+             mNativeConnector.execute("mdnssd", "start-service");
++            String hostname = SystemProperties.get("net.hostname", "");
++            if (!TextUtils.isEmpty(hostname)) {
++                mNativeConnector.execute("mdnssd", "sethostname", getUniqueId(), hostname);
++            }
+         } catch(NativeDaemonConnectorException e) {
+             Slog.e(TAG, "Failed to start daemon" + e);
+             return false;
+--- a/external/mdnsresponder/mDNSShared/uds_daemon.c
++++ b/external/mdnsresponder/mDNSShared/uds_daemon.c
+@@ -2130,8 +2130,8 @@
+ 	// hostname changes we may need to cleanup from it
+ 	//  request->terminate = sethost_termination_callback;
+ 	if(hostName[0] == 0) return mStatus_BadParamErr;
+-		while (len < MAX_DOMAIN_LABEL && hostName[len+1]
+-			&& hostName[len+1] != '.') len++;
++		while (len < MAX_DOMAIN_LABEL && hostName[len]
++			&& hostName[len] != '.') len++;
+ 	strncpy(&(mDNSStorage.nicelabel.c[1]), hostName, len);
+ 	mDNSStorage.nicelabel.c[0] = len;
+ 	strncpy(&(mDNSStorage.hostlabel.c[1]), hostName, len);

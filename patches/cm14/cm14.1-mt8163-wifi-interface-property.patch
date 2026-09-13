@@ -1,0 +1,7 @@
+diff --git a/device/amazon/mt8163-common/system.prop b/device/amazon/mt8163-common/system.prop
+--- a/device/amazon/mt8163-common/system.prop
++++ b/device/amazon/mt8163-common/system.prop
+@@ -7,0 +8,3 @@ ro.opengles.version=196609
++# Wi-Fi
++wifi.interface=wlan0
++
