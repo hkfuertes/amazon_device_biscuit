@@ -99,6 +99,23 @@ if grep -Fqx 'wifi.interface=wlan0' "$SYSTEM_PROP"; then
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-mt8163-wifi-interface-property.patch"
 fi
+BT_ANDROID_MK="$CM14/system/bt/Android.mk"
+if grep -Fqx 'bluetooth_CFLAGS += $(BOARD_BLUETOOTH_BDROID_CFLAGS)' "$BT_ANDROID_MK"; then
+  echo "Bluetooth board CFLAGS hook already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-bluetooth-board-cflags.patch"
+fi
+BT_DM_ACT="$CM14/system/bt/bta/dm/bta_dm_act.c"
+if awk 'prev == "#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)" && $0 == "static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)" { found = 1 } { prev = $0 } END { exit found ? 0 : 1 }' "$BT_DM_ACT"; then
+  echo "Biscuit Bluetooth no-input pairing callback guard already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-pairing.patch"
+fi
+if awk 'prev == "/* Extended Inquiry Response */" && $0 == "#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)" { found = 1 } { prev = $0 } END { exit found ? 0 : 1 }' "$BT_DM_ACT"; then
+  echo "Biscuit Bluetooth no-input pairing prototype guard already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-prototype.patch"
+fi
 BT_CONFIG="$CM14/packages/apps/Bluetooth/res/values/config.xml"
 BT_BONDS="$CM14/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java"
 if grep -Fqx '    <bool name="profile_supported_a2dp_sink">true</bool>' "$BT_CONFIG" && \

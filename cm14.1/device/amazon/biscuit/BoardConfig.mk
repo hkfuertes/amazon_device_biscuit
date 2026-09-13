@@ -5,6 +5,8 @@ LOCAL_PATH := device/amazon/biscuit
 TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)
 # Headless bring-up intentionally permits root, unauthenticated USB ADB.
 TARGET_FORCE_INSECURE_ADB := true
+# Biscuit is a headless Bluetooth speaker; avoid numeric-comparison pairing UI.
+BOARD_BLUETOOTH_BDROID_CFLAGS += -DBTM_LOCAL_IO_CAPS=BTM_IO_CAP_NONE
 
 include device/amazon/mt8163-common/BoardConfigCommon.mk
 

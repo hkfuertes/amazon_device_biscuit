@@ -19,6 +19,9 @@ P2P_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 AUDIO_LEGACY_PATCH="$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
 AUDIO_FORWARDING_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-audio-route-forwarding.patch"
+BT_CFLAGS_PATCH="$ROOT/patches/cm14/cm14.1-bluetooth-board-cflags.patch"
+BT_NOINPUT_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-pairing.patch"
+BT_NOINPUT_PROTO_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-prototype.patch"
 INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
@@ -34,6 +37,8 @@ for file in \
   system/core/liblog/logger_write.c \
   system/core/libutils/RefBase.cpp \
   external/tinyalsa/pcm.c \
+  system/bt/Android.mk \
+  system/bt/bta/dm/bta_dm_act.c \
   hardware/amazon/audio/audio_wrapper.c \
   build/core/Makefile \
   build/tools/releasetools/add_img_to_target_files.py \
@@ -90,6 +95,9 @@ apply_from_base "$INSECURE_ADB_PATCH"
 apply_from_base "$SKIP_IMAGES_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$WIFI_IFACE_PATCH"
+apply_from_base "$BT_CFLAGS_PATCH"
+apply_from_base "$BT_NOINPUT_PATCH"
+apply_from_base "$BT_NOINPUT_PROTO_PATCH"
 apply_from_base "$BT_HEADLESS_PATCH"
 apply_from_base "$BT_DISABLE_PAN_PATCH"
 apply_from_base "$HOSTNAME_MDNS_PATCH"
@@ -146,6 +154,14 @@ grep -Fqx 'wifi.interface=wlan0' \
   "$WORK/device/amazon/mt8163-common/system.prop"
 grep -Fqx 'persist.service.bt.a2dp.sink=true' \
   "$WORK/device/amazon/mt8163-common/system.prop"
+grep -Fqx 'bluetooth_CFLAGS += $(BOARD_BLUETOOTH_BDROID_CFLAGS)' \
+  "$WORK/system/bt/Android.mk"
+grep -Fqx 'BOARD_BLUETOOTH_BDROID_CFLAGS += -DBTM_LOCAL_IO_CAPS=BTM_IO_CAP_NONE' \
+  "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"
+awk 'prev == "#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)" && $0 == "static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data)" { found = 1 } { prev = $0 } END { exit found ? 0 : 1 }' \
+  "$WORK/system/bt/bta/dm/bta_dm_act.c"
+awk 'prev == "/* Extended Inquiry Response */" && $0 == "#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)" { found = 1 } { prev = $0 } END { exit found ? 0 : 1 }' \
+  "$WORK/system/bt/bta/dm/bta_dm_act.c"
 grep -Fqx '    <bool name="profile_supported_a2dp_sink">true</bool>' \
   "$WORK/packages/apps/Bluetooth/res/values/config.xml"
 grep -Fqx '    <bool name="profile_supported_avrcp_controller">true</bool>' \
@@ -339,6 +355,14 @@ grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-onl
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"' "$STAGE"
 grep -Fqx 'WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"' "$STAGE"
 grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
+grep -Fqx 'BT_ANDROID_MK="$CM14/system/bt/Android.mk"' "$STAGE"
+grep -Fqx '  echo "Bluetooth board CFLAGS hook already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-bluetooth-board-cflags.patch"' "$STAGE"
+grep -Fqx 'BT_DM_ACT="$CM14/system/bt/bta/dm/bta_dm_act.c"' "$STAGE"
+grep -Fqx '  echo "Biscuit Bluetooth no-input pairing callback guard already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-pairing.patch"' "$STAGE"
+grep -Fqx '  echo "Biscuit Bluetooth no-input pairing prototype guard already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-prototype.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit headless Bluetooth speaker behavior already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit Bluetooth PAN profile already disabled."' "$STAGE"
