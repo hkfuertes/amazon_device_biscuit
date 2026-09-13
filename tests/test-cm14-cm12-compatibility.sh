@@ -224,10 +224,18 @@ grep -Fqx '    BiscuitService' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    device/amazon/biscuit/rootdir/init.device.rc:root/init.device.rc \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    device/amazon/biscuit/audio/audio_init.sh:$(TARGET_COPY_OUT_SYSTEM)/etc/audio_init.sh \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    device/amazon/biscuit/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    device/amazon/biscuit/biscuit-service/animations/boot-complete-green.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/boot-complete-green.animation' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx 'service audio_init /system/bin/sh /system/etc/audio_init.sh' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+grep -Fqx '    class late_start' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+grep -Fqx '    oneshot' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
 grep -Fqx 'service biscuit-ledd /system/bin/biscuit-ledd' \
   "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
 grep -Fqx '    socket biscuit-ledd stream 0660 system system' \
@@ -260,6 +268,18 @@ grep -Fqx '        updateVolumeLed(audio);' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
 grep -Fqx '        updateMicLed(muted);' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
+grep -Fqx 'mix "MFP Gpio Mute" 0' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio/audio_init.sh"
+grep -Fqx 'mix "Ext_Speaker_Amp_Switch" Off' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio/audio_init.sh"
+grep -Fqx 'mix "Audio_DacMux_Setting" Off' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio/audio_init.sh"
+grep -Fq 'struct wrapper_stream_out' \
+  "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
+grep -Fq 'Ext_Speaker_Amp_Switch' \
+  "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
+grep -Fq 'MFP Gpio Mute' \
+  "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
 [[ "$(grep -c 'TARGET_FORCE_INSECURE_ADB' "$WORK/build/core/Makefile")" == 1 ]]
@@ -291,6 +311,9 @@ grep -Fqx '  echo "Biscuit headless Bluetooth speaker behavior already staged."'
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-flac-decoder.patch"' "$STAGE"
+grep -Fqx 'AUDIO_WRAPPER="$CM14/hardware/amazon/audio/audio_wrapper.c"' "$STAGE"
+grep -Fqx '  echo "Biscuit audio route wrapper already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
 ! grep -Fqx 'TARGET_NO_RECOVERY := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"

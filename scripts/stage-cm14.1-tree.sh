@@ -170,7 +170,13 @@ if grep -Fqx '        if ("biscuit".equals(SystemProperties.get("ro.product.devi
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 fi
-apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
+AUDIO_WRAPPER="$CM14/hardware/amazon/audio/audio_wrapper.c"
+if [[ -f "$AUDIO_WRAPPER" ]] && grep -Fq 'struct wrapper_stream_out' "$AUDIO_WRAPPER"; then
+  echo "Biscuit audio route wrapper already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
+fi
 CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 
 rm -rf "$KERNEL_DEST" "$KERNEL_SUPPORT"

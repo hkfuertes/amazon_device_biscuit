@@ -1,3 +1,9 @@
+service audio_init /system/bin/sh /system/etc/audio_init.sh
+    class late_start
+    user root
+    group root
+    oneshot
+
 on property:sys.boot_completed=1
     start biscuit-ledd
 

@@ -71,6 +71,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_COPY_FILES += \
     device/amazon/biscuit/rootdir/init.device.rc:root/init.device.rc \
+    device/amazon/biscuit/audio/audio_init.sh:$(TARGET_COPY_OUT_SYSTEM)/etc/audio_init.sh \
     device/amazon/biscuit/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf \
     device/amazon/biscuit/biscuit-service/animations/volume.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/volume.animation \
     device/amazon/biscuit/biscuit-service/animations/volume-muted.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/volume-muted.animation \
