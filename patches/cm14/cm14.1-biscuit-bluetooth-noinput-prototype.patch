@@ -1,0 +1,10 @@
+--- a/system/bt/bta/dm/bta_dm_act.c
++++ b/system/bt/bta/dm/bta_dm_act.c
+@@ -73,5 +73,7 @@ static void bta_dm_policy_cback(tBTA_SYS_CONN_STATUS status, UINT8 id, UINT8 app
+ 
+ /* Extended Inquiry Response */
++#if (BTM_LOCAL_IO_CAPS != BTM_IO_CAP_NONE)
+ static UINT8 bta_dm_sp_cback (tBTM_SP_EVT event, tBTM_SP_EVT_DATA *p_data);
++#endif
+ 
+ static void bta_dm_set_eir (char *local_name);

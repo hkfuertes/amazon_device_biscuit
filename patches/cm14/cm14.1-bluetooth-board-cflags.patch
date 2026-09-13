@@ -1,0 +1,13 @@
+--- a/system/bt/Android.mk
++++ b/system/bt/Android.mk
+@@ -21,6 +21,10 @@ ifeq ($(TARGET_BUILD_VARIANT),eng)
+ bluetooth_CFLAGS += -DBLUEDROID_DEBUG
+ endif
+ 
++ifneq ($(strip $(BOARD_BLUETOOTH_BDROID_CFLAGS)),)
++bluetooth_CFLAGS += $(BOARD_BLUETOOTH_BDROID_CFLAGS)
++endif
++
+ bluetooth_CFLAGS += -DUSE_AUDIO_TRACK
+ 
+ bluetooth_CFLAGS += -DEXPORT_SYMBOL="__attribute__((visibility(\"default\")))"
