@@ -1,0 +1,11 @@
+--- a/packages/apps/Bluetooth/res/values/config.xml
++++ b/packages/apps/Bluetooth/res/values/config.xml
+@@ -20,7 +20,7 @@
+     <bool name="profile_supported_hfpclient">false</bool>
+     <bool name="profile_supported_hid">true</bool>
+     <bool name="profile_supported_opp">true</bool>
+-    <bool name="profile_supported_pan">true</bool>
++    <bool name="profile_supported_pan">false</bool>
+     <bool name="profile_supported_pbap">true</bool>
+     <bool name="profile_supported_gatt">true</bool>
+     <bool name="pbap_include_photos_in_vcard">true</bool>
