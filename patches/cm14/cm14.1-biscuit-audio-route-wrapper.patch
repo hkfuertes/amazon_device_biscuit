@@ -13,7 +13,7 @@
  include $(BUILD_SHARED_LIBRARY)
 --- a/hardware/amazon/audio/audio_wrapper.c
 +++ b/hardware/amazon/audio/audio_wrapper.c
-@@ -5,35 +5,253 @@
+@@ -5,35 +5,254 @@
  #define LOG_TAG "audio.amazon_wrapper"
  
  #include <errno.h>

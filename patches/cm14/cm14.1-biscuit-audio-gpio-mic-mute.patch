@@ -1,0 +1,40 @@
+--- a/hardware/amazon/audio/audio_wrapper.c
++++ b/hardware/amazon/audio/audio_wrapper.c
+@@ -20,5 +20,6 @@ struct wrapper_audio_device {
+     struct audio_hw_device device;
+     struct audio_hw_device* amazon_device;
++    bool mic_muted;
+ };
+ 
+ struct wrapper_stream_out {
+@@ -120,13 +121,26 @@ static int adev_set_mode(struct audio_hw_device* dev, audio_mode_t mode) {
+ }
+ 
+ static int adev_set_mic_mute(struct audio_hw_device* dev, bool state) {
+-    struct audio_hw_device* a = real_dev(dev);
+-    return a->set_mic_mute(a, state);
++    struct wrapper_audio_device* adev = (struct wrapper_audio_device*)dev;
++    struct audio_hw_device* a = adev->amazon_device;
++    int ret = a->set_mic_mute(a, state);
++
++    // ponytail: FireOS toggles GPIO87, then may fail missing ASP notify.
++    if (ret != 0) {
++        ALOGW("vendor set_mic_mute(%d) failed after GPIO request: %d", state, ret);
++    }
++    adev->mic_muted = state;
++    return 0;
+ }
+ 
+ static int adev_get_mic_mute(const struct audio_hw_device* dev, bool* state) {
+-    const struct audio_hw_device* a = real_dev_const(dev);
+-    return a->get_mic_mute(a, state);
++    const struct wrapper_audio_device* adev = (const struct wrapper_audio_device*)dev;
++
++    if (!state) {
++        return -EINVAL;
++    }
++    *state = adev->mic_muted;
++    return 0;
+ }
+ 
+ static int adev_set_parameters(struct audio_hw_device* dev, const char* kv_pairs) {

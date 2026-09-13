@@ -1,3 +1,8 @@
+# Amazon's audio HAL toggles Biscuit microphone privacy through GPIO87.
+on boot
+    chown root audio /sys/devices/soc/1000b000.pinctrl/mt_gpio
+    chmod 0664 /sys/devices/soc/1000b000.pinctrl/mt_gpio
+
 service audio_init /system/bin/sh /system/etc/audio_init.sh
     class late_start
     user root
