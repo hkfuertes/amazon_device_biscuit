@@ -237,6 +237,14 @@ grep -Fqx '    libstagefright_soft_flacdec \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    sensors.mt8163 \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_audiotrack_test \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_audiorecord_test \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_asp_beam_probe \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_mic_test \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    tinymix \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    tinyplay \' \
@@ -256,6 +264,8 @@ grep -Fqx '    .name = "Biscuit ambient light",' \
 grep -Fqx '    biscuit-ledd \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    biscuit-ledctl \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    i2c-poke \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    biscuit_service \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
@@ -289,6 +299,8 @@ grep -Fqx 'LOCAL_MODULE := biscuit-ledd' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 grep -Fqx 'LOCAL_MODULE := biscuit-ledctl' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx 'LOCAL_MODULE := i2c-poke' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 grep -Fqx 'LOCAL_MODULE := biscuit_service' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 grep -Fqx 'LOCAL_PACKAGE_NAME := BiscuitService' \
@@ -307,6 +319,18 @@ grep -Fqx '    WallpaperPicker' \
   "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
 grep -Fqx '    write_file(LED_BOOT, "0");' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
+grep -Fqx 'LOCAL_MODULE := biscuit_audiotrack_test' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_audiorecord_test' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_asp_beam_probe' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_mic_test' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fq 'AudioRecord::getMinFrameCount' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/biscuit_audiorecord_test.cpp"
+grep -Fq 'pcm_open(CARD, DEVICE, PCM_IN' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/biscuit_mic_test.c"
 grep -Fqx '        updateVolumeLed(audio);' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
 grep -Fqx '        updateMicLed(muted);' \

@@ -53,6 +53,10 @@ PRODUCT_PACKAGES += \
     libtinyalsa_shim \
     libtinycompress \
     sensors.mt8163 \
+    biscuit_audiotrack_test \
+    biscuit_audiorecord_test \
+    biscuit_asp_beam_probe \
+    biscuit_mic_test \
     tinymix \
     tinyplay \
     tinycap \
@@ -66,6 +70,7 @@ PRODUCT_COPY_FILES_OVERRIDES += \
 PRODUCT_PACKAGES += \
     biscuit-ledd \
     biscuit-ledctl \
+    i2c-poke \
     biscuit_service \
     BiscuitService
 
