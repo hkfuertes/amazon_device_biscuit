@@ -108,6 +108,11 @@ if grep -Fqx '    <bool name="profile_supported_a2dp_sink">true</bool>' "$BT_CON
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"
 fi
+if grep -Fqx '    <bool name="profile_supported_pan">false</bool>' "$BT_CONFIG"; then
+  echo "Biscuit Bluetooth PAN profile already disabled."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-pan-profile.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"
 mkdir -p \

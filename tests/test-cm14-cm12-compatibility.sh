@@ -23,6 +23,7 @@ INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
 BT_HEADLESS_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"
+BT_DISABLE_PAN_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-pan-profile.patch"
 HOSTNAME_MDNS_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"
 FLAC_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-flac-decoder.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
@@ -90,6 +91,7 @@ apply_from_base "$SKIP_IMAGES_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$WIFI_IFACE_PATCH"
 apply_from_base "$BT_HEADLESS_PATCH"
+apply_from_base "$BT_DISABLE_PAN_PATCH"
 apply_from_base "$HOSTNAME_MDNS_PATCH"
 apply_from_base "$FLAC_PATCH"
 apply_from_base "$HWC_PATCH"
@@ -147,6 +149,8 @@ grep -Fqx 'persist.service.bt.a2dp.sink=true' \
 grep -Fqx '    <bool name="profile_supported_a2dp_sink">true</bool>' \
   "$WORK/packages/apps/Bluetooth/res/values/config.xml"
 grep -Fqx '    <bool name="profile_supported_avrcp_controller">true</bool>' \
+  "$WORK/packages/apps/Bluetooth/res/values/config.xml"
+grep -Fqx '    <bool name="profile_supported_pan">false</bool>' \
   "$WORK/packages/apps/Bluetooth/res/values/config.xml"
 grep -Fqx '                            setSpeakerPriorityAndConnect(dev);' \
   "$WORK/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java"
@@ -337,6 +341,8 @@ grep -Fqx 'WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/an
 grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
 grep -Fqx '  echo "Biscuit headless Bluetooth speaker behavior already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"' "$STAGE"
+grep -Fqx '  echo "Biscuit Bluetooth PAN profile already disabled."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-pan-profile.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-hostname-mdns.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-flac-decoder.patch"' "$STAGE"
 grep -Fqx 'AUDIO_WRAPPER="$CM14/hardware/amazon/audio/audio_wrapper.c"' "$STAGE"
