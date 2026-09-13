@@ -17,6 +17,7 @@ RADIO_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-radio-launchers.patch"
 WIFI_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 P2P_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
+AUDIO_LEGACY_PATCH="$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
 INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
@@ -29,6 +30,8 @@ trap 'rm -rf "$WORK"' EXIT
 
 for file in \
   system/core/liblog/logger_write.c \
+  system/core/libutils/RefBase.cpp \
+  external/tinyalsa/pcm.c \
   build/core/Makefile \
   build/tools/releasetools/add_img_to_target_files.py \
   frameworks/base/data/keyboards/Generic.kl \
@@ -79,6 +82,7 @@ apply_from_base() {
 }
 
 apply_from_base "$LOG_PATCH"
+apply_from_base "$AUDIO_LEGACY_PATCH"
 apply_from_base "$INSECURE_ADB_PATCH"
 apply_from_base "$SKIP_IMAGES_PATCH"
 apply_from_base "$PROP_PATCH"
@@ -282,6 +286,14 @@ grep -Fq 'MFP Gpio Mute' \
   "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
+grep -Fqx 'LIBLOG_ABI_PUBLIC void android_logger_flush(void)' \
+  "$WORK/system/core/liblog/logger_write.c"
+grep -Fqx 'void sp_report_race()' \
+  "$WORK/system/core/libutils/RefBase.cpp"
+grep -Fqx 'int pcm_get_xrun(struct pcm *pcm)' \
+  "$WORK/external/tinyalsa/pcm.c"
+grep -Fqx 'int pcm_get_trigger_tstamp(struct pcm *pcm, struct timespec *timestamp)' \
+  "$WORK/external/tinyalsa/pcm.c"
 [[ "$(grep -c 'TARGET_FORCE_INSECURE_ADB' "$WORK/build/core/Makefile")" == 1 ]]
 grep -Fq 'PRODUCT_DEFAULT_PROPERTY_OVERRIDES' "$INSECURE_ADB_PATCH"
 ! grep -Fq '@@ -80,0 ' "$INSECURE_ADB_PATCH"
@@ -290,6 +302,7 @@ grep -Fq 'rsync -a --delete --exclude .git --exclude .repo "$src/" "$dst/"' "$ST
 grep -Fqx 'LIBLOG_WRITE="$CM14/system/core/liblog/logger_write.c"' "$STAGE"
 grep -Fqx '  echo "Amazon liblog shim already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"' "$STAGE"
+grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"' "$STAGE"
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"' "$STAGE"
 grep -Fqx 'SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"' "$STAGE"
 grep -Fqx '  echo "Headless system properties already staged."' "$STAGE"
@@ -342,6 +355,15 @@ grep -Fq 'extract_file "$SYSTEM_IMG" "$source" "$destination" "$expected_sha" "$
 grep -Fq 'STAGED_PROP="$TMP/proprietary"' "$EXTRACTOR"
 grep -Fq 'install_if_changed "$VENDOR_MK_TMP" "$COMMON_OUT/mt8163-common-vendor.mk"' "$EXTRACTOR"
 grep -Fq 'rsync -a --no-times --checksum --delete "$STAGED_PROP/" "$PROP/"' "$EXTRACTOR"
+grep -Fq '26aa25fa71141745c97e1fe67a73589767022513f4f1c54441454f9247270cc8' "$EXTRACTOR"
+! grep -Fq 'patchelf' "$EXTRACTOR"
+! grep -Fq 'add_needed' "$EXTRACTOR"
+grep -Fq 'LIBLOG_ABI_PUBLIC void android_logger_flush(void)' \
+  "$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
+grep -Fq 'void sp_report_race()' \
+  "$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
+grep -Fq 'int pcm_get_xrun(struct pcm *pcm)' \
+  "$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
 grep -Fq '[[ "$radio_count" == 7 ]]' "$EXTRACTOR"
 grep -Fq '[[ "$bt_count" == 2 ]]' "$EXTRACTOR"
 grep -Fq 'bin/*|vendor/bin/*) mode=0755 ;;' "$EXTRACTOR"

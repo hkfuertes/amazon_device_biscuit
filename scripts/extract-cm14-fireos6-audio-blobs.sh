@@ -27,19 +27,7 @@ trap 'rm -rf "$TMP"' EXIT
 for tool in 7z curl python3 readelf sha256sum stat unzip; do
   command -v "$tool" >/dev/null || { echo "ERROR: required tool not found: $tool" >&2; exit 1; }
 done
-if ! command -v patchelf >/dev/null && ! command -v docker >/dev/null; then
-  echo "ERROR: patchelf is unavailable and Docker is not installed." >&2
-  exit 1
-fi
 [[ -d "$CM14/build" ]] || { echo "ERROR: CM14.1 is not synced at $CM14" >&2; exit 1; }
-if ! command -v patchelf >/dev/null; then
-  docker image inspect cm14.1-ubuntu20:latest >/dev/null 2>&1 && \
-    docker run --rm --network none --entrypoint patchelf cm14.1-ubuntu20:latest \
-      --version >/dev/null 2>&1 || {
-      echo "ERROR: rebuild cm14.1-ubuntu20:latest with patchelf before staging audio blobs." >&2
-      exit 1
-    }
-fi
 [[ -f "$MANIFEST" ]] || { echo "ERROR: missing audio manifest: $MANIFEST" >&2; exit 1; }
 [[ -f "$HWC_MANIFEST" ]] || { echo "ERROR: missing headless HWC manifest: $HWC_MANIFEST" >&2; exit 1; }
 [[ -f "$RADIO_MANIFEST" ]] || { echo "ERROR: missing Biscuit radio manifest: $RADIO_MANIFEST" >&2; exit 1; }
@@ -178,19 +166,9 @@ install -d "$STAGED_PROP/vendor/etc"
 cp -a "$algorithm_dir" "$STAGED_PROP/vendor/etc/audio-algorithms"
 
 hal="$STAGED_PROP/lib/hw/audio.primary_amazon.mt8163.so"
-add_needed() {
-  if command -v patchelf >/dev/null; then
-    patchelf --add-needed "$1" "$hal"
-  else
-    docker run --rm --network none --user "$(id -u):$(id -g)" \
-      -v "$STAGED_PROP:/blobs" --entrypoint patchelf cm14.1-ubuntu20:latest \
-      --add-needed "$1" /blobs/lib/hw/audio.primary_amazon.mt8163.so
-  fi
-}
-add_needed libutils_shim.so
-add_needed libtinyalsa_shim.so
-readelf -dW "$hal" | grep -q '\[libutils_shim.so\]'
-readelf -dW "$hal" | grep -q '\[libtinyalsa_shim.so\]'
+printf '%s  %s\n' \
+  '26aa25fa71141745c97e1fe67a73589767022513f4f1c54441454f9247270cc8' \
+  "$hal" | sha256sum -c - >/dev/null
 
 {
   cat <<'MK'

@@ -81,6 +81,7 @@ if grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,'
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 fi
+apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
 SYSTEM_PROP="$CM14/device/amazon/mt8163-common/system.prop"
 if grep -Fqx '#ro.hardware.gralloc=mt8163.mali' "$SYSTEM_PROP" && \
    grep -Fqx 'ro.build.configuration=headless' "$SYSTEM_PROP"; then
