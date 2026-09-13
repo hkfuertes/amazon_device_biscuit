@@ -20,6 +20,7 @@ LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
+BT_HEADLESS_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"
 EXTRACTOR="$ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -35,6 +36,8 @@ for file in \
   frameworks/base/core/java/android/view/ViewRootImpl.java \
   frameworks/base/services/core/java/com/android/server/audio/AudioService.java \
   frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java \
+  packages/apps/Bluetooth/res/values/config.xml \
+  packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java \
   device/amazon/mt8163-common/system.prop \
   device/amazon/mt8163-common/mt8163-common.mk \
   device/amazon/mt8163-common/rootdir/etc/init.mt8163.rc \
@@ -64,6 +67,7 @@ apply_from_base "$INSECURE_ADB_PATCH"
 apply_from_base "$SKIP_IMAGES_PATCH"
 apply_from_base "$PROP_PATCH"
 apply_from_base "$WIFI_IFACE_PATCH"
+apply_from_base "$BT_HEADLESS_PATCH"
 apply_from_base "$HWC_PATCH"
 apply_from_base "$HWC1_PATCH"
 apply_from_base "$RADIO_PATCH"
@@ -105,6 +109,18 @@ for file in \
 done
 grep -Fqx 'wifi.interface=wlan0' \
   "$WORK/device/amazon/mt8163-common/system.prop"
+grep -Fqx 'persist.service.bt.a2dp.sink=true' \
+  "$WORK/device/amazon/mt8163-common/system.prop"
+grep -Fqx '    <bool name="profile_supported_a2dp_sink">true</bool>' \
+  "$WORK/packages/apps/Bluetooth/res/values/config.xml"
+grep -Fqx '    <bool name="profile_supported_avrcp_controller">true</bool>' \
+  "$WORK/packages/apps/Bluetooth/res/values/config.xml"
+grep -Fqx '                            setSpeakerPriorityAndConnect(dev);' \
+  "$WORK/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java"
+grep -Fqx '                    mAdapterService.setPairingConfirmation(dev, true);' \
+  "$WORK/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java"
+grep -Fqx '                    byte[] pin = BluetoothDevice.convertPinToBytes("0000");' \
+  "$WORK/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java"
 grep -Fq '<bool name="def_wifi_on">true</bool>' \
   "$WORK/frameworks/base/packages/SettingsProvider/res/values/defaults.xml"
 grep -Fqx '# CONFIG_P2P=y' \
@@ -223,6 +239,8 @@ grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-sta-onl
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"' "$STAGE"
 grep -Fqx 'WIFI_STATE_MACHINE="$CM14/frameworks/opt/net/wifi/service/java/com/android/server/wifi/WifiStateMachine.java"' "$STAGE"
 grep -Fqx '  echo "MT8163 Wi-Fi interface property already staged."' "$STAGE"
+grep -Fqx '  echo "Biscuit headless Bluetooth speaker behavior already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
 ! grep -Fqx 'TARGET_NO_RECOVERY := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"

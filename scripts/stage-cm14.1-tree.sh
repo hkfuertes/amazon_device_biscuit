@@ -98,6 +98,15 @@ if grep -Fqx 'wifi.interface=wlan0' "$SYSTEM_PROP"; then
 else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-mt8163-wifi-interface-property.patch"
 fi
+BT_CONFIG="$CM14/packages/apps/Bluetooth/res/values/config.xml"
+BT_BONDS="$CM14/packages/apps/Bluetooth/src/com/android/bluetooth/btservice/BondStateMachine.java"
+if grep -Fqx '    <bool name="profile_supported_a2dp_sink">true</bool>' "$BT_CONFIG" && \
+   grep -Fqx 'persist.service.bt.a2dp.sink=true' "$SYSTEM_PROP" && \
+   grep -Fqx '                    mAdapterService.setPairingConfirmation(dev, true);' "$BT_BONDS"; then
+  echo "Biscuit headless Bluetooth speaker behavior already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-bluetooth-headless-speaker.patch"
+fi
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-software-egl-fallback.patch"
 apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-hwui-egl-config-fallback.patch"
