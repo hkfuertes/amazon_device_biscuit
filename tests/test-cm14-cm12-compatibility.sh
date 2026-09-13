@@ -18,6 +18,7 @@ WIFI_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-sta-only-wifi.patch"
 P2P_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 AUDIO_LEGACY_PATCH="$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
+AUDIO_FORWARDING_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-audio-route-forwarding.patch"
 INSECURE_ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 SKIP_IMAGES_PATCH="$ROOT/patches/cm14/cm14.1-skip-unused-ota-images.patch"
 MIC_MUTE_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-mic-mute.patch"
@@ -32,6 +33,7 @@ for file in \
   system/core/liblog/logger_write.c \
   system/core/libutils/RefBase.cpp \
   external/tinyalsa/pcm.c \
+  hardware/amazon/audio/audio_wrapper.c \
   build/core/Makefile \
   build/tools/releasetools/add_img_to_target_files.py \
   frameworks/base/data/keyboards/Generic.kl \
@@ -96,6 +98,7 @@ apply_from_base "$RADIO_PATCH"
 apply_from_base "$WIFI_PATCH"
 apply_from_base "$P2P_PATCH"
 apply_from_base "$MIC_MUTE_PATCH"
+apply_from_base "$AUDIO_FORWARDING_PATCH"
 
 grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary display");' \
   "$WORK/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"
@@ -280,10 +283,22 @@ grep -Fqx 'mix "Audio_DacMux_Setting" Off' \
   "$ROOT/cm14.1/device/amazon/biscuit/audio/audio_init.sh"
 grep -Fq 'struct wrapper_stream_out' \
   "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
+grep -Fq '#include <time.h>' \
+  "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
 grep -Fq 'Ext_Speaker_Amp_Switch' \
   "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
 grep -Fq 'MFP Gpio Mute' \
   "$ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
+grep -Fqx '#include <time.h>' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx 'static void wrap_device_methods(struct wrapper_audio_device* adev) {' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '    // ponytail: all vendor device callbacks must receive the real Fire OS HAL.' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '    return out->amazon_stream->write(out->amazon_stream, buffer, bytes);' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '    return a->set_mic_mute(a, state);' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
 grep -Fqx 'LIBLOG_ABI_PUBLIC void android_logger_flush(void)' \
@@ -327,6 +342,8 @@ grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-flac-de
 grep -Fqx 'AUDIO_WRAPPER="$CM14/hardware/amazon/audio/audio_wrapper.c"' "$STAGE"
 grep -Fqx '  echo "Biscuit audio route wrapper already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"' "$STAGE"
+grep -Fqx '  echo "Biscuit audio forwarding wrapper already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-forwarding.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
 ! grep -Fqx 'TARGET_NO_RECOVERY := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"

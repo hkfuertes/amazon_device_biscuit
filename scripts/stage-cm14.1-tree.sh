@@ -178,6 +178,11 @@ else
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-amazon-audio-wrapper.patch"
   apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"
 fi
+if [[ -f "$AUDIO_WRAPPER" ]] && grep -Fq 'static void wrap_device_methods(struct wrapper_audio_device* adev)' "$AUDIO_WRAPPER"; then
+  echo "Biscuit audio forwarding wrapper already staged."
+else
+  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-forwarding.patch"
+fi
 CM14="$CM14" "$REPO_ROOT/scripts/extract-cm14-fireos6-audio-blobs.sh"
 
 rm -rf "$KERNEL_DEST" "$KERNEL_SUPPORT"
