@@ -20,10 +20,37 @@
  # key 141 "KEY_SETUP"
 --- a/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
 +++ b/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java
-@@ -6850,11 +6850,20 @@
+@@ -6579,6 +6579,26 @@
+             return 0;
+         }
+
++        if ("biscuit".equals(SystemProperties.get("ro.product.device"))) {
++            String action = null;
++            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
++                action = "com.amazon.biscuit.service.VOLUME_UP";
++            } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
++                action = "com.amazon.biscuit.service.VOLUME_DOWN";
++            } else if (keyCode == KeyEvent.KEYCODE_MUTE) {
++                action = "com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE";
++            }
++            if (action != null) {
++                if (down && event.getRepeatCount() == 0) {
++                    Intent intent = new Intent(action);
++                    intent.setClassName("com.amazon.biscuit.service",
++                            "com.amazon.biscuit.service.BiscuitService");
++                    mContext.startServiceAsUser(intent, UserHandle.CURRENT);
++                }
++                return 0;
++            }
++        }
++
+         // Handle special keys.
+         switch (keyCode) {
+             case KeyEvent.KEYCODE_BACK: {
+@@ -6850,11 +6870,20 @@
                  break;
              }
- 
+
 +            case KeyEvent.KEYCODE_MUTE: {
 +                result &= ~ACTION_PASS_TO_USER;
 +                if (down && event.getRepeatCount() == 0) {
@@ -47,7 +74,7 @@
 @@ -1965,6 +1965,14 @@
          sendStickyBroadcastToAll(intent);
      }
- 
+
 +    private void broadcastMicrophoneMuteStatus(boolean muted) {
 +        Intent intent = new Intent("com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED");
 +        intent.putExtra("com.amazon.biscuit.service.EXTRA_MICROPHONE_MUTED", muted);
@@ -71,4 +98,4 @@
 +        if (oldMuted != muted) broadcastMicrophoneMuteStatus(muted);
          // Post a persist microphone msg.
      }
- 
+

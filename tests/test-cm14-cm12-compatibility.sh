@@ -106,6 +106,14 @@ grep -Fqx 'key 113   MUTE' "$WORK/frameworks/base/data/keyboards/Generic.kl"
 grep -Fqx 'key 138   HELP' "$WORK/frameworks/base/data/keyboards/Generic.kl"
 grep -Fqx '                    audioManager.setMicrophoneMute(!audioManager.isMicrophoneMute());' \
   "$WORK/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java"
+grep -Fqx '                action = "com.amazon.biscuit.service.VOLUME_UP";' \
+  "$WORK/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java"
+grep -Fqx '                action = "com.amazon.biscuit.service.VOLUME_DOWN";' \
+  "$WORK/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java"
+grep -Fqx '                action = "com.amazon.biscuit.service.MICROPHONE_MUTE_TOGGLE";' \
+  "$WORK/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java"
+grep -Fqx '                    mContext.startServiceAsUser(intent, UserHandle.CURRENT);' \
+  "$WORK/frameworks/base/services/core/java/com/android/server/policy/PhoneWindowManager.java"
 grep -Fqx '        Intent intent = new Intent("com.amazon.biscuit.service.MICROPHONE_MUTE_CHANGED");' \
   "$WORK/frameworks/base/services/core/java/com/android/server/audio/AudioService.java"
 grep -Fqx 'ifeq ($(TARGET_SKIP_CACHEIMAGE),true)' "$WORK/build/core/Makefile"
@@ -248,6 +256,10 @@ grep -Fqx '    WallpaperPicker' \
   "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
 grep -Fqx '    write_file(LED_BOOT, "0");' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
+grep -Fqx '        updateVolumeLed(audio);' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
+grep -Fqx '        updateMicLed(muted);' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
 [[ "$(grep -c 'TARGET_FORCE_INSECURE_ADB' "$WORK/build/core/Makefile")" == 1 ]]

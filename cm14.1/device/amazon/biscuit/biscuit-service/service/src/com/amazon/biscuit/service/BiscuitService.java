@@ -56,6 +56,7 @@ public final class BiscuitService extends Service {
     private static final String EXTRA_MICROPHONE_MUTED = "com.amazon.biscuit.service.EXTRA_MICROPHONE_MUTED";
     private static final int PAIRING_MODE_SECONDS = 300;
     private final Object mLock = new Object();
+    private boolean mMicMuted;
 
     private final IBiscuitService.Stub mBinder = new IBiscuitService.Stub() {
         public boolean play(String name) throws RemoteException {
@@ -97,11 +98,12 @@ public final class BiscuitService extends Service {
                 sendOk("VOLUME " + current + " " + audio.getStreamMaxVolume(stream));
             } catch (RemoteException ignored) { }
         } else if (intent != null && MIC_MUTE_CHANGED.equals(intent.getAction())) {
-            updateMicLed(intent.getBooleanExtra(EXTRA_MICROPHONE_MUTED,
-                    ((AudioManager) getSystemService(AUDIO_SERVICE)).isMicrophoneMute()));
+            boolean muted = intent.getBooleanExtra(EXTRA_MICROPHONE_MUTED,
+                    ((AudioManager) getSystemService(AUDIO_SERVICE)).isMicrophoneMute());
+            mMicMuted = muted;
+            updateMicLed(muted);
         } else if (intent != null && MIC_MUTE_TOGGLE.equals(intent.getAction())) {
-            AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
-            setRealMicMuted(!audio.isMicrophoneMute());
+            setRealMicMuted(!mMicMuted);
         } else if (intent != null && BLUETOOTH_PAIRING_MODE.equals(intent.getAction())) {
             startBluetoothPairingMode();
         } else if (intent != null && BLUETOOTH_OFF.equals(intent.getAction())) {
@@ -158,11 +160,21 @@ public final class BiscuitService extends Service {
 
     private void setRealMicMuted(boolean muted) {
         ((AudioManager) getSystemService(AUDIO_SERVICE)).setMicrophoneMute(muted);
+        mMicMuted = muted;
+        updateMicLed(muted);
+    }
+
+    private void updateVolumeLed(AudioManager audio) {
+        try {
+            sendOk("VOLUME " + audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    + " " + audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+        } catch (RemoteException ignored) { }
     }
 
     private void adjustVolume(int direction) {
         AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
         audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, 0);
+        updateVolumeLed(audio);
     }
 
     private void setVolume(int volume) {
@@ -171,6 +183,7 @@ public final class BiscuitService extends Service {
         if (volume < 0) volume = 0;
         if (volume > max) volume = max;
         audio.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+        updateVolumeLed(audio);
     }
 
     private void setCountdown(long remainingMs, long totalMs) {
