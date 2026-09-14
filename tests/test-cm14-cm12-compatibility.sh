@@ -202,6 +202,8 @@ grep -Fqx '        <MediaCodec name="OMX.google.flac.decoder" type="audio/flac">
   "$WORK/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml"
 grep -Fqx '                && !strcmp(mComponentName.c_str(), "OMX.google.flac.decoder")) {' \
   "$WORK/frameworks/av/media/libstagefright/ACodec.cpp"
+grep -Fqx 'CM14="$ROOT/workspace/cm14.1"' "$ROOT/scripts/flac/flac-mediacodec-probe.sh"
+grep -Fq 'cm14.1-ubuntu20:latest' "$ROOT/scripts/flac/flac-mediacodec-probe.sh"
 grep -Fq '<bool name="def_wifi_on">true</bool>' \
   "$WORK/frameworks/base/packages/SettingsProvider/res/values/defaults.xml"
 grep -Fqx '# CONFIG_P2P=y' \
