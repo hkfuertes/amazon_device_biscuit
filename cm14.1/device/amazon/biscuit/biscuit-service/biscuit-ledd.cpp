@@ -31,7 +31,6 @@ static unsigned g_generation;
 static unsigned g_volume_generation;
 static std::string g_manual;
 static std::string g_active;
-static bool g_mic_muted;
 static bool g_countdown_running;
 static unsigned g_countdown_generation;
 static long long g_countdown_remaining;
@@ -243,7 +242,7 @@ static void* volume_clearer(void* arg) {
     delete (unsigned*)arg;
     usleep(1000 * 1000);
     pthread_mutex_lock(&g_lock);
-    bool clear = gen == g_volume_generation && g_manual.empty() && !g_mic_muted;
+    bool clear = gen == g_volume_generation && g_manual.empty();
     pthread_mutex_unlock(&g_lock);
     if (clear) write_file(LED_FRAME, "000000000000000000000000000000000000000000000000000000000000000000000000");
     return NULL;
@@ -257,7 +256,7 @@ static void show_volume(int current, int max) {
     if (step < 0) step = 0;
     if (step >= (int)anim.frames.size()) step = (int)anim.frames.size() - 1;
     pthread_mutex_lock(&g_lock);
-    bool blocked = !g_manual.empty() || g_mic_muted;
+    bool blocked = !g_manual.empty();
     unsigned gen = ++g_volume_generation;
     pthread_mutex_unlock(&g_lock);
     if (blocked) return;
@@ -288,7 +287,6 @@ static void* countdown_player(void* arg) {
 
 static void clear_countdown() {
     pthread_mutex_lock(&g_lock);
-    bool muted = g_mic_muted;
     g_manual.clear();
     g_active.clear();
     g_running = false;
@@ -299,8 +297,7 @@ static void clear_countdown() {
     ++g_volume_generation;
     ++g_countdown_generation;
     pthread_mutex_unlock(&g_lock);
-    if (muted) play_name("volume-muted", false);
-    else write_file(LED_FRAME, "000000000000000000000000000000000000000000000000000000000000000000000000");
+    write_file(LED_FRAME, "000000000000000000000000000000000000000000000000000000000000000000000000");
 }
 
 static void show_countdown(long long remaining, long long total) {
@@ -334,22 +331,10 @@ static void show_countdown(long long remaining, long long total) {
     }
 }
 
-static void set_mic_mute(bool muted) {
-    pthread_mutex_lock(&g_lock);
-    g_mic_muted = muted;
-    bool manual = !g_manual.empty();
-    pthread_mutex_unlock(&g_lock);
-    if (!manual) {
-        if (muted) play_name("volume-muted", false);
-        else clear();
-    }
-}
-
 static void clear() {
     pthread_mutex_lock(&g_lock);
     g_manual.clear();
     g_active.clear();
-    g_mic_muted = false;
     g_running = false;
     g_countdown_running = false;
     g_countdown_remaining = 0;
@@ -385,15 +370,11 @@ static void handle(int fd, char* line) {
         int cur = -1, max = -1;
         if (sscanf(line + 7, "%d %d", &cur, &max) == 2) { show_volume(cur, max); dprintf(fd, "OK\n"); }
         else dprintf(fd, "ERR bad volume\n");
-    } else if (!strncmp(line, "MUTE ", 5)) {
-        int muted = -1;
-        if (sscanf(line + 5, "%d", &muted) == 1 && (muted == 0 || muted == 1)) { set_mic_mute(muted == 1); dprintf(fd, "OK\n"); }
-        else dprintf(fd, "ERR bad mute\n");
     } else if (!strncmp(line, "CLEAR", 5) || !strcmp(line, "OFF")) {
         clear(); dprintf(fd, "OK\n");
     } else if (!strcmp(line, "STATUS")) {
         pthread_mutex_lock(&g_lock);
-        dprintf(fd, "manual=%s active=%s mic_muted=%d running=%d\n", g_manual.c_str(), g_active.c_str(), g_mic_muted ? 1 : 0, g_running ? 1 : 0);
+        dprintf(fd, "manual=%s active=%s running=%d\n", g_manual.c_str(), g_active.c_str(), g_running ? 1 : 0);
         pthread_mutex_unlock(&g_lock);
     } else {
         dprintf(fd, "ERR unknown\n");

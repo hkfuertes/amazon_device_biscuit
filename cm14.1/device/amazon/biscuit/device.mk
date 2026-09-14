@@ -79,7 +79,6 @@ PRODUCT_COPY_FILES += \
     device/amazon/biscuit/audio/audio_init.sh:$(TARGET_COPY_OUT_SYSTEM)/etc/audio_init.sh \
     device/amazon/biscuit/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf \
     device/amazon/biscuit/biscuit-service/animations/volume.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/volume.animation \
-    device/amazon/biscuit/biscuit-service/animations/volume-muted.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/volume-muted.animation \
     device/amazon/biscuit/biscuit-service/animations/solid_blue.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/solid_blue.animation \
     device/amazon/biscuit/biscuit-service/animations/solid_green.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/solid_green.animation \
     device/amazon/biscuit/biscuit-service/animations/solid_cyan.animation:$(TARGET_COPY_OUT_SYSTEM)/etc/biscuit-ledd/solid_cyan.animation \

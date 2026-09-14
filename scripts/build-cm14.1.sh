@@ -47,6 +47,7 @@ for stale in \
   system/etc/firmware/ROMv2_lm_patch_1_0_hdr.bin \
   system/etc/firmware/ROMv2_lm_patch_1_1_hdr.bin \
   system/etc/firmware/WIFI_RAM_CODE_8163 \
+  system/etc/biscuit-ledd/volume-muted.animation \
   system/lib64/libc.so \
   system/lib64/libcutils.so \
   system/lib64/libdl.so \

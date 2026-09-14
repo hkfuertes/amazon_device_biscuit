@@ -101,7 +101,6 @@ public final class BiscuitService extends Service {
             boolean muted = intent.getBooleanExtra(EXTRA_MICROPHONE_MUTED,
                     ((AudioManager) getSystemService(AUDIO_SERVICE)).isMicrophoneMute());
             mMicMuted = muted;
-            updateMicLed(muted);
         } else if (intent != null && MIC_MUTE_TOGGLE.equals(intent.getAction())) {
             setRealMicMuted(!mMicMuted);
         } else if (intent != null && BLUETOOTH_PAIRING_MODE.equals(intent.getAction())) {
@@ -161,7 +160,6 @@ public final class BiscuitService extends Service {
     private void setRealMicMuted(boolean muted) {
         ((AudioManager) getSystemService(AUDIO_SERVICE)).setMicrophoneMute(muted);
         mMicMuted = muted;
-        updateMicLed(muted);
     }
 
     private void updateVolumeLed(AudioManager audio) {
@@ -200,13 +198,6 @@ public final class BiscuitService extends Service {
     private void clearCountdown() {
         try {
             sendOk("CLEAR");
-            updateMicLed(((AudioManager) getSystemService(AUDIO_SERVICE)).isMicrophoneMute());
-        } catch (RemoteException ignored) { }
-    }
-
-    private void updateMicLed(boolean muted) {
-        try {
-            sendOk("MUTE " + (muted ? "1" : "0"));
         } catch (RemoteException ignored) { }
     }
 
