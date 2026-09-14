@@ -38,15 +38,19 @@ grep -Fqx '+type ntfs, sdcard_type, fs_type, mlstrustedobject;' "$ROOT/patches/m
 grep -Fq 'p2p_set_country(p2p, country);' "$ROOT/patches/minimal/004-sta-only-wpa-supplicant.patch"
 grep -Fq '+#ifdef CONFIG_P2P' "$ROOT/patches/minimal/004-sta-only-wpa-supplicant.patch"
 grep -Fq 'files: $(modules_to_install) \' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
+grep -Fq 'tags_to_install += debug' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
+grep -Fq 'TARGET_PRODUCT),biscuit_minimal' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq 'RECOVERY_RESOURCE_ZIP :=' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq 'RECOVERY_FROM_BOOT_PATCH :=' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq 'clean-biscuit-minimal-target-out' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq 'biscuit_minimal=true' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq 'info_dict.get("biscuit_minimal", None) == "true"' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
-grep -Fq '$(TARGET_OUT)/xbin' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
+! grep -Fq '$(TARGET_OUT)/xbin' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq '$(TARGET_OUT)/usr/share/vim' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
+grep -Fq '$(TARGET_OUT)/lib/libandroid_runtime.so' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
+grep -Fq '$(TARGET_OUT)/lib/libLLVM.so' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 [[ -f "$ROOT/vendor/amazon/mt8163-common/mt8163-common-minimal-vendor.mk" ]]
-for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 tinymix iptables ip6tables; do
+for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 tinymix tinyplay tinycap tinypcminfo i2c-poke biscuit_mic_test bash nano tcpdump fio strace procrank procmem librank latencytop cpustats mmc_utils ksminfo dnschk anrd iptables ip6tables; do
   grep -Eq "^[[:space:]]+$pkg([[:space:]]+\\\\)?[[:space:]]*$" "$MINIMAL_DEVICE"
 done
 for forbidden in BiscuitService BiscuitEmptyLauncher biscuit-ledd biscuit-ledctl biscuit_service surfaceflinger zygote system_server bootanimation Bluetooth; do
@@ -69,6 +73,8 @@ grep -Fqx 'service adbd /sbin/adbd --root_seclabel=u:r:su:s0' "$INIT"
 grep -Fqx '    mount_all /fstab.mt8163' "$HW_INIT"
 grep -Fqx 'service wmt_loader /vendor/bin/wmt_loader' "$HW_INIT"
 grep -Fqx 'service wmt_launcher /vendor/bin/wmt_launcher -p /vendor/firmware/' "$HW_INIT"
+grep -Fqx '    chmod 0660 /dev/stpbt' "$HW_INIT"
+grep -Fqx '    chown bluetooth bluetooth /dev/stpbt' "$HW_INIT"
 grep -Fqx 'service wpa_supplicant /system/bin/wpa_supplicant \' "$HW_INIT"
 grep -Fqx 'service dhcpcd_wlan0 /system/bin/dhcpcd-6.8.2 -ABKL -f /system/etc/dhcpcd/dhcpcd.conf wlan0' "$HW_INIT"
 grep -Fqx 'service ledcontroller /system/bin/ledcontroller' "$HW_INIT"
@@ -87,6 +93,7 @@ grep -Fq '# No saved network after a wipe: keep wpa_supplicant alive for provisi
 ! grep -Fq busybox "$WIFI"
 
 grep -Fq 'boot_animation' "$LED"
-grep -Fq 'while :; do' "$LED"
+grep -Fq 'LED ring did not become ready' "$LED"
+grep -Fq 'exec /system/bin/sleep 2147483647' "$LED"
 
 echo 'PASS CM14 minimal product contract'

@@ -96,7 +96,8 @@ reset_generated_minimal_patch_outputs() {
   git -C "$CM14/build" checkout -- \
     core/Makefile \
     core/main.mk \
-    tools/releasetools/add_img_to_target_files.py 2>/dev/null || true
+    tools/releasetools/add_img_to_target_files.py \
+    tools/releasetools/common.py 2>/dev/null || true
   git -C "$CM14/external/wpa_supplicant_8" checkout -- \
     wpa_supplicant/Android.mk \
     wpa_supplicant/android.config \

@@ -46,6 +46,22 @@ PRODUCT_PACKAGES += \
     tinyplay \
     tinycap \
     tinypcminfo \
+    i2c-poke \
+    biscuit_mic_test \
+    bash \
+    nano \
+    tcpdump \
+    fio \
+    strace \
+    procrank \
+    procmem \
+    librank \
+    latencytop \
+    cpustats \
+    mmc_utils \
+    ksminfo \
+    dnschk \
+    anrd \
     iptables \
     ip6tables
 
