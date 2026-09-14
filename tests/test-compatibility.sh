@@ -17,7 +17,7 @@ WORKSPACE="$ROOT/workspace/cm14.1"
 [[ -d "$VENDOR" ]]
 [[ ! -e "$ROOT/cm14.1" ]]
 [[ "$(find "$FULL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 28 ]]
-[[ "$(find "$MINIMAL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 5 ]]
+[[ "$(find "$MINIMAL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 6 ]]
 [[ "$(find "$KERNEL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 3 ]]
 
 printf '%s\n' "$FULL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
@@ -58,6 +58,7 @@ printf '%s\n' "$MINIMAL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'
 003-insecure-adb-default-props.patch
 004-sta-only-wpa-supplicant.patch
 005-wpa-passphrase.patch
+006-sepolicy-exfat-ntfs-types.patch
 EOF
 )
 

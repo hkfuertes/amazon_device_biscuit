@@ -30,6 +30,12 @@ grep -Fqx 'PRODUCT_MODEL := Echo Dot Minimal Base' "$MINIMAL_MK"
 ! grep -Fq 'device/amazon/biscuit/device.mk' "$MINIMAL_MK"
 
 grep -Fqx '$(call inherit-product, vendor/amazon/mt8163-common/mt8163-common-vendor.mk)' "$MINIMAL_DEVICE"
+grep -Fqx 'TARGET_DISABLE_CMSDK := true' "$MINIMAL_DEVICE"
+grep -Fqx 'WITHOUT_CHECK_API := true' "$MINIMAL_DEVICE"
+grep -Fqx '+type exfat, sdcard_type, fs_type, mlstrustedobject;' "$ROOT/patches/minimal/006-sepolicy-exfat-ntfs-types.patch"
+grep -Fqx '+type ntfs, sdcard_type, fs_type, mlstrustedobject;' "$ROOT/patches/minimal/006-sepolicy-exfat-ntfs-types.patch"
+grep -Fq 'p2p_set_country(p2p, country);' "$ROOT/patches/minimal/004-sta-only-wpa-supplicant.patch"
+grep -Fq '+#ifdef CONFIG_P2P' "$ROOT/patches/minimal/004-sta-only-wpa-supplicant.patch"
 for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 tinymix iptables ip6tables; do
   grep -Eq "^[[:space:]]+$pkg([[:space:]]+\\\\)?[[:space:]]*$" "$MINIMAL_DEVICE"
 done

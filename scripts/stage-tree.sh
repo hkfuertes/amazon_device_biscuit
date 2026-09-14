@@ -92,6 +92,13 @@ reset_generated_full_patch_outputs() {
   fi
 }
 
+reset_generated_minimal_patch_outputs() {
+  git -C "$CM14/external/wpa_supplicant_8" checkout -- \
+    wpa_supplicant/Android.mk \
+    wpa_supplicant/android.config 2>/dev/null || true
+  git -C "$CM14/system/sepolicy" checkout -- file.te 2>/dev/null || true
+}
+
 switch_patch_profile_if_needed() {
   mkdir -p "$PATCH_STATE_DIR"
   local previous=""
@@ -100,6 +107,7 @@ switch_patch_profile_if_needed() {
     return 0
   fi
   reset_generated_full_patch_outputs
+  reset_generated_minimal_patch_outputs
   for dir in "$REPO_ROOT/patches/full" "$REPO_ROOT/patches/minimal"; do
     [[ -d "$dir" ]] || continue
     PATCH_REVERSE_ONLY=1 "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$dir"
@@ -130,8 +138,12 @@ drop_legacy_radio_block
 switch_patch_profile_if_needed
 PROFILE_PATCH_MANIFEST="$(patch_manifest "$PROFILE_PATCH_DIR")"
 PROFILE_PATCH_STATE="$PATCH_STATE_DIR/$PATCH_PROFILE-p1.sha256"
-if [[ "$PATCH_PROFILE" == full && ( ! -f "$PROFILE_PATCH_STATE" || "$(cat "$PROFILE_PATCH_STATE")" != "$PROFILE_PATCH_MANIFEST" ) ]]; then
-  reset_generated_full_patch_outputs
+if [[ ! -f "$PROFILE_PATCH_STATE" || "$(cat "$PROFILE_PATCH_STATE")" != "$PROFILE_PATCH_MANIFEST" ]]; then
+  if [[ "$PATCH_PROFILE" == full ]]; then
+    reset_generated_full_patch_outputs
+  else
+    reset_generated_minimal_patch_outputs
+  fi
 fi
 PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \
   "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"
