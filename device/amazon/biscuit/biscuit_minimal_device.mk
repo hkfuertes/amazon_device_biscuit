@@ -5,9 +5,9 @@ LOCAL_PATH := device/amazon/biscuit
 BISCUIT_MINIMAL_INIT_RC ?= $(LOCAL_PATH)/rootdir/init.biscuit.minimal.rc
 BISCUIT_INSTALL_LEDCONTROLLER_FALLBACK ?= true
 
-# ponytail: keep the verified Fire OS 6 vendor closure for first minimal bring-up;
-# reduce it only after hardware probes identify unused blobs.
-$(call inherit-product, vendor/amazon/mt8163-common/mt8163-common-vendor.mk)
+# Framework-free minimal only needs the MTK radio/Wi-Fi firmware closure.
+# Full Android keeps the broader Fire OS audio/Bluetooth/vendor closure.
+$(call inherit-product, vendor/amazon/mt8163-common/mt8163-common-minimal-vendor.mk)
 
 PRODUCT_PACKAGES += \
     init \
@@ -72,6 +72,7 @@ endif
 
 TARGET_BOARD_PLATFORM := mt8163
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
+TARGET_BISCUIT_MINIMAL := true
 TARGET_DISABLE_CMSDK := true
 WITHOUT_CHECK_API := true
 WITH_DEXPREOPT := false

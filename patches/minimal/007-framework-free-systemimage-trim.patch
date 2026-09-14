@@ -1,0 +1,129 @@
+--- a/build/core/main.mk	2026-09-14 21:47:30.350307926 +0200
++++ b/build/core/main.mk	2026-09-14 21:47:30.350307926 +0200
+@@ -369,7 +369,9 @@
+ 
+   ifeq ($(user_variant),userdebug)
+     # Pick up some extra useful tools
++  ifneq ($(TARGET_BISCUIT_MINIMAL),true)
+     tags_to_install += debug
++  endif
+   else
+     # Disable debugging in plain user builds.
+     enable_target_debugging :=
+@@ -864,9 +866,14 @@
+ 
+ # All the droid stuff, in directories
+ .PHONY: files
++ifeq ($(TARGET_BISCUIT_MINIMAL),true)
++files: $(modules_to_install) \
++        $(INSTALLED_ANDROID_INFO_TXT_TARGET)
++else
+ files: prebuilt \
+         $(modules_to_install) \
+         $(INSTALLED_ANDROID_INFO_TXT_TARGET)
++endif
+ 
+ # -------------------------------------------------------------------
+ 
+--- a/build/core/Makefile	2026-09-14 21:47:30.354307949 +0200
++++ b/build/core/Makefile	2026-09-14 21:47:30.354307949 +0200
+@@ -866,6 +866,7 @@
+ $(if $(BOARD_SYSTEMIMAGE_SQUASHFS_BLOCK_SIZE),$(hide) echo "system_squashfs_block_size=$(BOARD_SYSTEMIMAGE_SQUASHFS_BLOCK_SIZE)" >> $(1))
+ $(if $(BOARD_SYSTEMIMAGE_SQUASHFS_DISABLE_4K_ALIGN),$(hide) echo "system_squashfs_disable_4k_align=$(BOARD_SYSTEMIMAGE_SQUASHFS_DISABLE_4K_ALIGN)" >> $(1))
+ $(if $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SYSTEM_BASE_FS_PATH),$(hide) echo "system_base_fs_file=$(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SYSTEM_BASE_FS_PATH)" >> $(1))
++$(if $(filter true,$(TARGET_BISCUIT_MINIMAL)),$(hide) echo "biscuit_minimal=true" >> $(1))
+ $(if $(BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE),$(hide) echo "userdata_fs_type=$(BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE)" >> $(1))
+ $(if $(BOARD_USERDATAIMAGE_PARTITION_SIZE),$(hide) echo "userdata_size=$(BOARD_USERDATAIMAGE_PARTITION_SIZE)" >> $(1))
+ $(if $(filter true,$(TARGET_SKIP_USERDATAIMAGE)),$(hide) echo "skip_userdata_image=true" >> $(1))
+@@ -1001,12 +1002,16 @@
+ #   b) We build a single image that contains boot and recovery both
+ #      (BOARD_USES_RECOVERY_AS_BOOT = true).
+ 
++ifeq ($(TARGET_BISCUIT_MINIMAL),true)
++RECOVERY_RESOURCE_ZIP :=
++else
+ ifeq (,$(filter true, $(BOARD_USES_FULL_RECOVERY_IMAGE) $(BOARD_USES_RECOVERY_AS_BOOT) $(TARGET_NOT_USE_GZIP_RECOVERY_RAMDISK)))
+ # Named '.dat' so we don't attempt to use imgdiff for patching it.
+ RECOVERY_RESOURCE_ZIP := $(TARGET_OUT)/etc/recovery-resource.dat
+ else
+ RECOVERY_RESOURCE_ZIP :=
+ endif
++endif
+ 
+ ifeq ($(recovery_fstab),)
+   $(info No recovery.fstab for TARGET_DEVICE $(TARGET_DEVICE))
+@@ -1171,11 +1176,15 @@
+ # image size check calculation.
+ ifneq ($(INSTALLED_RECOVERYIMAGE_TARGET),)
+ intermediates := $(call intermediates-dir-for,PACKAGING,recovery_patch)
++ifeq ($(TARGET_BISCUIT_MINIMAL),true)
++RECOVERY_FROM_BOOT_PATCH :=
++else
+ ifndef BOARD_CANT_BUILD_RECOVERY_FROM_BOOT_PATCH
+ RECOVERY_FROM_BOOT_PATCH := $(intermediates)/recovery_from_boot.p
+ else
+ RECOVERY_FROM_BOOT_PATCH :=
+ endif
++endif
+ $(RECOVERY_FROM_BOOT_PATCH): $(INSTALLED_RECOVERYIMAGE_TARGET) \
+                              $(INSTALLED_BOOTIMAGE_TARGET) \
+ 			     $(HOST_OUT_EXECUTABLES)/imgdiff \
+@@ -1237,12 +1246,18 @@
+     $(filter-out $(foreach p,$(overridden_packages),$(p) %/$(p).apk), \
+         $(ALL_PDK_FUSION_FILES))
+ 
++ifeq ($(TARGET_BISCUIT_MINIMAL),true)
++INTERNAL_SYSTEMIMAGE_FILES := $(filter $(TARGET_OUT)/%, \
++    $(ALL_DEFAULT_INSTALLED_MODULES) \
++    $(PDK_FUSION_SYSIMG_FILES))
++else
+ INTERNAL_SYSTEMIMAGE_FILES := $(filter $(TARGET_OUT)/%, \
+     $(ALL_PREBUILT) \
+     $(ALL_GENERATED_SOURCES) \
+     $(ALL_DEFAULT_INSTALLED_MODULES) \
+     $(PDK_FUSION_SYSIMG_FILES) \
+     $(RECOVERY_RESOURCE_ZIP))
++endif
+ 
+ 
+ FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS)
+@@ -1296,10 +1311,27 @@
+ endef
+ endif
+ 
++ifeq ($(TARGET_BISCUIT_MINIMAL),true)
++define clean-biscuit-minimal-target-out
++  $(hide) rm -rf \
++    $(TARGET_OUT)/xbin \
++    $(TARGET_OUT)/etc/bash \
++    $(TARGET_OUT)/etc/nano \
++    $(TARGET_OUT)/usr/share/vim \
++    $(TARGET_OUT)/etc/install-recovery.sh \
++    $(TARGET_OUT)/etc/recovery-resource.dat \
++    $(TARGET_OUT)/recovery-from-boot.p
++endef
++else
++define clean-biscuit-minimal-target-out
++endef
++endif
++
+ # $(1): output file
+ define build-systemimage-target
+   @echo "Target system fs image: $(1)"
+   $(call create-system-vendor-symlink)
++  $(call clean-biscuit-minimal-target-out)
+   @mkdir -p $(dir $(1)) $(systemimage_intermediates) && rm -rf $(systemimage_intermediates)/system_image_info.txt
+   $(call generate-userimage-prop-dictionary, $(systemimage_intermediates)/system_image_info.txt, \
+       skip_fsck=true)
+--- a/build/tools/releasetools/common.py	2026-09-14 21:47:30.354307949 +0200
++++ b/build/tools/releasetools/common.py	2026-09-14 21:47:30.354307949 +0200
+@@ -1764,6 +1764,9 @@
+   if info_dict is None:
+     info_dict = OPTIONS.info_dict
+ 
++  if info_dict.get("biscuit_minimal", None) == "true":
++    return
++
+   full_recovery_image = info_dict.get("full_recovery_image", None) == "true"
+   system_root_image = info_dict.get("system_root_image", None) == "true"
+   use_bsdiff = info_dict.get("no_gzip_recovery_ramdisk", None) == "true"

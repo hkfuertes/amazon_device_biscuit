@@ -17,7 +17,7 @@ WORKSPACE="$ROOT/workspace/cm14.1"
 [[ -d "$VENDOR" ]]
 [[ ! -e "$ROOT/cm14.1" ]]
 [[ "$(find "$FULL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 28 ]]
-[[ "$(find "$MINIMAL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 6 ]]
+[[ "$(find "$MINIMAL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 7 ]]
 [[ "$(find "$KERNEL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 3 ]]
 
 printf '%s\n' "$FULL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
@@ -59,6 +59,7 @@ printf '%s\n' "$MINIMAL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'
 004-sta-only-wpa-supplicant.patch
 005-wpa-passphrase.patch
 006-sepolicy-exfat-ntfs-types.patch
+007-framework-free-systemimage-trim.patch
 EOF
 )
 
@@ -74,6 +75,7 @@ grep -Fqx 'PROFILE_PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' "$STAGE"
 grep -Fq 'PATCH_REVERSE_ONLY=1 "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$dir"' "$STAGE"
 grep -Fq 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \' "$STAGE"
 grep -Fq '"$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"' "$STAGE"
+grep -Fq 'TARGET_BISCUIT_MINIMAL' "$MINIMAL_PATCH_DIR/007-framework-free-systemimage-trim.patch"
 grep -Fqx '"$REPO_ROOT/scripts/apply-patches.sh" "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel"' "$STAGE"
 grep -Fqx 'LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"' "$BUILD"
 grep -Fqx '  biscuit_minimal-userdebug)' "$BUILD"
@@ -121,6 +123,8 @@ grep -Fqx 'MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/fireos6-audio-files.
 grep -Fqx 'HWC_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"' "$EXTRACTOR"
 grep -Fqx 'RADIO_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-radio-files.txt"' "$EXTRACTOR"
 grep -Fqx 'BT_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-bluetooth-files.txt"' "$EXTRACTOR"
+grep -Fqx 'MINIMAL_VENDOR_MK_TMP="$TMP/mt8163-common-minimal-vendor.mk"' "$EXTRACTOR"
+grep -Fq 'Fire OS 6.5.7.4 MT8163 radio/Wi-Fi closure for framework-free Biscuit minimal.' "$EXTRACTOR"
 
 bash "$ROOT/tests/test-minimal-product.sh"
 

@@ -93,9 +93,15 @@ reset_generated_full_patch_outputs() {
 }
 
 reset_generated_minimal_patch_outputs() {
+  git -C "$CM14/build" checkout -- \
+    core/Makefile \
+    core/main.mk \
+    tools/releasetools/add_img_to_target_files.py 2>/dev/null || true
   git -C "$CM14/external/wpa_supplicant_8" checkout -- \
     wpa_supplicant/Android.mk \
-    wpa_supplicant/android.config 2>/dev/null || true
+    wpa_supplicant/android.config \
+    wpa_supplicant/ctrl_iface.c 2>/dev/null || true
+  git -C "$CM14/system/core" checkout -- fs_mgr/fs_mgr_slotselect.c 2>/dev/null || true
   git -C "$CM14/system/sepolicy" checkout -- file.te 2>/dev/null || true
 }
 
