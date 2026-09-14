@@ -202,7 +202,7 @@ struct sensors_module_t HAL_MODULE_INFO_SYM = {
         .version_minor = 0,
         .id = SENSORS_HARDWARE_MODULE_ID,
         .name = "Biscuit Sensors",
-        .author = "Amazon/CM12 biscuit",
+        .author = "Amazon Biscuit",
         .methods = &sensors_module_methods,
     },
     .get_sensors_list = sensors__get_sensors_list,

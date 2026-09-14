@@ -1,4 +1,4 @@
-# Baseline smoke checks — CM12 Biscuit
+# Baseline smoke checks — Biscuit CM14.1
 
 Accepted state for this ROM: `userdebug`, permissive SELinux, and root/ADB root
 can be enabled. Do not treat those as failures.

@@ -14,7 +14,7 @@ libasp / audiosignalprocessor
   -> ring animation
 ```
 
-In the current CM12 build:
+In the legacy full build used for initial ASP comparison:
 
 - `audiosignalprocessor` exists as a Binder service.
 - `libasp.so` and `libaspclient.so` are present.
@@ -83,7 +83,7 @@ ASP_CMD_REQUEST_ARBITRATION_DATA
 {"sequenceID":%d,"voiceEnergy":%d,"ambientEnergy":%d}
 ```
 
-## Check on the current CM12 build
+## Historical ASP check
 
 Device readout:
 
@@ -108,21 +108,7 @@ Minimum test, with no persistent changes:
 Do not use audio playback for this test.
 
 ```sh
-# from the amazon_device_biscuit root
-scripts/stage-tree.sh
-
-docker rm -f cm12-biscuit-build >/dev/null 2>&1 || true
-docker run -d --name cm12-biscuit-build \
-  -v "$PWD:$PWD" \
-  -w "$PWD/workspace/cm12" \
-  cm12-ubuntu14:latest \
-  bash -lc 'source build/envsetup.sh >/dev/null && lunch cm_biscuit-userdebug && export OUT_DIR="$PWD/out-docker" && export PATH="$OUT_DIR/host/linux-x86/bin:$PATH" && mmm hardware/amazon/audio'
-
-docker logs -f cm12-biscuit-build
-
-adb push workspace/cm12/out-docker/target/product/biscuit/system/bin/biscuit_asp_beam_probe /data/local/tmp/
-adb shell chmod 755 /data/local/tmp/biscuit_asp_beam_probe
-adb shell /data/local/tmp/biscuit_asp_beam_probe 20
+adb shell biscuit_asp_beam_probe 20
 ```
 
 Expected output:

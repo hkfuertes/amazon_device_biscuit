@@ -4,9 +4,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := biscuit-ledd
 LOCAL_SRC_FILES := biscuit-ledd.cpp
 LOCAL_CPPFLAGS := -std=gnu++11 -Wall -Werror
-LOCAL_SHARED_LIBRARIES := libstlport
 LOCAL_MODULE_TAGS := optional
-include external/stlport/libstlport.mk
 include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)

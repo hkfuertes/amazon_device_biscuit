@@ -1,8 +1,7 @@
 # Microphone level and wake word (microWakeWord) — Biscuit
 
-> Historical partition references in this document describe amonet v1 only.
-> amonet v2.0.0 leaves the native GPT intact; do not use `boot_a_x`, `boot_b_x`,
-> or v1 block-path assumptions for device operations.
+> Amonet v2.0.0 leaves the native GPT intact; use the current-slot TWRP flow
+> documented in `docs/amonet-biscuit-unlock.md` for device operations.
 
 Status: diagnosis complete, partial fix applied, pending validation with real AVA.
 
@@ -11,7 +10,7 @@ content.
 
 ## Symptom
 
-Stock FireOS detects “Alexa” from the other end of the room (~5 m). With CM12 +
+Stock FireOS detects “Alexa” from the other end of the room (~5 m). With the current Biscuit Android build +
 AVA, the wake word only fires from ~10 cm away.
 
 ## Root cause
@@ -54,7 +53,6 @@ exactly the 24-bit versus 16-bit difference.
 
 - The HAL does not touch NVRAM in the capture path: zero calls to `GetAudioCustomParamFromNV`, `SetCaptureGain`, or `SetMicGain` in logcat during an `openInputStream`.
 - Biscuit **does not have** `nvdata`, `nvram`, or `proinfo` partitions. It has only `persist`. Amazon uses IDME, not MTK NVRAM. `nvram_daemon` would add nothing.
-- Actual partitions: `boot boot_a boot_a_x boot_b boot_b_x cache dkb expdb kb lk lk_a lk_b misc persist recovery system system_a system_b tee1 tee2 userdata`.
 
 ### Microphone calibration — present and valid
 

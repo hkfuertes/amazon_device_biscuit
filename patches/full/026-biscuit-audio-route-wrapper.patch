@@ -1,0 +1,275 @@
+--- a/hardware/amazon/audio/Android.mk
++++ b/hardware/amazon/audio/Android.mk
+@@ -3,8 +3,9 @@
+ include $(CLEAR_VARS)
+ LOCAL_MODULE := audio.primary.mt8163
+ LOCAL_MODULE_RELATIVE_PATH := hw
++LOCAL_C_INCLUDES := external/tinyalsa/include
+ LOCAL_SRC_FILES := audio_wrapper.c
+-LOCAL_SHARED_LIBRARIES := libhardware liblog
++LOCAL_SHARED_LIBRARIES := libhardware liblog libtinyalsa
+ LOCAL_MODULE_TAGS := optional
+ LOCAL_CFLAGS := -Wall -Werror
+ include $(BUILD_SHARED_LIBRARY)
+--- a/hardware/amazon/audio/audio_wrapper.c
++++ b/hardware/amazon/audio/audio_wrapper.c
+@@ -5,35 +5,254 @@
+ #define LOG_TAG "audio.amazon_wrapper"
+ 
+ #include <errno.h>
++#include <stdbool.h>
++#include <stdlib.h>
+ #include <string.h>
++#include <time.h>
+ 
+ #include <hardware/audio.h>
+ #include <hardware/hardware.h>
+ #include <log/log.h>
++#include <tinyalsa/asoundlib.h>
++
++#define CARD 0
++
++struct wrapper_audio_device {
++    struct audio_hw_device device;
++    struct audio_hw_device* amazon_device;
++};
++
++struct wrapper_stream_out {
++    struct audio_stream_out stream;
++    struct audio_stream_out* amazon_stream;
++};
++
++static int route_enum_or_value(struct mixer* mixer, const char* name,
++                               const char* value, int fallback) {
++    struct mixer_ctl* ctl = mixer_get_ctl_by_name(mixer, name);
++    unsigned int i;
++    unsigned int n;
++    int ret;
++
++    if (!ctl) {
++        ALOGW("missing mixer ctl: %s", name);
++        return -ENOENT;
++    }
++
++    ret = mixer_ctl_set_enum_by_string(ctl, value);
++    if (ret == 0) {
++        return 0;
++    }
++
++    n = mixer_ctl_get_num_values(ctl);
++    for (i = 0; i < n; i++) {
++        ret = mixer_ctl_set_value(ctl, i, fallback);
++        if (ret != 0) {
++            ALOGW("failed mixer ctl %s[%u]=%d", name, i, fallback);
++        }
++    }
++    return ret;
++}
++
++static int route_value(struct mixer* mixer, const char* name, int left,
++                       int right) {
++    struct mixer_ctl* ctl = mixer_get_ctl_by_name(mixer, name);
++    unsigned int n;
++    int ret = 0;
++
++    if (!ctl) {
++        ALOGW("missing mixer ctl: %s", name);
++        return -ENOENT;
++    }
++
++    n = mixer_ctl_get_num_values(ctl);
++    if (n > 0) {
++        ret = mixer_ctl_set_value(ctl, 0, left);
++    }
++    if (n > 1) {
++        ret |= mixer_ctl_set_value(ctl, 1, right);
++    }
++    if (ret != 0) {
++        ALOGW("failed mixer ctl %s=%d,%d", name, left, right);
++    }
++    return ret;
++}
++
++static void set_speaker_amp(bool enabled) {
++    struct mixer* mixer = mixer_open(CARD);
++
++    if (!mixer) {
++        ALOGE("mixer_open(%d) failed", CARD);
++        return;
++    }
++
++    if (enabled) {
++        route_enum_or_value(mixer, "Audio_Amp_R_Switch", "On", 1);
++        route_enum_or_value(mixer, "Audio_Amp_L_Switch", "On", 1);
++        route_enum_or_value(mixer, "Ext_Speaker_Amp_Switch", "On", 1);
++    } else {
++        route_enum_or_value(mixer, "Ext_Speaker_Amp_Switch", "Off", 0);
++        route_enum_or_value(mixer, "Audio_Amp_R_Switch", "Off", 0);
++        route_enum_or_value(mixer, "Audio_Amp_L_Switch", "Off", 0);
++    }
++
++    mixer_close(mixer);
++}
++
++static void apply_speaker_route(void) {
++    struct mixer* mixer = mixer_open(CARD);
++
++    if (!mixer) {
++        ALOGE("mixer_open(%d) failed", CARD);
++        return;
++    }
++
++    // Biscuit speaker route; verified live on CM14 with tinyplay.
++    route_enum_or_value(mixer, "HPL Output Mixer L_DAC Switch", "On", 1);
++    route_enum_or_value(mixer, "HPR Output Mixer R_DAC Switch", "On", 1);
++    route_enum_or_value(mixer, "Audio_DacMux_Setting", "Off", 0);
++    route_enum_or_value(mixer, "Right Channel Only", "On", 1);
++    route_value(mixer, "HP Driver Gain Volume", 6, 6);
++    route_enum_or_value(mixer, "MFP Gpio Mute", "Off", 0);
++
++    mixer_close(mixer);
++}
++
++static struct wrapper_stream_out* wrap_out(struct audio_stream_out* stream) {
++    return (struct wrapper_stream_out*)stream;
++}
++
++static struct wrapper_stream_out* wrap_out_common(struct audio_stream* stream) {
++    return (struct wrapper_stream_out*)stream;
++}
++
++static int out_standby(struct audio_stream* stream) {
++    struct wrapper_stream_out* out = wrap_out_common(stream);
++    int ret = 0;
++
++    if (out->amazon_stream && out->amazon_stream->common.standby) {
++        ret = out->amazon_stream->common.standby(&out->amazon_stream->common);
++    }
++    set_speaker_amp(false);
++    return ret;
++}
++
++static ssize_t out_write(struct audio_stream_out* stream, const void* buffer,
++                         size_t bytes) {
++    struct wrapper_stream_out* out = wrap_out(stream);
++
++    apply_speaker_route();
++    set_speaker_amp(true);
++    return out->amazon_stream->write(out->amazon_stream, buffer, bytes);
++}
++
++static int adev_open_output_stream(struct audio_hw_device* dev,
++                                   audio_io_handle_t handle,
++                                   audio_devices_t devices,
++                                   audio_output_flags_t flags,
++                                   struct audio_config* config,
++                                   struct audio_stream_out** stream_out,
++                                   const char* address) {
++    struct wrapper_audio_device* adev = (struct wrapper_audio_device*)dev;
++    struct wrapper_stream_out* out;
++    struct audio_stream_out* amazon_stream = NULL;
++    int status;
++
++    status = adev->amazon_device->open_output_stream(adev->amazon_device, handle,
++                                                     devices, flags, config,
++                                                     &amazon_stream, address);
++    if (status != 0) {
++        return status;
++    }
++    if (!amazon_stream) {
++        return -ENODEV;
++    }
++
++    out = calloc(1, sizeof(*out));
++    if (!out) {
++        adev->amazon_device->close_output_stream(adev->amazon_device,
++                                                 amazon_stream);
++        return -ENOMEM;
++    }
++
++    out->amazon_stream = amazon_stream;
++    out->stream = *amazon_stream;
++    out->stream.common.standby = out_standby;
++    out->stream.write = out_write;
++    *stream_out = &out->stream;
++    return 0;
++}
++
++static void adev_close_output_stream(struct audio_hw_device* dev,
++                                     struct audio_stream_out* stream) {
++    struct wrapper_audio_device* adev = (struct wrapper_audio_device*)dev;
++    struct wrapper_stream_out* out = wrap_out(stream);
++
++    out_standby(&out->stream.common);
++    adev->amazon_device->close_output_stream(adev->amazon_device,
++                                             out->amazon_stream);
++    free(out);
++}
++
++static int adev_close(struct hw_device_t* device) {
++    struct wrapper_audio_device* adev = (struct wrapper_audio_device*)device;
++    int status = 0;
++
++    set_speaker_amp(false);
++    if (adev->amazon_device && adev->amazon_device->common.close) {
++        status = adev->amazon_device->common.close(
++                (struct hw_device_t*)adev->amazon_device);
++    }
++    free(adev);
++    return status;
++}
+ 
+ static int adev_open(const struct hw_module_t* module, const char* name,
+                      struct hw_device_t** device) {
++    struct wrapper_audio_device* adev;
+     const struct hw_module_t* amazon_module;
+     int status;
+ 
+-    (void)module;
+     if (strcmp(name, AUDIO_HARDWARE_INTERFACE) != 0) {
+         return -EINVAL;
+     }
+ 
++    adev = calloc(1, sizeof(*adev));
++    if (!adev) {
++        return -ENOMEM;
++    }
++
+     status = hw_get_module_by_class(AUDIO_HARDWARE_MODULE_ID, "primary_amazon",
+                                     &amazon_module);
+     if (status != 0) {
+         ALOGE("cannot load FireOS primary audio module: %d", status);
+-        return status;
++        goto fail;
+     }
+     if (!amazon_module->methods || !amazon_module->methods->open) {
+         ALOGE("FireOS primary audio module has no open method");
+-        return -ENOSYS;
++        status = -ENOSYS;
++        goto fail;
++    }
++
++    status = amazon_module->methods->open(
++            amazon_module, name, (struct hw_device_t**)&adev->amazon_device);
++    if (status != 0) {
++        ALOGE("cannot open FireOS primary audio module: %d", status);
++        goto fail;
+     }
+ 
+-    // ponytail: FireOS 6 and CM14 both expose audio-device API v3; forward it directly.
+-    return amazon_module->methods->open(amazon_module, name, device);
++    // ponytail: wrap only speaker routing; FireOS HAL still owns real playback.
++    adev->device = *adev->amazon_device;
++    adev->device.common.module = (struct hw_module_t*)module;
++    adev->device.common.close = adev_close;
++    adev->device.open_output_stream = adev_open_output_stream;
++    adev->device.close_output_stream = adev_close_output_stream;
++    *device = &adev->device.common;
++    return 0;
++
++fail:
++    free(adev);
++    return status;
+ }
+ 
+ static struct hw_module_methods_t hal_module_methods = {
