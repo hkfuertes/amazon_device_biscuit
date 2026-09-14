@@ -1,8 +1,8 @@
 issues/
 workspace/
 # Saved local OTA snapshots
-biscuit-cm12-last-generated-ota.zip
-biscuit-cm12-last-generated-ota.zip.sha256
+ota_biscuit_cm14.1_*.zip
+ota_biscuit_cm14.1_*.zip.sha256
 
 # Local planning documents
 *.prd.md

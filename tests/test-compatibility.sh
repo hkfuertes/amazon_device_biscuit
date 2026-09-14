@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# Guard the CM14.1 Biscuit full-product layout and staged payload contract.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+FULL_PATCH_DIR="$ROOT/patches/full"
+KERNEL_PATCH_DIR="$ROOT/patches/kernel"
+STAGE="$ROOT/scripts/stage-tree.sh"
+BUILD="$ROOT/scripts/build.sh"
+EXTRACTOR="$ROOT/scripts/extract-fireos6-blobs.sh"
+DEVICE="$ROOT/device/amazon/biscuit"
+VENDOR="$ROOT/vendor/amazon/mt8163-common"
+WORKSPACE="$ROOT/workspace/cm14.1"
+
+[[ -d "$DEVICE" ]]
+[[ -d "$VENDOR" ]]
+[[ ! -e "$ROOT/cm14.1" ]]
+[[ "$(find "$FULL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 28 ]]
+[[ "$(find "$KERNEL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 3 ]]
+
+printf '%s\n' "$FULL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
+001-amonet-fstab.patch
+002-amonet2-bcb-slotselect.patch
+003-skip-unused-ota-images.patch
+004-amazon-log-shim.patch
+005-audio-legacy-symbols.patch
+006-headless-system-props.patch
+007-headless-no-gpu-property.patch
+008-mt8163-wifi-interface-property.patch
+009-bluetooth-board-cflags.patch
+010-biscuit-bluetooth-noinput-pairing.patch
+011-biscuit-bluetooth-noinput-prototype.patch
+012-biscuit-bluetooth-headless-speaker.patch
+013-biscuit-disable-pan-profile.patch
+014-insecure-adb-default-props.patch
+015-biscuit-hostname-mdns.patch
+016-biscuit-flac-decoder.patch
+017-software-egl-fallback.patch
+018-hwui-egl-config-fallback.patch
+019-headless-hwui-disable.patch
+020-headless-hwc1-fake-display.patch
+021-biscuit-radio-launchers.patch
+022-biscuit-sta-only-wifi.patch
+023-biscuit-mic-mute.patch
+024-biscuit-disable-framework-p2p.patch
+025-amazon-audio-wrapper.patch
+026-biscuit-audio-route-wrapper.patch
+027-biscuit-audio-route-forwarding.patch
+028-biscuit-audio-gpio-mic-mute.patch
+EOF
+)
+
+printf '%s\n' "$KERNEL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
+010-netfilter-xt-compat-percpu.patch
+020-force-ramdisk-root.patch
+030-filter-bootloader-cmdline.patch
+EOF
+)
+
+grep -Fqx 'FULL_PATCH_STATE_DIR="$CM14/.repo/biscuit-patch-state"' "$STAGE"
+grep -Fqx 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$FULL_PATCH_STATE_DIR" \' "$STAGE"
+grep -Fqx '  "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$REPO_ROOT/patches/full"' "$STAGE"
+grep -Fqx '"$REPO_ROOT/scripts/apply-patches.sh" "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel"' "$STAGE"
+grep -Fqx '"$REPO_ROOT/scripts/stage-tree.sh"' "$BUILD"
+grep -Fqx 'CM14="${CM14:-$REPO_ROOT/workspace/cm14.1}"' "$STAGE"
+grep -Fqx 'CM14="${CM14:-$REPO_ROOT/workspace/cm14.1}"' "$BUILD"
+if [[ -f "$WORKSPACE/system/core/liblog/logger_write.c" ]]; then
+  [[ "$(grep -c 'LIBLOG_ABI_PUBLIC int lab126_log_write' \
+    "$WORKSPACE/system/core/liblog/logger_write.c")" == "1" ]]
+fi
+
+grep -Fqx 'TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)' "$DEVICE/BoardConfig.mk"
+grep -Fqx 'TARGET_FORCE_INSECURE_ADB := true' "$DEVICE/BoardConfig.mk"
+grep -Fqx 'BOARD_BLUETOOTH_BDROID_CFLAGS += -DBTM_LOCAL_IO_CAPS=BTM_IO_CAP_NONE' "$DEVICE/BoardConfig.mk"
+grep -Fqx '    BiscuitEmptyLauncher' "$DEVICE/device.mk"
+grep -Fqx '    BiscuitService' "$DEVICE/device.mk"
+grep -Fqx '    biscuit_service \' "$DEVICE/device.mk"
+grep -Fqx '    biscuit-ledd \' "$DEVICE/device.mk"
+grep -Fqx '    biscuit-ledctl \' "$DEVICE/device.mk"
+grep -Fqx '    i2c-poke \' "$DEVICE/device.mk"
+grep -Fqx '    audio_effects.conf \' "$DEVICE/device.mk"
+grep -Fqx '    libstagefright_soft_flacdec \' "$DEVICE/device.mk"
+grep -Fqx '    sensors.mt8163 \' "$DEVICE/device.mk"
+grep -Fqx '    biscuit_audiotrack_test \' "$DEVICE/device.mk"
+grep -Fqx '    biscuit_audiorecord_test \' "$DEVICE/device.mk"
+grep -Fqx '    biscuit_asp_beam_probe \' "$DEVICE/device.mk"
+grep -Fqx '    biscuit_mic_test \' "$DEVICE/device.mk"
+grep -Fqx '    tinymix \' "$DEVICE/device.mk"
+grep -Fqx '    tinyplay \' "$DEVICE/device.mk"
+grep -Fqx '    tinycap \' "$DEVICE/device.mk"
+grep -Fqx '    tinypcminfo' "$DEVICE/device.mk"
+grep -Fqx 'PRODUCT_PACKAGES := $(filter-out $(BISCUIT_NO_SCREEN_PACKAGES),$(PRODUCT_PACKAGES))' "$DEVICE/device.mk"
+
+grep -Fqx '    chown root audio /sys/devices/soc/1000b000.pinctrl/mt_gpio' "$DEVICE/rootdir/init.device.rc"
+grep -Fqx '    chmod 0664 /sys/devices/soc/1000b000.pinctrl/mt_gpio' "$DEVICE/rootdir/init.device.rc"
+grep -Fqx '# ponytail: CM14 Biscuit uses STA only; P2P-only fields make STA-only wpa_supplicant abort.' "$DEVICE/wpa_supplicant_overlay.conf"
+! grep -Fq 'p2p_no_group_iface' "$DEVICE/wpa_supplicant_overlay.conf"
+
+grep -Fqx 'lib/hw/hwcomposer.mt8163.so:lib/hw/hwcomposer.mt8163.so:ec66527090a97538914a5d883cf5b43013aea69905f29c9e4af490eb8a48e79a:13568' "$VENDOR/biscuit-headless-hwc-files.txt"
+grep -Fqx 'system/vendor/bin/wmt_loader:vendor/bin/wmt_loader:de9ee285a09a7db5b079233f7c9129c5484ecb6701b54da45e2a29f310e74ff9:17992' "$VENDOR/biscuit-radio-files.txt"
+grep -Fqx 'system/vendor/bin/wmt_launcher:vendor/bin/wmt_launcher:1f34425d727ea64524c9edaeac5e6b295df7a6054703dcc79b164021560252e5:31448' "$VENDOR/biscuit-radio-files.txt"
+grep -Fqx 'system/vendor/lib/libbt-vendor.so:vendor/lib/libbt-vendor.so:aab202280e09941a812983c7b7fb259fcb48bf43912f05f8cf7e47e32380ec87:13844' "$VENDOR/biscuit-bluetooth-files.txt"
+grep -Fqx 'system/vendor/lib/libbluetooth_mtk.so:vendor/lib/libbluetooth_mtk.so:12e24abe8fcaaf9423fa143e432165b6877fab88222d8de55305bfeb364bdaa0:30268' "$VENDOR/biscuit-bluetooth-files.txt"
+grep -Fqx 'MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/fireos6-audio-files.txt"' "$EXTRACTOR"
+grep -Fqx 'HWC_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-headless-hwc-files.txt"' "$EXTRACTOR"
+grep -Fqx 'RADIO_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-radio-files.txt"' "$EXTRACTOR"
+grep -Fqx 'BT_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-bluetooth-files.txt"' "$EXTRACTOR"
+
+echo 'PASS CM14 Biscuit layout and payload contract'

@@ -1,51 +1,49 @@
 #!/usr/bin/env bash
-# Verify target-scoped CM12 patches apply deterministically and repeat safely.
+# Verify directory-scoped patches apply in sorted order and skip unchanged state.
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
-CM12="$TMP/cm12"
-PATCH_DIR="$TMP/patches"
-mkdir -p "$CM12/build" "$PATCH_DIR"
-printf 'one\n' > "$CM12/first.txt"
-printf 'alpha\n' > "$CM12/second.txt"
 
-cat > "$PATCH_DIR/10-first.patch" <<'PATCH'
---- a/first.txt
-+++ b/first.txt
+mkdir -p "$TMP/root" "$TMP/patches"
+printf 'one\n' >"$TMP/root/file.txt"
+cat >"$TMP/patches/010-first.patch" <<'PATCH'
+--- a/file.txt
++++ b/file.txt
 @@ -1 +1 @@
 -one
 +two
 PATCH
-cat > "$PATCH_DIR/20-second.patch" <<'PATCH'
---- a/second.txt
-+++ b/second.txt
+cat >"$TMP/patches/020-second.patch" <<'PATCH'
+--- a/file.txt
++++ b/file.txt
 @@ -1 +1 @@
--alpha
-+beta
+-two
++three
 PATCH
 
-CM12="$CM12" PATCH_DIR="$PATCH_DIR" "$REPO_ROOT/scripts/apply-patches.sh" > "$TMP/first.log"
-[[ "$(<"$CM12/first.txt")" == two ]]
-[[ "$(<"$CM12/second.txt")" == beta ]]
-sed -n '1p;2p' "$TMP/first.log" | diff -u - <(printf 'APPLIED 10-first.patch\nAPPLIED 20-second.patch\n')
-CM12="$CM12" PATCH_DIR="$PATCH_DIR" "$REPO_ROOT/scripts/apply-patches.sh" > "$TMP/repeat.log"
-grep -qx 'SKIP already applied 10-first.patch' "$TMP/repeat.log"
-grep -qx 'SKIP already applied 20-second.patch' "$TMP/repeat.log"
+PATCH_REAPPLY=1 PATCH_STATE_DIR="$TMP/state" \
+  "$ROOT/scripts/apply-patches.sh" "$TMP/root" 1 "$TMP/patches" >"$TMP/first.log"
+printf 'three\n' | diff -u - "$TMP/root/file.txt"
+sed -n '1p;2p' "$TMP/first.log" | diff -u - <(printf 'APPLIED %s/patches/010-first.patch\nAPPLIED %s/patches/020-second.patch\n' "$TMP" "$TMP")
 
-mkdir "$TMP/bad"
-cat > "$TMP/bad/10-incompatible.patch" <<'PATCH'
---- a/first.txt
-+++ b/first.txt
+PATCH_REAPPLY=1 PATCH_STATE_DIR="$TMP/state" \
+  "$ROOT/scripts/apply-patches.sh" "$TMP/root" 1 "$TMP/patches" >"$TMP/repeat.log"
+grep -qx "SKIP patch directory unchanged $TMP/patches" "$TMP/repeat.log"
+
+mkdir -p "$TMP/bad"
+cat >"$TMP/bad/010-bad.patch" <<'PATCH'
+--- a/file.txt
++++ b/file.txt
 @@ -1 +1 @@
 -missing
-+replacement
++nope
 PATCH
-if CM12="$CM12" PATCH_DIR="$TMP/bad" "$REPO_ROOT/scripts/apply-patches.sh" > "$TMP/bad.log" 2>&1; then
+if "$ROOT/scripts/apply-patches.sh" "$TMP/root" 1 "$TMP/bad" >"$TMP/bad.log" 2>&1; then
   echo 'incompatible patch unexpectedly applied' >&2
   exit 1
 fi
-grep -q 'ERROR: patch does not apply cleanly: 10-incompatible.patch' "$TMP/bad.log"
+grep -q 'ERROR: patch does not apply cleanly:' "$TMP/bad.log"
 
-echo 'PASS CM12 patch series is ordered, repeatable, and rejects conflicts'
+echo 'PASS directory patch application'

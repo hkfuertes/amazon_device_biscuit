@@ -1,0 +1,17 @@
+--- a/system/core/liblog/logger_write.c
++++ b/system/core/liblog/logger_write.c
+@@ -385,6 +385,13 @@
+     return __android_log_buf_write(LOG_ID_MAIN, prio, tag, msg);
+ }
+-
++
++// ponytail: Amazon MTK display blobs expect this Lab126 liblog symbol.
++LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,
++                                       const char *msg)
++{
++    return __android_log_write(prio, tag, msg ? msg : "");
++}
++
+ LIBLOG_ABI_PUBLIC int __android_log_buf_write(int bufID, int prio,
+                                               const char *tag, const char *msg)
+ {
