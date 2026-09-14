@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PATCH="$ROOT/patches/kernel/biscuit-kernel-force-ramdisk-root.patch"
+CMDLINE_FILTER_PATCH="$ROOT/patches/kernel/biscuit-kernel-filter-bootloader-cmdline.patch"
 ADB_PATCH="$ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"
 STAGE="$ROOT/scripts/stage-cm14.1-tree.sh"
 BOARD="$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"
@@ -18,6 +19,19 @@ done
 ! grep -q 'androidboot.slot_suffix' "$PATCH"
 ! grep -q '^[-+]CONFIG_DM_\|^[-+]# CONFIG_DM_' "$PATCH"
 grep -Fqx 'apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-force-ramdisk-root.patch"' "$STAGE"
+grep -Fqx 'apply_patch "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel/biscuit-kernel-filter-bootloader-cmdline.patch"' "$STAGE"
+
+for allowed in '"androidboot.serialno="' '"androidboot.bootreason="' '"boot_reason="'; do
+  grep -Fq "$allowed" "$CMDLINE_FILTER_PATCH"
+done
+for forbidden in '"root=' '"dm=' '"androidboot.slot_suffix='; do
+  ! grep -Fq "$forbidden" "$CMDLINE_FILTER_PATCH"
+done
+grep -Fq 'CONFIG_CMDLINE_FORCE' "$PATCH"
+grep -Fq 'drivers/of/fdt.c' "$CMDLINE_FILTER_PATCH"
+grep -Fq 'biscuit_append_safe_fdt_bootargs(cmdline, biscuit_bootargs)' "$CMDLINE_FILTER_PATCH"
+! grep -Fq 'atags_parse.c' "$CMDLINE_FILTER_PATCH"
+
 grep -Fqx 'apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-insecure-adb-default-props.patch"' "$STAGE"
 grep -Fqx 'TARGET_FORCE_INSECURE_ADB := true' "$BOARD"
 for line in \
