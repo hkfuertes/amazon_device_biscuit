@@ -19,6 +19,7 @@ P2P_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"
 LOG_PATCH="$ROOT/patches/cm14/cm14.1-amazon-log-shim.patch"
 AUDIO_LEGACY_PATCH="$ROOT/patches/cm14/cm14.1-audio-legacy-symbols.patch"
 AUDIO_FORWARDING_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-audio-route-forwarding.patch"
+AUDIO_GPIO_MIC_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-audio-gpio-mic-mute.patch"
 BT_CFLAGS_PATCH="$ROOT/patches/cm14/cm14.1-bluetooth-board-cflags.patch"
 BT_NOINPUT_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-pairing.patch"
 BT_NOINPUT_PROTO_PATCH="$ROOT/patches/cm14/cm14.1-biscuit-bluetooth-noinput-prototype.patch"
@@ -89,6 +90,16 @@ apply_from_base() {
   fi
 }
 
+unapply_if_applied() {
+  local patch_file="$1"
+  if patch --batch --forward --fuzz=0 --dry-run -R -d "$WORK" -p1 <"$patch_file" >/dev/null; then
+    patch --batch --forward --fuzz=0 -R -d "$WORK" -p1 <"$patch_file" >/dev/null
+  fi
+}
+
+# This patch modifies lines added by AUDIO_FORWARDING_PATCH; unstage first when the workspace already has it.
+unapply_if_applied "$AUDIO_GPIO_MIC_PATCH"
+
 apply_from_base "$LOG_PATCH"
 apply_from_base "$AUDIO_LEGACY_PATCH"
 apply_from_base "$INSECURE_ADB_PATCH"
@@ -109,6 +120,7 @@ apply_from_base "$WIFI_PATCH"
 apply_from_base "$P2P_PATCH"
 apply_from_base "$MIC_MUTE_PATCH"
 apply_from_base "$AUDIO_FORWARDING_PATCH"
+apply_from_base "$AUDIO_GPIO_MIC_PATCH"
 
 grep -Fqx '        ALOGW("No framebuffer; using Biscuit headless fake primary display");' \
   "$WORK/frameworks/native/services/surfaceflinger/DisplayHardware/HWComposer_hwc1.cpp"
@@ -190,6 +202,8 @@ grep -Fqx '        <MediaCodec name="OMX.google.flac.decoder" type="audio/flac">
   "$WORK/frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml"
 grep -Fqx '                && !strcmp(mComponentName.c_str(), "OMX.google.flac.decoder")) {' \
   "$WORK/frameworks/av/media/libstagefright/ACodec.cpp"
+grep -Fqx 'CM14="$ROOT/workspace/cm14.1"' "$ROOT/scripts/flac/flac-mediacodec-probe.sh"
+grep -Fq 'cm14.1-ubuntu20:latest' "$ROOT/scripts/flac/flac-mediacodec-probe.sh"
 grep -Fq '<bool name="def_wifi_on">true</bool>' \
   "$WORK/frameworks/base/packages/SettingsProvider/res/values/defaults.xml"
 grep -Fqx '# CONFIG_P2P=y' \
@@ -225,6 +239,14 @@ grep -Fqx '    libstagefright_soft_flacdec \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    sensors.mt8163 \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_audiotrack_test \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_audiorecord_test \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_asp_beam_probe \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    biscuit_mic_test \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    tinymix \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    tinyplay \' \
@@ -244,6 +266,8 @@ grep -Fqx '    .name = "Biscuit ambient light",' \
 grep -Fqx '    biscuit-ledd \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    biscuit-ledctl \' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+grep -Fqx '    i2c-poke \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
 grep -Fqx '    biscuit_service \' \
   "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
@@ -267,11 +291,17 @@ grep -Fqx 'service biscuit-ledd /system/bin/biscuit-ledd' \
   "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
 grep -Fqx '    socket biscuit-ledd stream 0660 system system' \
   "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+grep -Fqx '    chown root audio /sys/devices/soc/1000b000.pinctrl/mt_gpio' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
+grep -Fqx '    chmod 0664 /sys/devices/soc/1000b000.pinctrl/mt_gpio' \
+  "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
 ! grep -Eq 'boot_[ab]_x|/dev/block|mount_all|swapon_all|symlink /dev/block' \
   "$ROOT/cm14.1/device/amazon/biscuit/rootdir/init.device.rc"
 grep -Fqx 'LOCAL_MODULE := biscuit-ledd' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 grep -Fqx 'LOCAL_MODULE := biscuit-ledctl' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
+grep -Fqx 'LOCAL_MODULE := i2c-poke' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
 grep -Fqx 'LOCAL_MODULE := biscuit_service' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/Android.mk"
@@ -291,6 +321,18 @@ grep -Fqx '    WallpaperPicker' \
   "$ROOT/cm14.1/device/amazon/biscuit/empty-launcher/Android.mk"
 grep -Fqx '    write_file(LED_BOOT, "0");' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
+grep -Fqx 'LOCAL_MODULE := biscuit_audiotrack_test' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_audiorecord_test' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_asp_beam_probe' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fqx 'LOCAL_MODULE := biscuit_mic_test' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/Android.mk"
+grep -Fq 'AudioRecord::getMinFrameCount' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/biscuit_audiorecord_test.cpp"
+grep -Fq 'pcm_open(CARD, DEVICE, PCM_IN' \
+  "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/biscuit_mic_test.c"
 grep -Fqx '        updateVolumeLed(audio);' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
 grep -Fqx '        updateMicLed(muted);' \
@@ -317,7 +359,19 @@ grep -Fqx '    // ponytail: all vendor device callbacks must receive the real Fi
   "$WORK/hardware/amazon/audio/audio_wrapper.c"
 grep -Fqx '    return out->amazon_stream->write(out->amazon_stream, buffer, bytes);' \
   "$WORK/hardware/amazon/audio/audio_wrapper.c"
-grep -Fqx '    return a->set_mic_mute(a, state);' \
+grep -Fqx '    bool mic_muted;' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '    // ponytail: FireOS toggles GPIO87, then may fail missing ASP notify.' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '        ALOGW("vendor set_mic_mute(%d) failed after GPIO request: %d", state, ret);' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '    adev->mic_muted = state;' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+grep -Fqx '    *state = adev->mic_muted;' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+! grep -Fq 'memset(buffer, 0' \
+  "$WORK/hardware/amazon/audio/audio_wrapper.c"
+! grep -Fqx '    return a->set_mic_mute(a, state);' \
   "$WORK/hardware/amazon/audio/audio_wrapper.c"
 grep -Fqx 'LIBLOG_ABI_PUBLIC int lab126_log_write(int prio, const char *tag,' \
   "$WORK/system/core/liblog/logger_write.c"
@@ -374,6 +428,8 @@ grep -Fqx '  echo "Biscuit audio route wrapper already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-wrapper.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit audio forwarding wrapper already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-route-forwarding.patch"' "$STAGE"
+grep -Fqx '  echo "Biscuit GPIO mic mute wrapper already staged."' "$STAGE"
+grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-audio-gpio-mic-mute.patch"' "$STAGE"
 grep -Fqx '  echo "Biscuit framework P2P disable already staged."' "$STAGE"
 grep -Fqx '  apply_patch "$CM14" 1 "$REPO_ROOT/patches/cm14/cm14.1-biscuit-disable-framework-p2p.patch"' "$STAGE"
 ! grep -Fqx 'TARGET_NO_RECOVERY := true' "$ROOT/cm14.1/device/amazon/biscuit/BoardConfig.mk"
