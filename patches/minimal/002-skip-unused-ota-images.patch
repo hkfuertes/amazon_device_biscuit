@@ -1,0 +1,66 @@
+--- a/build/core/Makefile
++++ b/build/core/Makefile
+@@ -860,10 +860,12 @@
+ $(if $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SYSTEM_BASE_FS_PATH),$(hide) echo "system_base_fs_file=$(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SYSTEM_BASE_FS_PATH)" >> $(1))
+ $(if $(BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE),$(hide) echo "userdata_fs_type=$(BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE)" >> $(1))
+ $(if $(BOARD_USERDATAIMAGE_PARTITION_SIZE),$(hide) echo "userdata_size=$(BOARD_USERDATAIMAGE_PARTITION_SIZE)" >> $(1))
++$(if $(filter true,$(TARGET_SKIP_USERDATAIMAGE)),$(hide) echo "skip_userdata_image=true" >> $(1))
+ $(if $(BOARD_USERDATAEXTRAIMAGE_PARTITION_SIZE),$(hide) echo "userdataextra_size=$(BOARD_USERDATAEXTRAIMAGE_PARTITION_SIZE)" >> $(1))
+ $(if $(BOARD_USERDATAEXTRAIMAGE_PARTITION_NAME),$(hide) echo "userdataextra_name=$(BOARD_USERDATAEXTRAIMAGE_PARTITION_NAME)" >> $(1))
+ $(if $(BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE),$(hide) echo "cache_fs_type=$(BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE)" >> $(1))
+ $(if $(BOARD_CACHEIMAGE_PARTITION_SIZE),$(hide) echo "cache_size=$(BOARD_CACHEIMAGE_PARTITION_SIZE)" >> $(1))
++$(if $(filter true,$(TARGET_SKIP_CACHEIMAGE)),$(hide) echo "skip_cache_image=true" >> $(1))
+ $(if $(BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE),$(hide) echo "vendor_fs_type=$(BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE)" >> $(1))
+ $(if $(BOARD_VENDORIMAGE_EXTFS_INODE_COUNT),$(hide) echo "vendor_extfs_inode_count=$(BOARD_VENDORIMAGE_EXTFS_INODE_COUNT)" >> $(1))
+ $(if $(BOARD_VENDORIMAGE_PARTITION_SIZE),$(hide) echo "vendor_size=$(BOARD_VENDORIMAGE_PARTITION_SIZE)" >> $(1))
+@@ -1487,6 +1489,9 @@
+ 
+ # Don't build userdata.img if it's extfs but no partition size
+ skip_userdata.img :=
++ifeq ($(TARGET_SKIP_USERDATAIMAGE),true)
++skip_userdata.img := true
++endif
+ ifdef INTERNAL_USERIMAGES_EXT_VARIANT
+ ifndef BOARD_USERDATAIMAGE_PARTITION_SIZE
+ skip_userdata.img := true
+@@ -1547,6 +1552,9 @@
+ 
+ # -----------------------------------------------------------------
+ # cache partition image
++ifeq ($(TARGET_SKIP_CACHEIMAGE),true)
++IGNORE_CACHE_LINK := --exclude=cache
++else
+ ifdef BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE
+ INTERNAL_CACHEIMAGE_FILES := \
+     $(filter $(TARGET_OUT_CACHE)/%,$(ALL_DEFAULT_INSTALLED_MODULES))
+@@ -1579,6 +1587,7 @@
+ # we need to ignore the broken cache link when doing the rsync
+ IGNORE_CACHE_LINK := --exclude=cache
+ endif # BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE
++endif # TARGET_SKIP_CACHEIMAGE
+ 
+ 
+ # -----------------------------------------------------------------
+--- a/build/tools/releasetools/add_img_to_target_files.py
++++ b/build/tools/releasetools/add_img_to_target_files.py
+@@ -468,12 +468,14 @@
+     banner("system_other")
+     AddSystemOther(output_zip)
+   if not OPTIONS.is_signing:
+-    banner("userdata")
+-    AddUserdata(output_zip)
+-    banner("extrauserdata")
+-    AddUserdataExtra(output_zip)
+-    banner("cache")
+-    AddCache(output_zip)
++    if OPTIONS.info_dict.get("skip_userdata_image") != "true":
++      banner("userdata")
++      AddUserdata(output_zip)
++      banner("extrauserdata")
++      AddUserdataExtra(output_zip)
++    if OPTIONS.info_dict.get("skip_cache_image") != "true":
++      banner("cache")
++      AddCache(output_zip)
+   if has_oem:
+     banner("oem")
+     AddOem(output_zip)

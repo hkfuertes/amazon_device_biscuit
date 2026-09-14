@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# Guard the CM14.1 Biscuit full-product layout and staged payload contract.
+# Guard the CM14.1 Biscuit full/minimal layout and staged payload contract.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FULL_PATCH_DIR="$ROOT/patches/full"
+MINIMAL_PATCH_DIR="$ROOT/patches/minimal"
 KERNEL_PATCH_DIR="$ROOT/patches/kernel"
 STAGE="$ROOT/scripts/stage-tree.sh"
 BUILD="$ROOT/scripts/build.sh"
@@ -16,6 +17,7 @@ WORKSPACE="$ROOT/workspace/cm14.1"
 [[ -d "$VENDOR" ]]
 [[ ! -e "$ROOT/cm14.1" ]]
 [[ "$(find "$FULL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 28 ]]
+[[ "$(find "$MINIMAL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 5 ]]
 [[ "$(find "$KERNEL_PATCH_DIR" -maxdepth 1 -name '*.patch' | wc -l)" == 3 ]]
 
 printf '%s\n' "$FULL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
@@ -50,6 +52,15 @@ printf '%s\n' "$FULL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF
 EOF
 )
 
+printf '%s\n' "$MINIMAL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
+001-amonet2-bcb-slotselect.patch
+002-skip-unused-ota-images.patch
+003-insecure-adb-default-props.patch
+004-sta-only-wpa-supplicant.patch
+005-wpa-passphrase.patch
+EOF
+)
+
 printf '%s\n' "$KERNEL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'EOF'
 010-netfilter-xt-compat-percpu.patch
 020-force-ramdisk-root.patch
@@ -57,16 +68,20 @@ printf '%s\n' "$KERNEL_PATCH_DIR"/*.patch | sed 's#.*/##' | diff -u - <(cat <<'E
 EOF
 )
 
-grep -Fqx 'FULL_PATCH_STATE_DIR="$CM14/.repo/biscuit-patch-state"' "$STAGE"
-grep -Fqx 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$FULL_PATCH_STATE_DIR" \' "$STAGE"
-grep -Fqx '  "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$REPO_ROOT/patches/full"' "$STAGE"
+grep -Fqx 'PATCH_PROFILE="${PATCH_PROFILE:-full}"' "$STAGE"
+grep -Fqx 'PROFILE_PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' "$STAGE"
+grep -Fq 'PATCH_REVERSE_ONLY=1 "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$dir"' "$STAGE"
+grep -Fq 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \' "$STAGE"
+grep -Fq '"$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"' "$STAGE"
 grep -Fqx '"$REPO_ROOT/scripts/apply-patches.sh" "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel"' "$STAGE"
-grep -Fqx '"$REPO_ROOT/scripts/stage-tree.sh"' "$BUILD"
+grep -Fqx 'LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"' "$BUILD"
+grep -Fqx '  biscuit_minimal-userdebug)' "$BUILD"
+grep -Fqx 'PATCH_PROFILE="$PATCH_PROFILE" "$REPO_ROOT/scripts/stage-tree.sh"' "$BUILD"
 grep -Fqx 'CM14="${CM14:-$REPO_ROOT/workspace/cm14.1}"' "$STAGE"
 grep -Fqx 'CM14="${CM14:-$REPO_ROOT/workspace/cm14.1}"' "$BUILD"
 if [[ -f "$WORKSPACE/system/core/liblog/logger_write.c" ]]; then
-  [[ "$(grep -c 'LIBLOG_ABI_PUBLIC int lab126_log_write' \
-    "$WORKSPACE/system/core/liblog/logger_write.c")" == "1" ]]
+  count="$(grep -c 'LIBLOG_ABI_PUBLIC int lab126_log_write' "$WORKSPACE/system/core/liblog/logger_write.c" || true)"
+  [[ "$count" == 0 || "$count" == 1 ]]
 fi
 
 grep -Fqx 'TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)' "$DEVICE/BoardConfig.mk"
@@ -106,4 +121,6 @@ grep -Fqx 'HWC_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-headless
 grep -Fqx 'RADIO_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-radio-files.txt"' "$EXTRACTOR"
 grep -Fqx 'BT_MANIFEST="$REPO_ROOT/vendor/amazon/mt8163-common/biscuit-bluetooth-files.txt"' "$EXTRACTOR"
 
-echo 'PASS CM14 Biscuit layout and payload contract'
+bash "$ROOT/tests/test-minimal-product.sh"
+
+echo 'PASS CM14 Biscuit full/minimal layout and payload contract'

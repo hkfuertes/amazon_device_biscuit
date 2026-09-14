@@ -1,0 +1,160 @@
+#!/system/bin/sh
+# Root-ADB WPA provisioning for the framework-free Biscuit product.
+set -eu
+
+WPA_CLI=/system/bin/wpa_cli
+WPA_PASSPHRASE=/system/bin/wpa_passphrase
+WPA_SOCKETS=/data/misc/wifi/sockets
+SETPROP=/system/bin/setprop
+
+fail() {
+    printf 'wpa_connect: %s\n' "$1" >&2
+    exit 1
+}
+
+usage() {
+    echo "usage: wpa_connect '<ssid>' '<psk-or-64hex>'" >&2
+    exit 2
+}
+
+[ "$#" -eq 2 ] || usage
+ssid=$1
+credential=$2
+[ -n "$ssid" ] || fail 'SSID is empty'
+
+is_hex_key() {
+    [ ${#1} -eq 64 ] || return 1
+    case "$1" in
+        *[!0123456789abcdefABCDEF]*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
+case ${#credential} in
+    64) is_hex_key "$credential" || fail '64-character key must be hexadecimal' ;;
+    8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33|34|35|36|37|38|39|40|41|42|43|44|45|46|47|48|49|50|51|52|53|54|55|56|57|58|59|60|61|62|63) ;;
+    *) fail 'WPA passphrase must be 8..63 chars, or a 64-hex PSK' ;;
+esac
+
+wifi_cli() {
+    out=$("$WPA_CLI" -iwlan0 -p"$WPA_SOCKETS" "$@" 2>&1) || {
+        printf '%s\n' "$out" >&2
+        return 1
+    }
+    case "$out" in
+        *FAIL*) printf '%s\n' "$out" >&2; return 1 ;;
+    esac
+    printf '%s\n' "$out"
+    return 0
+}
+
+status_value() {
+    wanted=$1
+    status=$2
+    old_ifs=$IFS
+    IFS='
+'
+    for line in $status; do
+        case "$line" in
+            "$wanted"=*) IFS=$old_ifs; printf '%s\n' "${line#*=}"; return 0 ;;
+        esac
+    done
+    IFS=$old_ifs
+    return 1
+}
+
+parse_network_block() {
+    block=$1
+    ssid_value=
+    psk_value=
+    old_ifs=$IFS
+    IFS='
+'
+    for line in $block; do
+        case "$line" in
+            *ssid=*) ssid_value=${line#*ssid=} ;;
+            *'#psk='*) ;;
+            *psk=*) psk_value=${line#*psk=} ;;
+        esac
+    done
+    IFS=$old_ifs
+    [ -n "$ssid_value" ] || fail 'could not encode SSID'
+    [ -n "$psk_value" ] || fail 'could not derive PSK'
+}
+
+if is_hex_key "$credential"; then
+    block=$("$WPA_PASSPHRASE" "$ssid" 00000000) || fail 'could not encode SSID'
+    parse_network_block "$block"
+    psk_value=$credential
+else
+    block=$("$WPA_PASSPHRASE" "$ssid" "$credential") || fail 'could not derive PSK'
+    parse_network_block "$block"
+fi
+unset block credential
+
+wait_for_supplicant() {
+    attempts=0
+    while [ "$attempts" -lt 45 ]; do
+        wifi_cli ping >/dev/null 2>&1 && return 0
+        "$SETPROP" ctl.start wifi_bootstrap >/dev/null 2>&1 || true
+        attempts=$((attempts + 1))
+        sleep 1
+    done
+    return 1
+}
+
+remove_ssid() {
+    networks=$(wifi_cli list_networks) || return 0
+    old_ifs=$IFS
+    IFS='
+'
+    for line in $networks; do
+        case "$line" in
+            network*) continue ;;
+        esac
+        id=${line%%[[:space:]]*}
+        rest=${line#*[[:space:]]}
+        listed_ssid=${rest%%[[:space:]]*}
+        case "$id" in
+            ''|*[!0-9]*) continue ;;
+        esac
+        [ "$listed_ssid" = "$ssid" ] && wifi_cli remove_network "$id" >/dev/null || true
+    done
+    IFS=$old_ifs
+}
+
+wait_for_supplicant || fail 'wpa_supplicant is not ready'
+remove_ssid
+network_id=$(wifi_cli add_network) || fail 'add_network failed'
+case "$network_id" in
+    ''|*[!0-9]*) fail "invalid network id: $network_id" ;;
+esac
+
+cleanup() {
+    wifi_cli remove_network "$network_id" >/dev/null 2>&1 || true
+}
+
+wifi_cli set_network "$network_id" ssid "$ssid_value" >/dev/null || cleanup
+wifi_cli set_network "$network_id" psk "$psk_value" >/dev/null || cleanup
+wifi_cli set_network "$network_id" key_mgmt WPA-PSK >/dev/null || cleanup
+wifi_cli enable_network "$network_id" >/dev/null || cleanup
+wifi_cli save_config >/dev/null || cleanup
+wifi_cli scan >/dev/null 2>&1 || true
+wifi_cli reconnect >/dev/null || wifi_cli reassociate >/dev/null || cleanup
+
+"$SETPROP" ctl.restart dhcpcd_wlan0
+attempts=0
+while [ "$attempts" -lt 45 ]; do
+    status=$(wifi_cli status) || cleanup
+    state=$(status_value wpa_state "$status" || true)
+    ip_address=$(status_value ip_address "$status" || true)
+    if [ "$state" = COMPLETED ] && [ -n "$ip_address" ]; then
+        printf 'connected: %s (%s)\n' "$ssid" "$ip_address"
+        exit 0
+    fi
+    attempts=$((attempts + 1))
+    sleep 1
+done
+
+cleanup
+fail 'association or DHCP timed out'
