@@ -335,8 +335,23 @@ grep -Fq 'pcm_open(CARD, DEVICE, PCM_IN' \
   "$ROOT/cm14.1/device/amazon/biscuit/audio-debug/biscuit_mic_test.c"
 grep -Fqx '        updateVolumeLed(audio);' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
-grep -Fqx '        updateMicLed(muted);' \
+grep -Fqx '            mMicMuted = muted;' \
   "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
+! grep -Fq 'updateMicLed' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
+! grep -Fq 'sendOk("MUTE' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/service/src/com/amazon/biscuit/service/BiscuitService.java"
+! grep -Fq 'MUTE ' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
+! grep -Fq 'volume-muted' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
+! grep -Fq 'g_mic_muted' \
+  "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/biscuit-ledd.cpp"
+! grep -Fq 'volume-muted.animation' \
+  "$ROOT/cm14.1/device/amazon/biscuit/device.mk"
+test ! -e "$ROOT/cm14.1/device/amazon/biscuit/biscuit-service/animations/volume-muted.animation"
+grep -Fqx '  system/etc/biscuit-ledd/volume-muted.animation \' \
+  "$ROOT/scripts/build-cm14.1.sh"
 grep -Fqx 'mix "MFP Gpio Mute" 0' \
   "$ROOT/cm14.1/device/amazon/biscuit/audio/audio_init.sh"
 grep -Fqx 'mix "Ext_Speaker_Amp_Switch" Off' \
