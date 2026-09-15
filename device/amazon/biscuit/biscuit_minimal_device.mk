@@ -42,6 +42,11 @@ PRODUCT_PACKAGES += \
     wpa_cli \
     wpa_passphrase \
     dhcpcd-6.8.2 \
+    biscuit-minimal-dhcpcd-run-hooks \
+    biscuit-minimal-resolvconf-symlink \
+    ping \
+    ping6 \
+    ip \
     libtinyalsa \
     tinymix \
     tinyplay \
@@ -61,7 +66,6 @@ PRODUCT_PACKAGES += \
     cpustats \
     mmc_utils \
     ksminfo \
-    dnschk \
     anrd \
     cacerts \
     biscuit-minimal-cacerts-symlink \
@@ -92,6 +96,7 @@ endif
 TARGET_BOARD_PLATFORM := mt8163
 TARGET_BOOTLOADER_BOARD_NAME := biscuit
 TARGET_BISCUIT_MINIMAL := true
+DHCPCD_USE_SCRIPT := yes
 TARGET_DISABLE_CMSDK := true
 WITHOUT_CHECK_API := true
 WITH_DEXPREOPT := false

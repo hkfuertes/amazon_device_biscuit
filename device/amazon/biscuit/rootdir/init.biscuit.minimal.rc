@@ -19,6 +19,7 @@ on post-fs-data
     mkdir /data/misc/wpa_supplicant 0770 wifi wifi
     mkdir /data/misc/dhcp 0770 dhcp wifi
     mkdir /data/misc/dhcp-6.8.2 0770 dhcp wifi
+    mkdir /data/misc/resolv 0770 dhcp wifi
     mkdir /data/wifi 0771 wifi wifi
 
     # Amazon's audio HAL and the tinyalsa route use this GPIO sysfs node.
@@ -90,7 +91,7 @@ service wifi_events /system/bin/wpa_cli -iwlan0 -p/data/misc/wifi/sockets -a/sys
     group wifi inet
     disabled
 
-service dhcpcd_wlan0 /system/bin/dhcpcd-6.8.2 -ABKL -f /system/etc/dhcpcd/dhcpcd.conf wlan0
+service dhcpcd_wlan0 /system/bin/dhcpcd-6.8.2 -ABKL -c /system/bin/dhcpcd-run-hooks -f /system/etc/dhcpcd/dhcpcd.conf wlan0
     user root
     group dhcp wifi inet
     disabled
