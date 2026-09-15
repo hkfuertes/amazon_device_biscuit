@@ -17,6 +17,7 @@ PRODUCT_PACKAGES += \
     libcutils \
     libdl \
     liblog \
+    libamazonlog \
     libm \
     libnetutils \
     libstdc++ \
@@ -62,6 +63,7 @@ PRODUCT_PACKAGES += \
     ksminfo \
     dnschk \
     anrd \
+    cacerts \
     iptables \
     ip6tables
 
@@ -77,6 +79,8 @@ PRODUCT_COPY_FILES += \
     device/amazon/mt8163-common/rootdir/etc/ueventd.mt8163.rc:root/ueventd.mt8163.rc \
     external/dhcpcd-6.8.2/dhcpcd.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/dhcpcd/dhcpcd.conf \
     $(LOCAL_PATH)/audio/audio_init.sh:$(TARGET_COPY_OUT_SYSTEM)/etc/audio_init.sh \
+    $(LOCAL_PATH)/cacerts/ca-certificates.crt:$(TARGET_COPY_OUT_SYSTEM)/etc/ssl/certs/ca-certificates.crt \
+    $(LOCAL_PATH)/cacerts/ca-certificates.crt:$(TARGET_COPY_OUT_SYSTEM)/etc/security/cacerts.pem \
     $(LOCAL_PATH)/wpa_supplicant_overlay.conf:$(TARGET_COPY_OUT_SYSTEM)/etc/wifi/wpa_supplicant_overlay.conf \
     $(LOCAL_PATH)/rootdir/wifi-bootstrap.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/wifi-bootstrap.sh \
     $(LOCAL_PATH)/rootdir/wpa_connect:$(TARGET_COPY_OUT_SYSTEM)/bin/wpa_connect

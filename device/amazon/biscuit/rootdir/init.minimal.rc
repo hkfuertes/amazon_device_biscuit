@@ -24,6 +24,8 @@ on init
 
     symlink /system/etc /etc
     symlink /system/vendor /vendor
+    # fstab.mt8163 uses the same bootdevice alias as full CM14.
+    symlink /dev/block/platform/soc/11230000.mmc/ /dev/block/platform/bootdevice
     symlink /sys/kernel/debug /d
     mkdir /tmp 0771 root root
 
@@ -72,8 +74,8 @@ on boot
 on property:sys.powerctl=*
     powerctl ${sys.powerctl}
 
-on load_all_props_action
-    load_all_props
+on load_system_props_action
+    load_system_props
 
 on firmware_mounts_complete
     rm /dev/.booting
@@ -83,7 +85,7 @@ on late-init
     trigger fs
     trigger post-fs
     trigger post-fs-data
-    trigger load_all_props_action
+    trigger load_system_props_action
     trigger firmware_mounts_complete
     trigger early-boot
     trigger boot

@@ -91,14 +91,13 @@ while [ "$radio_attempt" -le "$max_radio_attempts" ]; do
     else
         setprop sys.biscuit.wifi.ready 1
         if scan; then
+            if associate; then
+                setprop ctl.restart dhcpcd_wlan0
+                exit 0
+            fi
             has_saved_network
             saved=$?
-            if [ "$saved" -eq 0 ]; then
-                if associate; then
-                    setprop ctl.restart dhcpcd_wlan0
-                    exit 0
-                fi
-            elif [ "$saved" -eq 1 ]; then
+            if [ "$saved" -eq 1 ]; then
                 # No saved network after a wipe: keep wpa_supplicant alive for provisioning.
                 exit 0
             fi

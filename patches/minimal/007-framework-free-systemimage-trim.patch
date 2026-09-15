@@ -1,7 +1,7 @@
 --- a/build/core/main.mk	2026-09-15 00:15:56.350048979 +0200
 +++ b/build/core/main.mk	2026-09-15 00:15:56.354049001 +0200
 @@ -369,7 +369,9 @@
- 
+
    ifeq ($(user_variant),userdebug)
      # Pick up some extra useful tools
 +  ifneq ($(TARGET_PRODUCT),biscuit_minimal)
@@ -11,7 +11,7 @@
      # Disable debugging in plain user builds.
      enable_target_debugging :=
 @@ -864,9 +866,14 @@
- 
+
  # All the droid stuff, in directories
  .PHONY: files
 +ifeq ($(TARGET_BISCUIT_MINIMAL),true)
@@ -22,12 +22,22 @@
          $(modules_to_install) \
          $(INSTALLED_ANDROID_INFO_TXT_TARGET)
 +endif
- 
+
  # -------------------------------------------------------------------
- 
+
 --- a/build/core/Makefile	2026-09-15 00:15:56.354049001 +0200
 +++ b/build/core/Makefile	2026-09-15 00:15:56.354049001 +0200
-@@ -866,6 +866,7 @@
+@@ -849,6 +849,9 @@
+
+ SELINUX_FC := $(TARGET_ROOT_OUT)/file_contexts.bin
+ INTERNAL_USERIMAGES_DEPS += $(SELINUX_FC)
++ifeq ($(TARGET_BISCUIT_MINIMAL),true)
++$(INSTALLED_RAMDISK_TARGET): $(SELINUX_FC)
++endif
+
+ INTERNAL_USERIMAGES_DEPS += $(BLK_ALLOC_TO_BASE_FS)
+
+@@ -866,6 +869,7 @@
  $(if $(BOARD_SYSTEMIMAGE_SQUASHFS_BLOCK_SIZE),$(hide) echo "system_squashfs_block_size=$(BOARD_SYSTEMIMAGE_SQUASHFS_BLOCK_SIZE)" >> $(1))
  $(if $(BOARD_SYSTEMIMAGE_SQUASHFS_DISABLE_4K_ALIGN),$(hide) echo "system_squashfs_disable_4k_align=$(BOARD_SYSTEMIMAGE_SQUASHFS_DISABLE_4K_ALIGN)" >> $(1))
  $(if $(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SYSTEM_BASE_FS_PATH),$(hide) echo "system_base_fs_file=$(PRODUCTS.$(INTERNAL_PRODUCT).PRODUCT_SYSTEM_BASE_FS_PATH)" >> $(1))
@@ -38,7 +48,7 @@
 @@ -1001,12 +1002,16 @@
  #   b) We build a single image that contains boot and recovery both
  #      (BOARD_USES_RECOVERY_AS_BOOT = true).
- 
+
 +ifeq ($(TARGET_BISCUIT_MINIMAL),true)
 +RECOVERY_RESOURCE_ZIP :=
 +else
@@ -49,7 +59,7 @@
  RECOVERY_RESOURCE_ZIP :=
  endif
 +endif
- 
+
  ifeq ($(recovery_fstab),)
    $(info No recovery.fstab for TARGET_DEVICE $(TARGET_DEVICE))
 @@ -1171,11 +1176,15 @@
@@ -71,7 +81,7 @@
 @@ -1237,12 +1246,18 @@
      $(filter-out $(foreach p,$(overridden_packages),$(p) %/$(p).apk), \
          $(ALL_PDK_FUSION_FILES))
- 
+
 +ifeq ($(TARGET_BISCUIT_MINIMAL),true)
 +INTERNAL_SYSTEMIMAGE_FILES := $(filter $(TARGET_OUT)/%, \
 +    $(ALL_DEFAULT_INSTALLED_MODULES) \
@@ -84,13 +94,13 @@
      $(PDK_FUSION_SYSIMG_FILES) \
      $(RECOVERY_RESOURCE_ZIP))
 +endif
- 
- 
+
+
  FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEPS)
 @@ -1296,10 +1311,49 @@
  endef
  endif
- 
+
 +ifeq ($(TARGET_BISCUIT_MINIMAL),true)
 +define clean-biscuit-minimal-target-out
 +  $(hide) rm -rf \
@@ -142,7 +152,7 @@
 @@ -1764,6 +1764,9 @@
    if info_dict is None:
      info_dict = OPTIONS.info_dict
- 
+
 +  if info_dict.get("biscuit_minimal", None) == "true":
 +    return
 +
