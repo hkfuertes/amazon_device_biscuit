@@ -51,7 +51,7 @@ grep -Fq '$(TARGET_OUT)/lib/libandroid_runtime.so' "$ROOT/patches/minimal/007-fr
 grep -Fq '$(TARGET_OUT)/lib/libLLVM.so' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq '$(INSTALLED_RAMDISK_TARGET): $(SELINUX_FC)' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 [[ -f "$ROOT/vendor/amazon/mt8163-common/mt8163-common-minimal-vendor.mk" ]]
-for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat libamazonlog wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 tinymix tinyplay tinycap tinypcminfo i2c-poke biscuit_mic_test bash nano tcpdump fio strace procrank procmem librank latencytop cpustats mmc_utils ksminfo dnschk anrd cacerts iptables ip6tables; do
+for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat libamazonlog wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 tinymix tinyplay tinycap tinypcminfo i2c-poke biscuit_mic_test bash nano tcpdump fio strace procrank procmem librank latencytop cpustats mmc_utils ksminfo dnschk anrd cacerts biscuit-minimal-cacerts-symlink iptables ip6tables; do
   grep -Eq "^[[:space:]]+$pkg([[:space:]]+\\\\)?[[:space:]]*$" "$MINIMAL_DEVICE"
 done
 for forbidden in BiscuitService BiscuitEmptyLauncher biscuit-ledd biscuit-ledctl biscuit_service surfaceflinger zygote system_server bootanimation Bluetooth; do
@@ -60,8 +60,11 @@ done
 
 grep -Fqx '    $(LOCAL_PATH)/rootdir/init.minimal.rc:root/init.rc \' "$MINIMAL_DEVICE"
 grep -Fqx '    $(BISCUIT_MINIMAL_INIT_RC):root/init.biscuit.minimal.rc \' "$MINIMAL_DEVICE"
-grep -Fqx '    $(LOCAL_PATH)/cacerts/ca-certificates.crt:$(TARGET_COPY_OUT_SYSTEM)/etc/ssl/certs/ca-certificates.crt \' "$MINIMAL_DEVICE"
-grep -Fqx '    $(LOCAL_PATH)/cacerts/ca-certificates.crt:$(TARGET_COPY_OUT_SYSTEM)/etc/security/cacerts.pem \' "$MINIMAL_DEVICE"
+grep -Fqx '    biscuit-minimal-cacerts-symlink \' "$MINIMAL_DEVICE"
+! grep -Fq 'cacerts/ca-certificates.crt' "$MINIMAL_DEVICE"
+test ! -e device/amazon/biscuit/cacerts/ca-certificates.crt
+grep -Fq 'LOCAL_MODULE := biscuit-minimal-cacerts-symlink' device/amazon/biscuit/minimal/Android.mk
+grep -Fq 'ln -s ../security/cacerts $@' device/amazon/biscuit/minimal/Android.mk
 grep -Fqx '    $(LOCAL_PATH)/rootdir/wifi-bootstrap.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/wifi-bootstrap.sh \' "$MINIMAL_DEVICE"
 grep -Fqx '    $(LOCAL_PATH)/rootdir/wpa_connect:$(TARGET_COPY_OUT_SYSTEM)/bin/wpa_connect' "$MINIMAL_DEVICE"
 grep -Fqx '    $(LOCAL_PATH)/rootdir/ledcontroller:$(TARGET_COPY_OUT_SYSTEM)/bin/ledcontroller' "$MINIMAL_DEVICE"
