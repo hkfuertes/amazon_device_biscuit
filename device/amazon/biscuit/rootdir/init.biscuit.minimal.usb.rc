@@ -1,0 +1,5 @@
+# Runtime properties avoid duplicate adb defaults; set TCP before USB starts adbd.
+on boot
+    setprop service.adb.tcp.port 5555
+    setprop persist.sys.usb.config adb
+    setprop sys.usb.config adb

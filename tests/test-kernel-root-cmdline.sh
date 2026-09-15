@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PATCH="$ROOT/patches/kernel/020-force-ramdisk-root.patch"
 CMDLINE_FILTER_PATCH="$ROOT/patches/kernel/030-filter-bootloader-cmdline.patch"
 ADB_PATCH="$ROOT/patches/full/014-insecure-adb-default-props.patch"
+MINIMAL_ADB_PATCH="$ROOT/patches/minimal/003-insecure-adb-default-props.patch"
 STAGE="$ROOT/scripts/stage-tree.sh"
 BOARD="$ROOT/device/amazon/biscuit/BoardConfig.mk"
 
@@ -32,17 +33,20 @@ grep -Fq 'drivers/of/fdt.c' "$CMDLINE_FILTER_PATCH"
 grep -Fq 'biscuit_append_safe_fdt_bootargs(cmdline, biscuit_bootargs)' "$CMDLINE_FILTER_PATCH"
 ! grep -Fq 'atags_parse.c' "$CMDLINE_FILTER_PATCH"
 
-grep -Fqx 'FULL_PATCH_STATE_DIR="$CM14/.repo/biscuit-patch-state"' "$STAGE"
-grep -Fqx 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$FULL_PATCH_STATE_DIR" \' "$STAGE"
-grep -Fqx '  "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$REPO_ROOT/patches/full"' "$STAGE"
+grep -Fqx 'PATCH_PROFILE="${PATCH_PROFILE:-full}"' "$STAGE"
+grep -Fqx 'PROFILE_PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' "$STAGE"
+grep -Fq 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \' "$STAGE"
+grep -Fq '"$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"' "$STAGE"
 grep -Fqx 'TARGET_FORCE_INSECURE_ADB := true' "$BOARD"
-for line in \
-  '+ifeq ($(TARGET_FORCE_INSECURE_ADB),true)' \
-  '+ADDITIONAL_DEFAULT_PROPERTIES := $(filter-out ro.adb.secure=% ro.secure=% cm.service.adb.root=%,$(ADDITIONAL_DEFAULT_PROPERTIES))' \
-  '+    ro.adb.secure=0 \' \
-  '+    ro.secure=0 \' \
-  '+    cm.service.adb.root=1'; do
-  grep -Fqx "$line" "$ADB_PATCH"
+for patch in "$ADB_PATCH" "$MINIMAL_ADB_PATCH"; do
+  for line in \
+    '+ifeq ($(TARGET_FORCE_INSECURE_ADB),true)' \
+    '+ADDITIONAL_DEFAULT_PROPERTIES := $(filter-out ro.adb.secure=% ro.secure=% cm.service.adb.root=%,$(ADDITIONAL_DEFAULT_PROPERTIES))' \
+    '+    ro.adb.secure=0 \' \
+    '+    ro.secure=0 \' \
+    '+    cm.service.adb.root=1'; do
+    grep -Fqx "$line" "$patch"
+  done
 done
 
 echo 'PASS CM14 persistent ramdisk-root and root-ADB contract'

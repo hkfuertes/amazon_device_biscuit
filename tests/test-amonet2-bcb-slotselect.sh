@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM14="${CM14:-$ROOT/workspace/cm14.1}"
 CORE="$CM14/system/core"
 PATCH="$ROOT/patches/full/002-amonet2-bcb-slotselect.patch"
+MINIMAL_PATCH="$ROOT/patches/minimal/001-amonet2-bcb-slotselect.patch"
 STAGE="$ROOT/scripts/stage-tree.sh"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -22,11 +23,14 @@ grep -Fqx '#define AMONET_BCB_VERSION 1' \
   "$WORK/system/core/fs_mgr/fs_mgr_slotselect.c"
 grep -Fqx '    out_suffix[1] = '\''a'\'' + slot;' \
   "$WORK/system/core/fs_mgr/fs_mgr_slotselect.c"
-grep -Fqx 'FULL_PATCH_STATE_DIR="$CM14/.repo/biscuit-patch-state"' \
+cmp -s "$PATCH" "$MINIMAL_PATCH"
+grep -Fqx 'PATCH_PROFILE="${PATCH_PROFILE:-full}"' \
   "$STAGE"
-grep -Fqx 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$FULL_PATCH_STATE_DIR" \' \
+grep -Fqx 'PROFILE_PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' \
   "$STAGE"
-grep -Fqx '  "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$REPO_ROOT/patches/full"' \
+grep -Fq 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \' \
+  "$STAGE"
+grep -Fq '"$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"' \
   "$STAGE"
 
 python3 - <<'PY'
