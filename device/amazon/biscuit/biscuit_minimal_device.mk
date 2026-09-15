@@ -28,6 +28,9 @@ PRODUCT_PACKAGES += \
     logwrapper \
     logd \
     logcat \
+    servicemanager \
+    netd \
+    ndc \
     sh \
     toolbox \
     toybox \

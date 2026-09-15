@@ -6,11 +6,12 @@ WPA_CLI=/system/bin/wpa_cli
 WPA_SOCKETS=/data/misc/wifi/sockets
 DATA_CONF=/data/misc/wifi/wpa_supplicant.conf
 SYSTEM_CONF=/system/etc/wifi/wpa_supplicant.conf
+DHCPCD_PID=/data/misc/dhcp-6.8.2/dhcpcd-wlan0.pid
 
 if [ "$#" -ne 0 ]; then
     [ "$#" -eq 2 ] && [ "$1" = wlan0 ] || exit 1
     case "$2" in
-        CONNECTED) setprop ctl.restart dhcpcd_wlan0 ;;
+        CONNECTED) rm -f "$DHCPCD_PID"; setprop ctl.restart dhcpcd_wlan0 ;;
         DISCONNECTED) setprop ctl.stop dhcpcd_wlan0 ;;
         *) exit 1 ;;
     esac
@@ -19,6 +20,11 @@ fi
 
 wifi_cli() {
     "$WPA_CLI" -iwlan0 -p"$WPA_SOCKETS" "$@" >/dev/null 2>&1
+}
+
+restart_dhcp() {
+    rm -f "$DHCPCD_PID"
+    setprop ctl.restart dhcpcd_wlan0
 }
 
 seed_config() {
@@ -92,7 +98,7 @@ while [ "$radio_attempt" -le "$max_radio_attempts" ]; do
         setprop sys.biscuit.wifi.ready 1
         if scan; then
             if associate; then
-                setprop ctl.restart dhcpcd_wlan0
+                restart_dhcp
                 exit 0
             fi
             has_saved_network

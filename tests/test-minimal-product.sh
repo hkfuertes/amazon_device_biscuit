@@ -51,7 +51,7 @@ grep -Fq '$(TARGET_OUT)/lib/libandroid_runtime.so' "$ROOT/patches/minimal/007-fr
 grep -Fq '$(TARGET_OUT)/lib/libLLVM.so' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 grep -Fq '$(INSTALLED_RAMDISK_TARGET): $(SELINUX_FC)' "$ROOT/patches/minimal/007-framework-free-systemimage-trim.patch"
 [[ -f "$ROOT/vendor/amazon/mt8163-common/mt8163-common-minimal-vendor.mk" ]]
-for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat libamazonlog wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 biscuit-minimal-dhcpcd-run-hooks biscuit-minimal-resolvconf-symlink ping ping6 ip tinymix tinyplay tinycap tinypcminfo i2c-poke biscuit_mic_test bash nano tcpdump fio strace procrank procmem librank latencytop cpustats mmc_utils ksminfo anrd cacerts biscuit-minimal-cacerts-symlink iptables ip6tables; do
+for pkg in init init.environ.rc adbd sh toolbox toybox logd logcat servicemanager netd ndc libamazonlog wpa_supplicant wpa_cli wpa_passphrase dhcpcd-6.8.2 biscuit-minimal-dhcpcd-run-hooks biscuit-minimal-resolvconf-symlink ping ping6 ip tinymix tinyplay tinycap tinypcminfo i2c-poke biscuit_mic_test bash nano tcpdump fio strace procrank procmem librank latencytop cpustats mmc_utils ksminfo anrd cacerts biscuit-minimal-cacerts-symlink iptables ip6tables; do
   grep -Eq "^[[:space:]]+$pkg([[:space:]]+\\\\)?[[:space:]]*$" "$MINIMAL_DEVICE"
 done
 for forbidden in BiscuitService BiscuitEmptyLauncher biscuit-ledd biscuit-ledctl biscuit_service surfaceflinger zygote system_server bootanimation Bluetooth; do
@@ -76,6 +76,9 @@ grep -Fq 'LOCAL_MODULE := biscuit-minimal-resolvconf-symlink' device/amazon/bisc
 grep -Fq 'ln -s /data/misc/resolv/resolv.conf $@' device/amazon/biscuit/minimal/Android.mk
 grep -Fq 'new_domain_name_servers' device/amazon/biscuit/minimal/dhcpcd-run-hooks
 grep -Fq 'nameserver $server' device/amazon/biscuit/minimal/dhcpcd-run-hooks
+grep -Fq '/system/bin/ndc resolver setnetdns 0 "$domains" $servers' device/amazon/biscuit/minimal/dhcpcd-run-hooks
+grep -Fq '/system/bin/ndc resolver clearnetdns 0' device/amazon/biscuit/minimal/dhcpcd-run-hooks
+grep -Fqx '    mkdir /data/misc/net 0750 root shell' "$HW_INIT"
 grep -Fqx '    mkdir /data/misc/resolv 0770 dhcp wifi' "$HW_INIT"
 grep -Fqx '    $(LOCAL_PATH)/rootdir/wifi-bootstrap.sh:$(TARGET_COPY_OUT_SYSTEM)/bin/wifi-bootstrap.sh \' "$MINIMAL_DEVICE"
 grep -Fqx '    $(LOCAL_PATH)/rootdir/wpa_connect:$(TARGET_COPY_OUT_SYSTEM)/bin/wpa_connect' "$MINIMAL_DEVICE"
@@ -88,6 +91,11 @@ grep -Fqx '    trigger load_system_props_action' "$INIT"
 ! grep -Fq 'load_all_props' "$INIT"
 grep -Fqx '    setprop sys.boot_completed 1' "$INIT"
 grep -Fqx 'on property:sys.powerctl=*' "$INIT"
+grep -Fqx 'on property:init.svc.servicemanager=running' "$INIT"
+grep -Fqx 'service servicemanager /system/bin/servicemanager' "$INIT"
+grep -Fqx 'service netd /system/bin/netd' "$INIT"
+grep -Fqx '    socket netd stream 0660 root dhcp' "$INIT"
+grep -Fqx '    socket dnsproxyd stream 0660 root inet' "$INIT"
 grep -Fqx 'service adbd /sbin/adbd --root_seclabel=u:r:su:s0' "$INIT"
 ! grep -Fq 'class_start main' "$INIT"
 ! grep -Fq 'class_start late_start' "$INIT"
@@ -100,6 +108,7 @@ grep -Fqx '    chmod 0660 /dev/stpbt' "$HW_INIT"
 grep -Fqx '    chown bluetooth bluetooth /dev/stpbt' "$HW_INIT"
 grep -Fqx 'service wpa_supplicant /system/bin/wpa_supplicant \' "$HW_INIT"
 grep -Fqx '    mkdir /data/misc/dhcp-6.8.2 0770 dhcp wifi' "$HW_INIT"
+grep -Fqx '    rm /data/misc/dhcp-6.8.2/dhcpcd-wlan0.pid' "$HW_INIT"
 grep -Fqx 'service dhcpcd_wlan0 /system/bin/dhcpcd-6.8.2 -ABKL -c /system/bin/dhcpcd-run-hooks -f /system/etc/dhcpcd/dhcpcd.conf wlan0' "$HW_INIT"
 grep -Fqx 'service ledcontroller /system/bin/ledcontroller' "$HW_INIT"
 ! grep -Fq '6620_launcher' "$HW_INIT"
@@ -112,6 +121,9 @@ grep -Fqx 'WPA_PASSPHRASE=/system/bin/wpa_passphrase' "$WPA_CONNECT"
 ! grep -Fq busybox "$WPA_CONNECT"
 ! grep -Fq awk "$WPA_CONNECT"
 ! grep -Fq 'tail -n' "$WPA_CONNECT"
+grep -Fqx 'DHCPCD_PID=/data/misc/dhcp-6.8.2/dhcpcd-wlan0.pid' "$WIFI"
+grep -Fq 'rm -f "$DHCPCD_PID"' "$WIFI"
+grep -Fq 'restart_dhcp' "$WIFI"
 grep -Fq 'if associate; then' "$WIFI"
 grep -Fq '# No saved network after a wipe: keep wpa_supplicant alive for provisioning.' "$WIFI"
 ! grep -Fq awk "$WIFI"

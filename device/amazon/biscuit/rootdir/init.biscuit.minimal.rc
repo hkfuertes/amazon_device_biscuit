@@ -19,6 +19,8 @@ on post-fs-data
     mkdir /data/misc/wpa_supplicant 0770 wifi wifi
     mkdir /data/misc/dhcp 0770 dhcp wifi
     mkdir /data/misc/dhcp-6.8.2 0770 dhcp wifi
+    rm /data/misc/dhcp-6.8.2/dhcpcd-wlan0.pid
+    mkdir /data/misc/net 0750 root shell
     mkdir /data/misc/resolv 0770 dhcp wifi
     mkdir /data/wifi 0771 wifi wifi
 

@@ -74,6 +74,9 @@ on boot
 on property:sys.powerctl=*
     powerctl ${sys.powerctl}
 
+on property:init.svc.servicemanager=running
+    start netd
+
 on load_system_props_action
     load_system_props
 
@@ -101,6 +104,19 @@ service logd /system/bin/logd
     socket logdr seqpacket 0666 logd logd
     socket logdw dgram 0222 logd logd
     seclabel u:r:logd:s0
+
+service servicemanager /system/bin/servicemanager
+    class core
+    user system
+    group system readproc
+    onrestart restart netd
+
+service netd /system/bin/netd
+    socket netd stream 0660 root dhcp
+    socket dnsproxyd stream 0660 root inet
+    socket mdns stream 0660 root system
+    socket fwmarkd stream 0660 root inet
+    disabled
 
 service adbd /sbin/adbd --root_seclabel=u:r:su:s0
     class core
