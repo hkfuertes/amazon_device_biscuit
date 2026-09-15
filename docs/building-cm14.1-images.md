@@ -1,7 +1,7 @@
 # Building the CM14.1 Biscuit Images
 
 > [!WARNING]
-> **Amonet 2 is required to install either generated OTA on a Biscuit.** The images and their updater scripts target the Amonet v2 TWRP contract. Building does not require a connected device, but installation must not use stock recovery, stock fastboot, Amonet v1 instructions, or `boot_a_x` paths.
+> **Amonet Biscuit v2.0.0 is required to install either generated OTA on a Biscuit.** The images target its TWRP 3.7.0_9-0 native A/B contract. v2 uses a Preloader exploit, removes GPT remapping and `lk-payload`, supports Fire OS 6 only, and intentionally removes stock non-hacked fastboot. Building does not require a connected device, but installation must not use stock recovery, stock fastboot, Amonet v1 instructions, or `boot_a_x` paths. Read the [upstream v2 announcement](https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/page-12#post-90734139) and [Amonet 2 notes](amonet-biscuit-unlock.md) first.
 
 This guide describes the two reproducible CM14.1 products in this repository:
 
@@ -17,7 +17,7 @@ The minimal image intentionally contains no APKs and no `/system/framework` entr
 - A Linux host with Git, Docker, Python 3, `repo`, `curl`, `sha256sum`, and enough disk space for the CM14.1 checkout, downloads, outputs, and ccache.
 - The repository checkout at its top level.
 - Network access on the first sync/build so tracked scripts can obtain the pinned source archives and Fire OS inputs.
-- For installation only: a Biscuit unlocked with **Amonet 2** and booted into its TWRP recovery. See [Amonet 2 notes](amonet-biscuit-unlock.md).
+- For installation only: a Biscuit updated to **Amonet Biscuit v2.0.0** and booted into TWRP 3.7.0_9-0. Its own update changes early boot components, so follow the [upstream announcement](https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/page-12#post-90734139) without interruption; see [Amonet 2 notes](amonet-biscuit-unlock.md).
 
 The supported build images are created once when needed:
 

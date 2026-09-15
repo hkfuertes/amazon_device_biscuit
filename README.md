@@ -1,7 +1,11 @@
 # CM14.1 for Amazon Biscuit (Echo Dot 2nd gen)
 
 > [!WARNING]
-> **Amonet 2 is required to install either image on a Biscuit.** These OTAs are designed for confirmed Amonet v2 TWRP. Do not use stock recovery, stock fastboot, Amonet v1 instructions, or old `boot_a_x` paths.
+> **Amonet Biscuit v2.0.0 is required to install either image on a Biscuit.** These OTAs target its TWRP 3.7.0_9-0 and native A/B partition contract. Do not use stock recovery, stock fastboot, Amonet v1 instructions, or old `boot_a_x` paths.
+>
+> Amonet v2 uses a Preloader exploit, removes the old `lk-payload`/GPT-remapping design, supports Fire OS 6, and drops Fire OS 5. Its own update changes early boot components and must never be interrupted; a normal CM14 OTA must write only TWRP's `/dev/block/current-system` and `/dev/block/current-boot` aliases. A/B ROM installation requires the documented two-install recovery procedure when populating both slots. Holding only **MUTE** while connecting power with USB attached enters v2 Preloader USBDL recovery; v2 intentionally removes stock non-hacked fastboot.
+>
+> Read the [upstream Amonet v2 update announcement](https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/page-12#post-90734139) and this repository's [Amonet 2 notes](docs/amonet-biscuit-unlock.md) before installing or updating anything.
 
 LineageOS/CM14.1 port for Amazon Biscuit with reproducible inputs and a disposable `workspace/`.
 
@@ -119,7 +123,7 @@ Do not print Wi-Fi PSKs in logs or summaries.
 
 ## Safety
 
-- Amonet 2 TWRP is required for ROM installation; see [docs/amonet-biscuit-unlock.md](docs/amonet-biscuit-unlock.md).
+- Amonet Biscuit v2.0.0/TWRP 3.7.0_9-0 is required for ROM installation; read the [upstream v2 announcement](https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/page-12#post-90734139) and [docs/amonet-biscuit-unlock.md](docs/amonet-biscuit-unlock.md).
 - Never run `adb shell dd of=/dev/block/...` or `adb exec-in dd of=/dev/block/...`.
 - Do not use stock fastboot for ROM images.
 - Do not touch GPT, preloader, LK, TZ, recovery, userdata, cache, persist, or misc unless explicitly requested.
