@@ -74,6 +74,20 @@ grep -Fqx 'PATCH_PROFILE="${PATCH_PROFILE:-full}"' "$STAGE"
 grep -Fqx 'PROFILE_PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"' "$STAGE"
 grep -Fq 'PATCH_REVERSE_ONLY=1 "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$dir"' "$STAGE"
 grep -Fq 'PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \' "$STAGE"
+python3 - "$STAGE" <<'PY'
+from pathlib import Path
+import sys
+text = Path(sys.argv[1]).read_text()
+start = text.index('switch_patch_profile_if_needed()')
+end = text.index('\nmkdir -p "$(dirname "$ARCHIVE")"', start)
+switch = text[start:end]
+assert 'reset_profile_patch_outputs()' in text
+assert 'patches/full/*.patch' in text
+assert 'patches/minimal/*.patch' in text
+assert switch.index('PATCH_REVERSE_ONLY=1') < switch.index('reset_profile_patch_outputs')
+assert 'reset_generated_full_patch_outputs' not in text
+assert 'reset_generated_minimal_patch_outputs' not in text
+PY
 grep -Fq '"$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"' "$STAGE"
 grep -Fq 'TARGET_BISCUIT_MINIMAL' "$MINIMAL_PATCH_DIR/007-framework-free-systemimage-trim.patch"
 grep -Fqx '"$REPO_ROOT/scripts/apply-patches.sh" "$KERNEL_DEST" 4 "$REPO_ROOT/patches/kernel"' "$STAGE"
