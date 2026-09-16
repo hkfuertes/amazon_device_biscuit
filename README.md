@@ -1,12 +1,24 @@
-# CM12 for Amazon Biscuit (Echo Dot 2nd gen)
+# CM12.1 for Amazon Biscuit (Echo Dot 2nd gen)
 
-CyanogenMod 12 port for Amazon Biscuit with reproducible inputs and a disposable `workspace/`.
+> [!WARNING]
+> **This is the Android 5 / Fire OS 5 CM12.1 line and it requires Amonet Biscuit v1.1.0.** CM12 recovery and runtime files use Amonet v1's GPT-remapped `boot_a_x` / `boot_b_x` contract. Amonet v1 changes the GPT and wipes userdata.
+>
+> **Do not install these CM12.1 images on Amonet 2.** Amonet 2 is the separate Android 7 / Fire OS 6 contract for [`cm14.1`](https://github.com/hkfuertes/amazon_device_biscuit/tree/cm14.1); its native A/B paths and procedures are not interchangeable with v1. Read the [Amonet v1 notes](docs/amonet-biscuit-unlock.md) and the [archived upstream v1 guide](https://web.archive.org/web/20260612085826/https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/) before installation.
 
-Goal: a safe, rebuildable CM12 image for Biscuit that boots with ADB, WiFi, speaker playback, and microphone capture. Polish comes later.
+CyanogenMod 12.1 port for Amazon Biscuit with reproducible inputs and a disposable `workspace/`.
+
+Goal: a safe, rebuildable CM12.1 image for Biscuit that boots with ADB, WiFi, speaker playback, and microphone capture. Polish comes later.
+
+| Product | Lunch target | Build command | Purpose |
+| --- | --- | --- | --- |
+| Full | `cm_biscuit-userdebug` | `make full` | Full Android 5 / CM12.1 with the Android framework and Biscuit integrations. |
+| Minimal | `biscuit_minimal-userdebug` | `make minimal` | Framework-free Android-shaped base for root ADB, Wi-Fi provisioning, DHCP, raw hardware tools, and system add-ons. |
 
 > This userdebug base intentionally exposes root ADB on TCP/5555; use only a trusted LAN.
 
-> Nothing here flashes the device. Scripts only produce build artifacts. Flashing notes live in `docs/amonet-biscuit-unlock.md`.
+> Nothing here flashes the device. Scripts only produce build artifacts. Installation is v1-only and documented in [Amonet notes](docs/amonet-biscuit-unlock.md).
+
+See [Building the CM12.1 Biscuit Images](docs/building-cm12.1-images.md) and the product-specific [baseline smoke checks](docs/baseline-smoke-checks.md) for the current build and validation contracts.
 
 ## Layout
 
@@ -45,6 +57,8 @@ workspace/vendor/amazon/biscuit
 See `docs/sources.md` for URLs plus source, media, and build-variant policy.
 
 ## Build
+
+For the concise full/minimal build matrix, product-switching behavior, artifact names, and Amonet v1 installation boundary, see [Building the CM12.1 Biscuit Images](docs/building-cm12.1-images.md).
 
 The build deliberately has two Docker stages: a reproducibly generated kernel,
 then the CM12 OTA that consumes that generated kernel as a prebuilt. The

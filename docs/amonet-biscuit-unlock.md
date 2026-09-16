@@ -1,13 +1,30 @@
-# amonet Biscuit unlock notes
+# amonet Biscuit v1.1.0 notes — CM12.1 / Android 5
 
-Source forum attachment: https://xdaforums.com/attachments/amonet-biscuit-v1-1-0-zip.6331296/
+> [!WARNING]
+> **This document applies only to the CM12.1 Android 5 / Fire OS 5 line and Amonet Biscuit v1.1.0.** Amonet v1 modifies the GPT, wipes userdata, and remaps real ROM boot slots to `boot_a_x` / `boot_b_x`.
+>
+> **Do not use this procedure for Amonet 2, Fire OS 6, or CM14.1.** Amonet 2 has a separate Preloader/native-A/B contract; its `current-system` / `current-boot` paths, TWRP version, and recovery procedure are incompatible with this v1 documentation. Use the `cm14.1` branch documentation for that line.
+
+Sources:
+
+- Archived upstream v1.1.0 guide: https://web.archive.org/web/20260612085826/https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/
+- Original forum attachment: https://xdaforums.com/attachments/amonet-biscuit-v1-1-0-zip.6331296/
+
+## Compatibility contract
+
+| CM branch | Android / Fire OS line | Required Amonet | Partition contract |
+| --- | --- | --- | --- |
+| `cm12.1` | Android 5 / Fire OS 5 | v1.1.0 only | GPT-remapped `boot_a_x` / `boot_b_x` |
+| `cm14.1` | Android 7 / Fire OS 6 | v2.0.0 only | Native A/B; documented on the `cm14.1` branch |
+
+The two rows are not migration instructions. Do not flash a CM12.1 OTA through an Amonet 2 workflow or a CM14.1 OTA through an Amonet v1 workflow.
 
 ## Scope
 
 - Only for 2nd gen Echo Dot / Biscuit / RS03QR, released in 2016.
-- Current release noted by source: `amonet-biscuit-v1.1.0.zip`.
+- Current release noted by the archived source: `amonet-biscuit-v1.1.0.zip`.
 - Unlock modifies GPT and wipes userdata.
-- If already unlocked, update by flashing the current amonet ZIP in TWRP.
+- If already unlocked, update only with the matching v1 amonet ZIP in v1 TWRP.
 
 ## Host requirements
 
@@ -28,6 +45,8 @@ sudo systemctl disable ModemManager
 - Recommended: update device to latest FireOS 6 version first.
 - Supported version called out by source: Fire OS 6.5.7.0 `NS6570/6077`, version code `12383141252`.
 - If current firmware is not that, update via OTA before unlock.
+
+This Fire OS 6 requirement is an **upstream pre-unlock prerequisite**, not a post-unlock ROM compatibility claim. After Amonet v1 is installed, the source states that only Fire OS 5 based ROMs boot; do not treat this note as permission to boot Fire OS 6 under v1.
 
 ## Unlock flow summary
 
@@ -104,8 +123,9 @@ Enter hacked fastboot by:
 
 - Device uses A/B partitioning.
 - If neither slot contains bootable OS and repeated boot attempts exhaust counters, Preloader may brick the device.
-- In the new partition scheme, real boot images live in `boot_a_x` / `boot_b_x`.
+- In the v1 partition scheme, real boot images live in `boot_a_x` / `boot_b_x`.
 - `boot_a` / `boot_b` hold the exploit.
+- These names are v1-only. They are not valid Amonet 2 ROM targets.
 - TWRP and hacked fastboot remap this, so installing ZIPs/images from TWRP or hacked fastboot works as expected.
 - Do not flash boot/recovery images from FireOS tools like FlashFire or MagiskManager. If doing so anyway, target `boot_a_x` / `boot_b_x`.
 - TWRP blocks updates from overwriting LK/Preloader/TZ.
