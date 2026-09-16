@@ -1,109 +1,136 @@
 # Baseline smoke checks — Biscuit CM14.1
 
-Accepted state for this ROM: `userdebug`, permissive SELinux, and root/ADB root
-can be enabled. Do not treat those as failures.
+This repository builds two different products. Choose the matching checklist;
+full-Android expectations do not apply to the framework-free minimal image.
 
-## Baseline OK
+Accepted state for both products: `userdebug`, permissive SELinux, and root ADB
+are intentional. Do not treat them as failures by themselves.
 
-After flashing an OTA, the baseline is valid if:
+## Common boot checks
 
 ```sh
 adb devices -l
-adb shell 'getprop ro.build.fingerprint; getprop ro.cm.version; getprop ro.product.device; getprop ro.boot.slot_suffix; getprop sys.boot_completed; uptime'
+adb shell 'getprop ro.product.name; getprop ro.product.model; getprop ro.product.device; getprop ro.serialno; getprop sys.boot_completed; uptime'
 adb shell 'mount | grep -E " /system | /data | /cache "; df /system /data /cache'
-adb shell 'ps | grep -E "(zygote|system_server|surfaceflinger|mediaserver|netd|wpa_supplicant|biscuit|adbd)"'
-adb shell 'getprop | grep -E "\[(init\.svc\.(media|zygote|surfaceflinger|netd|wpa_supplicant|biscuit)|sys\.boot_completed|wlan\.|dhcp\.|wifi\.)"'
 ```
 
-Expected:
+Expected for either product:
 
 - ADB returns as `device`.
-- `sys.boot_completed=1`.
-- `ro.product.device=biscuit`.
-- Actual ROM slot: `_a` or `_b`, depending on the build/flash.
+- `ro.product.device=biscuit` and `sys.boot_completed=1`.
+- The real IDME serial is exposed through `ro.serialno`.
 - `/system` is mounted `ro`; `/data` and `/cache` are mounted `rw`.
-- Live processes: `zygote`, `system_server`, `surfaceflinger`, `netd`, `wpa_supplicant`, `biscuit-ledd`, `com.amazon.biscuit.service`.
-- Wi-Fi has `wlan.driver.status=ok`, DHCP `ok`, and an address on `wlan0`.
+- The system partition is the active Amonet 2 slot. `ro.boot.slot_suffix` is
+  informative only: CM14 can derive the slot from the Amonet 2 BCB fallback.
 
-## Network checks
+## Full product
+
+Scope: `cm_biscuit-userdebug` built with `make full`.
+
+```sh
+adb shell 'ps | grep -E "(zygote|system_server|surfaceflinger|audioserver|netd|wpa_supplicant|biscuit-ledd)"'
+adb shell 'command -v biscuit_service; getprop init.svc.biscuit-ledd; getprop init.svc.wpa_supplicant'
+```
+
+Expected after boot:
+
+- `zygote`, `system_server`, `surfaceflinger`, `audioserver`, `netd`,
+  `wpa_supplicant`, and `biscuit-ledd` stay running.
+- `/system/bin/biscuit_service` is present for the full Android control bridge.
+- The full Android framework, Bluetooth A2DP sink, and framework audio paths
+  are present. They are not part of the minimal checklist.
+
+### Full Wi-Fi after provisioning
+
+A Data wipe intentionally removes saved networks. Immediately after that wipe,
+`wpa_supplicant` may be running while Wi-Fi is disconnected and has no DHCP
+lease; this is not a boot failure. Validate connectivity only after provisioning
+a network:
 
 ```sh
 adb shell 'ip addr show wlan0; ip route'
-adb shell 'ping -c 2 -W 2 192.168.77.1; ping -c 2 -W 2 8.8.8.8; ping -c 2 -W 2 google.com'
+adb shell 'ping -c 2 -W 2 <gateway>; ping -c 2 -W 2 8.8.8.8; ping -c 2 -W 2 google.com'
 ```
 
-Expected:
+Expected after successful provisioning:
 
-- `wlan0` is `UP,LOWER_UP`.
-- The default route goes through the local gateway.
-- Gateway/internet/DNS pings have `0% packet loss`.
+- `wlan0` has an IPv4 address and a default route through the local gateway.
+- Gateway, Internet-IP, and DNS-name pings succeed.
 
-## Known failures that do NOT invalidate the baseline
+## Framework-free minimal product
 
-### Trebuchet/headless UI
+Scope: `biscuit_minimal-userdebug` built with `make minimal`.
 
-```txt
-Process: com.cyanogenmod.trebuchet
-FATAL EXCEPTION: main
-LauncherProvider / AppWidgetHost.deleteHost / IAppWidgetService null
+The minimal product deliberately has no `zygote`, `system_server`,
+`surfaceflinger`, `audioserver`, APKs, `/system/framework`, Java
+`BiscuitService`, or Bluetooth framework/audio stack. Their absence is correct.
+
+```sh
+adb shell '
+  for service in logd ledcontroller wmt_launcher wpa_supplicant servicemanager netd; do
+    printf "%s=" "$service"; getprop "init.svc.$service"
+  done
+  for tool in wpa_connect wpa_passphrase wpa_cli ping ping6 ip netd ndc dhcpcd-run-hooks; do
+    command -v "$tool" || exit 1
+  done
+  echo "apks=$(find /system/app /system/priv-app -type f 2>/dev/null | wc -l)"
+  echo "framework=$(find /system/framework -type f 2>/dev/null | wc -l)"
+  readlink /system/etc/ssl/certs
+'
 ```
 
-Track as headless cleanup; remove Trebuchet/the launcher instead of fixing
-widgets.
+Expected after boot:
 
-### Wi-Fi warnings with a working network
+- `logd`, `ledcontroller`, `wmt_launcher`, `wpa_supplicant`,
+  `servicemanager`, and `netd` are running.
+- The listed Wi-Fi, DNS, and network tools are executable.
+- APK and `/system/framework` file counts are zero.
+- `/system/etc/ssl/certs` resolves to `../security/cacerts`, the single Android
+  certificate store.
+- `ledcontroller` is the replaceable non-oneshot slot; it disables the kernel
+  boot animation, shows its short green indication, then leaves the ring off.
+- `/dev/stpbt` is exposed for raw Bluetooth hardware access, but the minimal
+  image intentionally does not provide a Bluetooth framework or Bluetooth audio.
 
-```txt
-wpa_driver_nl80211_driver_cmd: failed to issue private commands
-Unexpected BatchedScanResults :null
+### Minimal Wi-Fi after a Data wipe
+
+A clean wipe intentionally leaves no saved network. The valid unprovisioned
+state is a running `wpa_supplicant`, zero saved networks, no DHCP lease, and no
+IP address. Do not classify that state as a boot failure.
+
+Provision through the supported noninteractive helper without printing the PSK:
+
+```sh
+adb shell wpa_connect '<ssid>' '<8-to-63-character-passphrase-or-64-hex-psk>'
+adb shell 'wpa_cli -i wlan0 status; ip addr show wlan0; ip route'
+adb shell 'ping -c 2 -W 2 <gateway>; ping -c 2 -W 2 8.8.8.8; ping -c 2 -W 2 google.com'
 ```
 
-These do not invalidate the baseline if DHCP and ping work.
+Expected after successful provisioning:
 
-### Permissive SELinux/root/userdebug
+- `wpa_cli` reports `wpa_state=COMPLETED`.
+- `wlan0` has an IPv4 address and default route.
+- DHCP publishes DNS to `netd`; gateway, Internet-IP, and DNS-name pings work.
 
-```txt
-avc: denied ... permissive=1
-Service ... needs a SELinux domain defined
-```
+## Non-blocking warnings
 
-Accepted for this ROM. Fix only if it blocks something real.
+The following do not invalidate a matching product baseline unless they cause a
+real symptom:
 
-### CM noise/unneeded apps
-
-```txt
-Unknown permission ...
-unavailable shared library ...
-RADIO_NOT_AVAILABLE / No UICC
-no app suggest provider found
-no available spell checker services found
-```
-
-Track as headless cleanup.
-
-### Non-blocking kernel/device-tree warnings
-
-```txt
-mt8163-mfgsys not found
-auxadc_apmix_base error
-tsl2540 probe failed
-lp5523x detect failed
-Failed to read rtc boot reason
-/dev/hw_random not found
-```
-
-These do not invalidate the baseline unless there is a sensor/LED/boot-reason
-symptom.
+- permissive-SELinux `avc: denied` messages;
+- `wpa_driver_nl80211_driver_cmd` or batched-scan warnings after connectivity
+  works;
+- non-blocking MT8163 device-tree warnings such as missing MFG/auxadc/RTC
+  nodes.
 
 ## Real failure criteria
 
-Start an investigation if any of the following occurs:
+Investigate when the applicable product fails any of these conditions:
 
-- ADB does not return after a reasonable/manual boot period.
-- `sys.boot_completed` does not reach `1`.
-- Boot loop or spontaneous reboot.
-- `system_server`/`zygote` is dead or restarting.
-- `/data` or `/cache` is not mounted `rw`.
-- Wi-Fi has no IP/DHCP or cannot ping the gateway.
-- `biscuit-ledd` does not start.
-- A new kernel panic/oops.
+- ADB does not return after a reasonable manual boot period.
+- `sys.boot_completed` does not reach `1`, or the device boot-loops/reboots.
+- `/system` is absent or `/data`/`/cache` is not mounted `rw`.
+- A required service for the selected product dies or repeatedly restarts.
+- A provisioned Wi-Fi network cannot obtain an IP/default route or ping its
+  gateway.
+- A new kernel panic or oops appears.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Launch the Biscuit CM14.1 OTA build in a detached container.
+# Launch a Biscuit CM14.1 OTA build in a detached container.
 set -euo pipefail
 
 IMAGE="cm14.1-ubuntu20:latest"
@@ -14,8 +14,28 @@ BUILD_TARGET="${BUILD_TARGET:-otapackage}"
 BUILD_JOBS="${BUILD_JOBS:-$(nproc)}"
 CCACHE_DIR="${CCACHE_DIR:-$REPO_ROOT/workspace/ccache}"
 CCACHE_MAXSIZE="${CCACHE_MAXSIZE:-50G}"
+LUNCH_TARGET="${LUNCH_TARGET:-cm_biscuit-userdebug}"
 
-"$REPO_ROOT/scripts/stage-tree.sh"
+case "$LUNCH_TARGET" in
+  cm_biscuit-userdebug)
+    PATCH_PROFILE="${PATCH_PROFILE:-full}"
+    ;;
+  biscuit_minimal-userdebug)
+    PATCH_PROFILE="${PATCH_PROFILE:-minimal}"
+    ;;
+  *)
+    echo "ERROR: unsupported LUNCH_TARGET '$LUNCH_TARGET'" >&2
+    echo "expected cm_biscuit-userdebug or biscuit_minimal-userdebug" >&2
+    exit 1
+    ;;
+esac
+
+case "$PATCH_PROFILE" in
+  full|minimal) ;;
+  *) echo "ERROR: unsupported PATCH_PROFILE '$PATCH_PROFILE'" >&2; exit 1 ;;
+esac
+
+PATCH_PROFILE="$PATCH_PROFILE" "$REPO_ROOT/scripts/stage-tree.sh"
 [[ -f "$KERNEL_SOURCE/Makefile" && \
    -f "$KERNEL_SOURCE/arch/arm/configs/biscuit_defconfig" && \
    -f "$KERNEL_SUPPORT/verity-keys" && \
@@ -23,6 +43,10 @@ CCACHE_MAXSIZE="${CCACHE_MAXSIZE:-50G}"
   echo "ERROR: staged FireOS 6 kernel source/support is incomplete" >&2
   exit 1
 }
+
+if [[ "${CLEAN_BISCUIT_OUT:-0}" == 1 ]]; then
+  rm -rf "$OUT_DIR/target/product/biscuit"
+fi
 
 install_if_changed() {
   local src="$1" dst="$2"
@@ -57,43 +81,56 @@ for stale in \
   rm -f "$OUT_DIR/target/product/biscuit/$stale"
 done
 rmdir "$OUT_DIR/target/product/biscuit/system/lib64" 2>/dev/null || true
-for stale_app in \
-  AudioFX \
-  BasicDreams \
-  Browser \
-  Browser2 \
-  Calculator \
-  Calendar \
-  Camera2 \
-  CMFileManager \
-  CMWallpapers \
-  CMUpdater \
-  CyanogenSetupWizard \
-  DeskClock \
-  Development \
-  Eleven \
-  Email \
-  ExactCalculator \
-  Exchange2 \
-  Gallery2 \
-  Jelly \
-  Launcher2 \
-  Launcher3 \
-  LineageSetupWizard \
-  LiveWallpapersPicker \
-  LockClock \
-  PhotoTable \
-  PrintSpooler \
-  SetupWizard \
-  Terminal \
-  ThemeChooser \
-  Trebuchet \
-  Updater \
-  WallpaperCropper \
-  WallpaperPicker; do
-  rm -rf "$OUT_DIR/target/product/biscuit/system/app/$stale_app" \
-         "$OUT_DIR/target/product/biscuit/system/priv-app/$stale_app"
-done
+
+if [[ "$LUNCH_TARGET" == biscuit_minimal-userdebug ]]; then
+  rm -rf \
+    "$OUT_DIR/target/product/biscuit/system/app" \
+    "$OUT_DIR/target/product/biscuit/system/priv-app" \
+    "$OUT_DIR/target/product/biscuit/system/framework" \
+    "$OUT_DIR/target/product/biscuit/system/etc/biscuit-ledd" \
+    "$OUT_DIR/target/product/biscuit/system/bin/biscuit-ledd" \
+    "$OUT_DIR/target/product/biscuit/system/bin/biscuit-ledctl" \
+    "$OUT_DIR/target/product/biscuit/system/bin/biscuit_service" \
+    "$OUT_DIR/target/product/biscuit/system/bin/i2c-poke"
+else
+  for stale_app in \
+    AudioFX \
+    BasicDreams \
+    Browser \
+    Browser2 \
+    Calculator \
+    Calendar \
+    Camera2 \
+    CMFileManager \
+    CMWallpapers \
+    CMUpdater \
+    CyanogenSetupWizard \
+    DeskClock \
+    Development \
+    Eleven \
+    Email \
+    ExactCalculator \
+    Exchange2 \
+    Gallery2 \
+    Jelly \
+    Launcher2 \
+    Launcher3 \
+    LineageSetupWizard \
+    LiveWallpapersPicker \
+    LockClock \
+    PhotoTable \
+    PrintSpooler \
+    SetupWizard \
+    Terminal \
+    ThemeChooser \
+    Trebuchet \
+    Updater \
+    WallpaperCropper \
+    WallpaperPicker; do
+    rm -rf "$OUT_DIR/target/product/biscuit/system/app/$stale_app" \
+           "$OUT_DIR/target/product/biscuit/system/priv-app/$stale_app"
+  done
+fi
 
 if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   echo "ERROR: Docker image '$IMAGE' not found." >&2
@@ -119,9 +156,9 @@ docker run -d \
     export CCACHE_DIR='$CCACHE_DIR'
     prebuilts/misc/linux-x86/ccache/ccache -M '$CCACHE_MAXSIZE' >/dev/null || true
     export PATH=\"\$OUT_DIR/host/linux-x86/bin:\$PATH\"
-    lunch cm_biscuit-userdebug >/tmp/lunch.log
+    lunch '$LUNCH_TARGET' >/tmp/lunch.log
     make -j'$BUILD_JOBS' '$BUILD_TARGET'
   "
 
-echo "Started $CONTAINER ($BUILD_TARGET, FireOS 6 kernel from source)."
+echo "Started $CONTAINER ($BUILD_TARGET, $LUNCH_TARGET, PATCH_PROFILE=$PATCH_PROFILE)."
 echo "Monitor: docker logs -f $CONTAINER"

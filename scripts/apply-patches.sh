@@ -11,6 +11,7 @@ ROOT="$1"
 STRIP="$2"
 PATCH_DIR="$3"
 PATCH_REAPPLY="${PATCH_REAPPLY:-0}"
+PATCH_REVERSE_ONLY="${PATCH_REVERSE_ONLY:-0}"
 PATCH_STATE_DIR="${PATCH_STATE_DIR:-}"
 
 [[ -d "$ROOT" ]] || { echo "ERROR: target root missing: $ROOT" >&2; exit 1; }
@@ -63,8 +64,13 @@ reverse_applied_patches() {
 }
 
 cleanup_patch_backups
-if [[ "$PATCH_REAPPLY" == 1 ]]; then
+if [[ "$PATCH_REAPPLY" == 1 || "$PATCH_REVERSE_ONLY" == 1 ]]; then
   reverse_applied_patches
+fi
+
+if [[ "$PATCH_REVERSE_ONLY" == 1 ]]; then
+  cleanup_patch_backups
+  exit 0
 fi
 
 for patch_file in "${PATCHES[@]}"; do

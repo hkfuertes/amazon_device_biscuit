@@ -4,6 +4,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CM14="${CM14:-$REPO_ROOT/workspace/cm14.1}"
+PATCH_PROFILE="${PATCH_PROFILE:-full}"
 FIREOS_RELEASE="6.5.7.1"
 FIREOS_URL="https://fireos-audio-src.s3.amazonaws.com/dMUQiRDxI3hFuRDaF0WTumrp71/Echo_Dot_src-6.5.7.1-20251024.tar.bz2"
 FIREOS_SHA256="2f6b7eed8c09cecf7633f01909c6a4085bef691c29ed0d106c75e7b48c7b4721"
@@ -13,10 +14,19 @@ SOURCE_DIR="$REPO_ROOT/workspace/upstream/amazon-echo-dot-$FIREOS_RELEASE"
 KERNEL_ARCHIVE_PATH="kernel/mediatek/mt8163/3.18_hl"
 KERNEL_DEST="$CM14/kernel/amazon/biscuit"
 KERNEL_SUPPORT="$CM14/device/amazon/biscuit/kernel-build-support"
+PATCH_STATE_DIR="$CM14/.repo/biscuit-patch-state"
+ACTIVE_PROFILE_FILE="$PATCH_STATE_DIR/active-profile"
+PROFILE_PATCH_DIR="$REPO_ROOT/patches/$PATCH_PROFILE"
+
+case "$PATCH_PROFILE" in
+  full|minimal) ;;
+  *) echo "ERROR: unsupported PATCH_PROFILE '$PATCH_PROFILE'" >&2; exit 1 ;;
+esac
 
 [[ -d "$CM14/build" ]] || { echo "ERROR: CM14.1 not synced at $CM14" >&2; exit 1; }
 [[ -d "$CM14/device/amazon/mt8163-common" ]] || { echo "ERROR: MT8163 common source missing; run scripts/sync.sh" >&2; exit 1; }
 [[ -d "$CM14/hardware/amazon" ]] || { echo "ERROR: Amazon hardware source missing; run scripts/sync.sh" >&2; exit 1; }
+[[ -d "$PROFILE_PATCH_DIR" ]] || { echo "ERROR: patch profile missing: $PROFILE_PATCH_DIR" >&2; exit 1; }
 
 copy_dir() {
   local src="$1" dst="$2"
@@ -68,6 +78,50 @@ PY
   echo "Removed obsolete 64-bit Biscuit radio launchers."
 }
 
+patch_manifest() {
+  local dir="$1"
+  (LC_ALL=C find "$dir" -maxdepth 1 -type f -name '*.patch' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) | sha256sum | awk '{print $1}'
+}
+
+reset_generated_full_patch_outputs() {
+  git -C "$CM14/hardware/amazon" checkout -- libshims/Android.mk 2>/dev/null || true
+  rm -rf "$CM14/hardware/amazon/audio" "$CM14/hardware/amazon/libshims/libtinyalsa"
+  if [[ -f "$CM14/system/core/liblog/logger_write.c" ]] &&
+     (( $(grep -c 'LIBLOG_ABI_PUBLIC int lab126_log_write' "$CM14/system/core/liblog/logger_write.c" || true) > 1 )); then
+    git -C "$CM14/system/core" checkout -- liblog/logger_write.c
+  fi
+}
+
+reset_generated_minimal_patch_outputs() {
+  git -C "$CM14/build" checkout -- \
+    core/Makefile \
+    core/main.mk \
+    tools/releasetools/add_img_to_target_files.py \
+    tools/releasetools/common.py 2>/dev/null || true
+  git -C "$CM14/external/wpa_supplicant_8" checkout -- \
+    wpa_supplicant/Android.mk \
+    wpa_supplicant/android.config \
+    wpa_supplicant/ctrl_iface.c 2>/dev/null || true
+  git -C "$CM14/system/core" checkout -- fs_mgr/fs_mgr_slotselect.c 2>/dev/null || true
+  git -C "$CM14/system/sepolicy" checkout -- file.te 2>/dev/null || true
+}
+
+switch_patch_profile_if_needed() {
+  mkdir -p "$PATCH_STATE_DIR"
+  local previous=""
+  [[ -f "$ACTIVE_PROFILE_FILE" ]] && previous="$(cat "$ACTIVE_PROFILE_FILE")"
+  if [[ "$previous" == "$PATCH_PROFILE" ]]; then
+    return 0
+  fi
+  reset_generated_full_patch_outputs
+  reset_generated_minimal_patch_outputs
+  for dir in "$REPO_ROOT/patches/full" "$REPO_ROOT/patches/minimal"; do
+    [[ -d "$dir" ]] || continue
+    PATCH_REVERSE_ONLY=1 "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$dir"
+  done
+  rm -f "$PATCH_STATE_DIR"/*-p1.sha256
+}
+
 mkdir -p "$(dirname "$ARCHIVE")" "$(dirname "$SOURCE_DIR")"
 if [[ ! -f "$ARCHIVE" ]]; then
   curl --fail --location --progress-bar -o "$ARCHIVE" "$FIREOS_URL"
@@ -88,19 +142,19 @@ mkdir -p \
   "$CM14/frameworks/av/media/libstagefright/codecs/flac/dec" \
   "$CM14/frameworks/av/media/libstagefright/flac/dec"
 drop_legacy_radio_block
-FULL_PATCH_STATE_DIR="$CM14/.repo/biscuit-patch-state"
-FULL_PATCH_STATE="$FULL_PATCH_STATE_DIR/full-p1.sha256"
-FULL_PATCH_MANIFEST="$((LC_ALL=C find "$REPO_ROOT/patches/full" -maxdepth 1 -type f -name '*.patch' -print0 | LC_ALL=C sort -z | xargs -0 sha256sum) | sha256sum | awk '{print $1}')"
-if [[ ! -f "$FULL_PATCH_STATE" || "$(cat "$FULL_PATCH_STATE")" != "$FULL_PATCH_MANIFEST" ]]; then
-  git -C "$CM14/hardware/amazon" checkout -- libshims/Android.mk
-  rm -rf "$CM14/hardware/amazon/audio" "$CM14/hardware/amazon/libshims/libtinyalsa"
+switch_patch_profile_if_needed
+PROFILE_PATCH_MANIFEST="$(patch_manifest "$PROFILE_PATCH_DIR")"
+PROFILE_PATCH_STATE="$PATCH_STATE_DIR/$PATCH_PROFILE-p1.sha256"
+if [[ ! -f "$PROFILE_PATCH_STATE" || "$(cat "$PROFILE_PATCH_STATE")" != "$PROFILE_PATCH_MANIFEST" ]]; then
+  if [[ "$PATCH_PROFILE" == full ]]; then
+    reset_generated_full_patch_outputs
+  else
+    reset_generated_minimal_patch_outputs
+  fi
 fi
-if [[ -f "$CM14/system/core/liblog/logger_write.c" ]] &&
-   (( $(grep -c 'LIBLOG_ABI_PUBLIC int lab126_log_write' "$CM14/system/core/liblog/logger_write.c" || true) > 1 )); then
-  git -C "$CM14/system/core" checkout -- liblog/logger_write.c
-fi
-PATCH_REAPPLY=1 PATCH_STATE_DIR="$FULL_PATCH_STATE_DIR" \
-  "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$REPO_ROOT/patches/full"
+PATCH_REAPPLY=1 PATCH_STATE_DIR="$PATCH_STATE_DIR" \
+  "$REPO_ROOT/scripts/apply-patches.sh" "$CM14" 1 "$PROFILE_PATCH_DIR"
+printf '%s\n' "$PATCH_PROFILE" >"$ACTIVE_PROFILE_FILE"
 CM14="$CM14" "$REPO_ROOT/scripts/extract-fireos6-blobs.sh"
 
 rm -rf "$KERNEL_DEST" "$KERNEL_SUPPORT"
@@ -122,4 +176,4 @@ printf '%s  %s\n' "$VERITY_KEY_SHA256" "$KERNEL_SUPPORT/verity-keys" | sha256sum
   exit 1
 }
 
-echo "Staged CM14.1 Biscuit overlay, Fire OS 6 blobs, and Fire OS 6 kernel source."
+echo "Staged CM14.1 Biscuit overlay, $PATCH_PROFILE patches, Fire OS 6 blobs, and Fire OS 6 kernel source."

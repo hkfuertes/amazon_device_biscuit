@@ -1,0 +1,11 @@
+--- a/system/sepolicy/file.te	2026-09-14 18:34:33.528826278 +0200
++++ b/system/sepolicy/file.te	2026-09-14 18:34:33.532826304 +0200
+@@ -55,6 +55,8 @@
+   `type sdcard_posix, sdcard_type, fs_type, mlstrustedobject;'
+ )
+ type vfat, sdcard_type, fs_type, mlstrustedobject;
++type exfat, sdcard_type, fs_type, mlstrustedobject;
++type ntfs, sdcard_type, fs_type, mlstrustedobject;
+ type debugfs, fs_type;
+ type debugfs_trace_marker, fs_type, debugfs_type, mlstrustedobject;
+ type debugfs_tracing, fs_type, debugfs_type;

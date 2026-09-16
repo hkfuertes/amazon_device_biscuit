@@ -4,13 +4,17 @@
 
 - Device: Echo Dot 2nd generation / Biscuit / RS03QR.
 - Current project baseline: `amonet-biscuit-v2.0.0.zip`.
-- Source: user-provided copy of the updated amonet announcement, recorded on
+- Upstream update announcement: [Unlock/Root/TWRP/Unbrick Amazon Echo Dot 2nd gen (Biscuit), post 90734139](https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/page-12#post-90734139).
+- Source record: user-provided copy of that updated announcement, recorded on
   2026-09-11. Consult the current upstream OP for the complete unlock and
   button-mode procedure.
 - v2 uses a new Preloader exploit, removes `lk-payload`, leaves the GPT
   unmodified, supports Fire OS 6, and drops Fire OS 5 support.
 - TWRP is updated to 3.7.0_9-0. Windows support and Preloader USBDL recovery
   are new to v2.
+- An Amonet update is not a normal CM ROM OTA: the upstream updater can restore
+  the partition table and update preloader, LK, TZ, payload, and TWRP. Do not
+  interrupt it. Generated CM14 OTAs must not update any of those components.
 
 ## Observed v2 recovery contract
 
