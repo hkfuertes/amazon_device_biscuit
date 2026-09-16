@@ -55,7 +55,7 @@ PATCH_PROFILE=full
 
 The build script stages the flat Biscuit overlay, applies every patch in `patches/full/` in filename order, extracts the full verified Fire OS vendor closure, stages the Fire OS 6 Biscuit kernel, applies every patch in `patches/kernel/` in filename order, and starts the detached `cm14.1-biscuit-build` container.
 
-The full product includes the Android framework, framework Wi-Fi/Bluetooth/audio paths, BiscuitService, the native LED daemon, headless-display compatibility, proprietary audio/radio/Bluetooth blobs, and the full patch profile.
+The full product includes the Android framework, framework Wi-Fi/Bluetooth/audio paths, BiscuitService, the native LED daemon, headless-display compatibility, proprietary audio/radio/Bluetooth blobs, and the full patch profile. Use the [full-product smoke checklist](baseline-smoke-checks.md#full-product) after deployment.
 
 ## Build the framework-free minimal image
 
@@ -74,7 +74,7 @@ CLEAN_BISCUIT_OUT=1
 
 The clean product-output step is deliberate: an incremental switch from the full product could otherwise leave full-framework files in the minimal system image. The build stages only the framework-free rootfs and the radio/Wi-Fi vendor closure, applies `patches/minimal/` in filename order plus the common kernel patches, and starts the same detached build container.
 
-The minimal product supplies root USB/TCP ADB, `wpa_connect`, `wpa_passphrase`, `wpa_supplicant`, DHCP, `netd` DNS proxying, CA certificates, shell/network/debug tools, raw audio tools, and the replaceable `ledcontroller` service slot. It deliberately excludes the Android framework, APKs, Java BiscuitService, and Bluetooth framework/audio stack.
+The minimal product supplies root USB/TCP ADB, `wpa_connect`, `wpa_passphrase`, `wpa_supplicant`, DHCP, `netd` DNS proxying, CA certificates, shell/network/debug tools, raw audio tools, and the replaceable `ledcontroller` service slot. It deliberately excludes the Android framework, APKs, Java BiscuitService, and Bluetooth framework/audio stack. Use the [framework-free minimal smoke checklist](baseline-smoke-checks.md#framework-free-minimal-product) after deployment.
 
 ## Switching products safely
 
