@@ -1,6 +1,18 @@
 # CM12.1 for Amazon Biscuit (Echo Dot 2nd gen)
 
 > [!WARNING]
+> ## This repository is archived
+>
+> Active development of this repository has ended. I am sincerely honored that it served as a jump-start for more specialized Biscuit work in the community.
+>
+> If you are looking for more specialized downstream Biscuit work, please see:
+>
+> - [meiser79/android_device_amazon_biscuit](https://github.com/meiser79/android_device_amazon_biscuit)
+> - [jxlarrea/lineageos-biscuit-kiosk-satellite](https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite)
+>
+> I am grateful to everyone who tested, improved, forked, documented, or otherwise carried this work forward.
+
+> [!WARNING]
 > **This is the Android 5 / Fire OS 5 CM12.1 line and it requires Amonet Biscuit v1.1.0.** CM12 recovery and runtime files use Amonet v1's GPT-remapped `boot_a_x` / `boot_b_x` contract. Amonet v1 changes the GPT and wipes userdata.
 >
 > **Do not install these CM12.1 images on Amonet 2.** Amonet 2 is the separate Android 7 / Fire OS 6 contract for [`cm14.1`](https://github.com/hkfuertes/amazon_device_biscuit/tree/cm14.1); its native A/B paths and procedures are not interchangeable with v1. Read the [Amonet v1 notes](docs/amonet-biscuit-unlock.md) and the [archived upstream v1 guide](https://web.archive.org/web/20260612085826/https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/) before installation.
@@ -238,9 +250,25 @@ Beam/direction ASP investigation and possible future Java-service API: `docs/aud
 
 Blobs are not committed. Extract them from the stock OTA into `workspace/vendor/amazon/biscuit/`; `patches/vendor/` records reviewed text deltas before `scripts/stage-tree.sh` copies them into the CM12 checkout.
 
-## Credits and upstreams
+## Acknowledgements and upstreams
 
-This project stands on:
+This project builds on the work of the Biscuit, amonet, Kaeru, TWRP, and MediaTek communities.
+
+- **k4y0z** did the initial heavy lifting and created the first amonet port for Biscuit.
+- **Roger Ortiz** (**R0rt1z2** / **@Rortiz2**) is credited for the published Biscuit amonet and TWRP work.
+- <code>xyz&#96;</code> released the original amonet exploit for Karnak.
+- **AntiEngineer** helped set up the development board, begin the work, identify the relevant pins, and enable UART access.
+
+I also thank everyone who has contributed to amonet and Kaeru through research, recovery development, testing, documentation, and downstream Biscuit projects.
+
+The following upstream sources document the Biscuit amonet and recovery work:
+
+- <https://github.com/R0rt1z2/amonet/tree/mt8163-biscuit>
+- <https://github.com/R0rt1z2/twrp_device_amazon_biscuit>
+- <https://github.com/amazon-oss/android_bootable_recovery>
+- <https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/>
+
+This project also stands on:
 
 - CyanogenMod/LineageOS CM12.1 and AOSP trees, synced through `manifest/cm12.lock.xml`.
 - Amazon OSS `android_device_amazon_mt8163-common`: base MT8163 device-common tree.
@@ -252,6 +280,8 @@ This project stands on:
 - The amonet Biscuit unlock/recovery work documented in `docs/amonet-biscuit-unlock.md`.
 
 Tracked changes in this repo are the Biscuit-specific glue, patches, scripts, and documentation needed to rebuild the workspace.
+
+It has been an honor for this repository to serve as a jump-start for more specialized work.
 
 ## Safety
 
