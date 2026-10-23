@@ -1,6 +1,18 @@
 # CM14.1 for Amazon Biscuit (Echo Dot 2nd gen)
 
 > [!WARNING]
+> ## This repository is archived
+>
+> Active development of this repository has ended. I am sincerely honored that it served as a jump-start for more specialized Biscuit work in the community.
+>
+> If you are looking for more specialized downstream Biscuit work, please see:
+>
+> - [meiser79/android_device_amazon_biscuit](https://github.com/meiser79/android_device_amazon_biscuit)
+> - [jxlarrea/lineageos-biscuit-kiosk-satellite](https://github.com/jxlarrea/lineageos-biscuit-kiosk-satellite)
+>
+> I am grateful to everyone who tested, improved, forked, documented, or otherwise carried this work forward.
+
+> [!WARNING]
 > **Amonet Biscuit v2.0.0 is required to install either image on a Biscuit.** These OTAs target its TWRP 3.7.0_9-0 and native A/B partition contract. Do not use stock recovery, stock fastboot, Amonet v1 instructions, or old `boot_a_x` paths.
 >
 > Amonet v2 uses a Preloader exploit, removes the old `lk-payload`/GPT-remapping design, supports Fire OS 6, and drops Fire OS 5. Its own update changes early boot components and must never be interrupted; a normal CM14 OTA must write only TWRP's `/dev/block/current-system` and `/dev/block/current-boot` aliases. A/B ROM installation requires the documented two-install recovery procedure when populating both slots. Holding only **MUTE** while connecting power with USB attached enters v2 Preloader USBDL recovery; v2 intentionally removes stock non-hacked fastboot.
@@ -120,6 +132,26 @@ adb shell ip addr show wlan0
 ```
 
 Do not print Wi-Fi PSKs in logs or summaries.
+
+## Acknowledgements
+
+This project builds on the work of the Biscuit, amonet, Kaeru, TWRP, and MediaTek communities.
+
+- **k4y0z** did the initial heavy lifting and created the first amonet port for Biscuit.
+- **Roger Ortiz** (**R0rt1z2** / **@Rortiz2**) is credited for the published Biscuit amonet and TWRP work.
+- <code>xyz&#96;</code> released the original amonet exploit for Karnak.
+- **AntiEngineer** helped set up the development board, begin the work, identify the relevant pins, and enable UART access.
+
+I also thank everyone who has contributed to amonet and Kaeru through research, recovery development, testing, documentation, and downstream Biscuit projects.
+
+The following upstream sources document this work:
+
+- <https://github.com/R0rt1z2/amonet/tree/mt8163-biscuit>
+- <https://github.com/R0rt1z2/twrp_device_amazon_biscuit>
+- <https://github.com/amazon-oss/android_bootable_recovery>
+- <https://xdaforums.com/t/unlock-root-twrp-unbrick-amazon-echo-dot-2nd-gen-2016-biscuit.4761416/>
+
+It has been an honor for this repository to serve as a jump-start for more specialized work.
 
 ## Safety
 
