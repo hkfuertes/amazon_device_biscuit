@@ -331,7 +331,8 @@ static void show_countdown(long long remaining, long long total) {
     }
 }
 
-static void clear() {
+// Stop animations, countdown and pending volume clears without touching the LEDs.
+static void stop_effects() {
     pthread_mutex_lock(&g_lock);
     g_manual.clear();
     g_active.clear();
@@ -343,6 +344,10 @@ static void clear() {
     ++g_volume_generation;
     ++g_countdown_generation;
     pthread_mutex_unlock(&g_lock);
+}
+
+static void clear() {
+    stop_effects();
     write_file(LED_FRAME, "000000000000000000000000000000000000000000000000000000000000000000000000");
 }
 
@@ -350,8 +355,14 @@ static void handle(int fd, char* line) {
     char* nl = strchr(line, '\n'); if (nl) *nl = 0;
     if (!strncmp(line, "FRAME ", 6)) {
         std::string hex = trim(line + 6);
-        if (valid_frame(hex)) { clear(); write_file(LED_FRAME, hex); dprintf(fd, "OK\n"); }
-        else dprintf(fd, "ERR bad frame\n");
+        if (valid_frame(hex)) {
+            // Don't blank first: clients streaming frames would strobe.
+            stop_effects();
+            write_file(LED_FRAME, hex);
+            dprintf(fd, "OK\n");
+        } else {
+            dprintf(fd, "ERR bad frame\n");
+        }
     } else if (!strncmp(line, "PLAY ", 5)) {
         std::string name = trim(line + 5);
         Animation anim;
